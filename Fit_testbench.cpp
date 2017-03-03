@@ -16,8 +16,6 @@
 
 using namespace RooFit ;
 vector<int> Fits_status;
-const char * Type_minim="Minuit";
-const char * Algo_minim="minimize";//
 struct Fit_results{
   float Results[80];
   int n_POIs;
@@ -48,6 +46,13 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   int MN_output_print_level=-1;
   int MN_output_print_level_prefit;
   bool print_prefit_info=false;
+  const char * Type_minim="Minuit";
+  const char * Algo_minim="minimize";//
+  const char * Type_minim_pf="Minuit";//"Minuit2";//
+  const char * Algo_minim_pf="minimize";//"scan";//
+
+
+  
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
   bool draw_results;
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
@@ -458,7 +463,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     //Delta_H_0.setConstant(kTRUE);
     sigma_L_0.setConstant(kTRUE);
     sigma_H_0.setConstant(kTRUE);
-    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer(Type_minim,Algo_minim),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
     sigma_L_0.setConstant(kFALSE);
     sigma_H_0.setConstant(kFALSE);
     //Delta_H_0.setConstant(kFALSE);
@@ -578,7 +583,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   //Delta_H_1.setConstant(kTRUE);
   sigma_L_1.setConstant(kTRUE);
   sigma_H_1.setConstant(kTRUE);
-  RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer(Type_minim,Algo_minim),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+  RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
   sigma_L_1.setConstant(kFALSE);
   sigma_H_1.setConstant(kFALSE);
   //Delta_H_1.setConstant(kFALSE);
@@ -869,7 +874,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   sigma_H_0.setConstant(kTRUE);
   sigma_L_1.setConstant(kTRUE);
   sigma_H_1.setConstant(kTRUE);
-  RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer(Type_minim,Algo_minim),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+  RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
   sigma_L_1.setConstant(kFALSE);
   sigma_H_1.setConstant(kFALSE);
   sigma_L_0.setConstant(kFALSE);

@@ -47,7 +47,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
   int MN_output_print_level=-1;
   int MN_output_print_level_prefit;
-  bool print_prefit_info=false; if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
+  bool print_prefit_info=false;
+  if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
   bool draw_results;
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
   Fit_results my_fit_results;

@@ -17,7 +17,7 @@
 using namespace RooFit ;
 vector<int> Fits_status;
 const char * Type_minim="Minuit";
-const char * Algo_minim="minimize";
+const char * Algo_minim="minimize";//
 struct Fit_results{
   float Results[80];
   int n_POIs;
@@ -157,10 +157,11 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   double low_n_CB;
   double up_n_CB;
   
-
+  double my_low_x=8;
+  double my_up_x=11;
+  
   /////POS 0
-   low_x_0=8; up_x_0=11;
-  // low_x_0=22; up_x_0=25;
+   low_x_0=my_low_x; up_x_0=my_up_x;
   
   low_delta_H_0=0.180;
    up_delta_H_0=0.5;
@@ -200,7 +201,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
 
 
    //////POS 1 ////////
-   low_x_1=8; up_x_1=11;
+   low_x_1=my_low_x; up_x_1=my_up_x;
   
   low_delta_H_1=0.180;
    up_delta_H_1=0.5;
@@ -484,7 +485,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     RMN_0.setStrategy(2);
     RMN_0.minimize(Type_minim,Algo_minim);
     fit_results_0=RMN_0.fit("hmr") ;
-  }else{fit_results_0 = model_0.fitTo(ds_0,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
+  }else{fit_results_0 = model_0.fitTo(ds_0,Save(),Strategy(2),SumW2Error(kFALSE),InitialHesse(true),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
   }
   
   fit_results_0->Print("v");
@@ -769,19 +770,35 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   }
 
 
+
+    TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
+    TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
+    TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
+    TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
+    TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
+    TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
+    TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
   if(draw_results){  
     TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
     c_Fit->Divide(3,4) ;
     gStyle->SetOptFit(0111); 
     c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
     c_Fit->cd(4) ; gPad->SetLeftMargin(0.15) ; xframe2_0_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_0_log->Draw() ;
-    c_Fit->cd(7) ; gPad->SetLeftMargin(0.15) ; xframe4_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_0->Draw() ;
+    c_Fit->cd(7) ; gPad->SetLeftMargin(0.15) ; xframe4_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_0->GetYaxis()->SetRangeUser(-5,5); xframe4_0->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
     c_Fit->cd(10) ; gPad->SetLeftMargin(0.15) ; h_correlation_0->Draw("colz:text");
     
     c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
     c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1_log->Draw() ;
     //c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1->Draw() ;
-    c_Fit->cd(8) ; gPad->SetLeftMargin(0.15) ; xframe4_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_1->Draw() ;
+    c_Fit->cd(8) ; gPad->SetLeftMargin(0.15) ; xframe4_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_1->GetYaxis()->SetRangeUser(-5,5); xframe4_1->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
     c_Fit->cd(11) ; gPad->SetLeftMargin(0.15) ; h_correlation_1->Draw("colz:text");
     
     TCanvas* c_Fit_zoom = new TCanvas("c_Fit_zoom","Fit results zoom",0,0,1124,700) ;
@@ -987,7 +1004,11 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     c_Fit->cd();
     c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
     c_Fit->cd(6) ; gPad->SetLeftMargin(0.15) ; xframe2_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_log->Draw() ;
-    c_Fit->cd(9) ; gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->Draw() ;
+    c_Fit->cd(9) ; gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5);xframe4->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
     c_Fit->cd(12) ; gPad->SetLeftMargin(0.15) ; h_correlation->Draw("colz:text");
     c_Fit_zoom->cd();
     c_Fit_zoom->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;

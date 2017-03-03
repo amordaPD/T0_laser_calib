@@ -51,6 +51,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
+  bool add_third_signal=false;
 
 
   
@@ -291,8 +292,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooFormulaVar Frac_L_0("Frac_L_0","Frac_L_0","alpha_0",RooArgList(alpha_0));
   RooFormulaVar Frac_H_0("Frac_H_0","Frac_H_0","beta_0-alpha_0*beta_0",RooArgList(beta_0,alpha_0));
   RooFormulaVar Frac_T_0("Frac_T_0","Frac_T_0","1-alpha_0-beta_0+alpha_0*beta_0",RooArgList(alpha_0,beta_0));
-  RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0);//,PDF_T_0);//
-  RooArgList  fracList_sig_0(alpha_0);//,beta_0);
+  RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal) {pdfList_sig_0.add(PDF_T_0);}//
+  RooArgList  fracList_sig_0(alpha_0);if(add_third_signal) {fracList_sig_0.add(beta_0);}
   RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
 
 
@@ -325,8 +326,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooFormulaVar Frac_L_1("Frac_L_1","Frac_L_1","alpha_1",RooArgList(alpha_1));
   RooFormulaVar Frac_H_1("Frac_H_1","Frac_H_1","beta_1-alpha_1*beta_1",RooArgList(beta_1,alpha_1));
   RooFormulaVar Frac_T_1("Frac_T_1","Frac_T_1","1-alpha_1-beta_1+alpha_1*beta_1",RooArgList(alpha_1,beta_1));
-  RooArgList  pdfList_sig_1(PDF_L_1,PDF_H_1);//,PDF_T_1);//
-  RooArgList  fracList_sig_1(alpha_1);//,beta_1);
+  RooArgList  pdfList_sig_1(PDF_L_1,PDF_H_1);if(add_third_signal) {pdfList_sig_1.add(PDF_T_1);}//
+  RooArgList  fracList_sig_1(alpha_1);if(add_third_signal) {fracList_sig_1.add(beta_1);}
   RooAddPdf   PDF_sig_1("PDF_sig_1","PDF_sig_1",pdfList_sig_1,fracList_sig_1,kTRUE);
   //RooGenericPdf PDF_sig_1("PDF_sig_1","PDF_sig_1","alpha_1*PDF_L_1+(1-alpha_1)*PDF_H_1",RooArgList(x,alpha_1,PDF_L_1,PDF_H_1));
   //RooGenericPdf PDF_sig_1("PDF_sig_1","PDF_sig_1","@0*@1+(1-@0)*@2",RooArgList(alpha_1,PDF_L_1,PDF_H_1));
@@ -353,7 +354,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
 
   
   RooRealVar  Frac_sig_1("Frac_sig_1","fraction of sig events", 0.9, 0.7,1.0);
-  RooArgList  pdfList_1(PDF_sig_1,PDF_B_0);
+  RooArgList  pdfList_1(PDF_sig_1,PDF_B_1);
   RooArgList  fracList_1(Frac_sig_1);
   RooAddPdf   model_1("model_1","model_1",pdfList_1,fracList_1,kTRUE);
 
@@ -573,7 +574,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   TH2 *h_correlation_0 = fit_results_0->correlationHist(); h_correlation_0->SetTitle(Form("correlation matrix 0 ch %d",ch));h_correlation_0->GetYaxis()->SetLabelSize(0.1); h_correlation_0->GetYaxis()->SetLabelFont(70); h_correlation_0->SetMarkerSize(2);
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
-  //  model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
+  if(add_third_signal) model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_sig_0"),LineStyle(kDashed),LineColor(5)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0")) ;
@@ -582,7 +583,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   // Construct a histogram with the pulls of the data w.r.t the curve
   RooHist* hpull_0 = xframe2_0->pullHist() ;
   // Create a new frame to draw the pull distribution and add the distribution to the frame
-  RooPlot* xframe4_0 = x.frame(Title("Pull Distribution")) ;
+  RooPlot* xframe4_0 = x.frame(Title(Form("Pull Distribution fiber 0 - ch %d",ch))) ;
   xframe4_0->addPlotable(hpull_0,"P") ;
   
   xframe2_0->GetXaxis()->SetLabelSize(0.05);
@@ -600,7 +601,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   ds_0.plotOn(xframe2_0_log);//,DataError(RooAbsData::SumW2)) ;
   model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
   model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
-  //  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
+  if(add_third_signal) model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
   model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_sig_0"),LineStyle(kDashed),LineColor(5)) ;
   model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
   model_0.plotOn(xframe2_0_log,Range("Fit_Range_0")) ;
@@ -692,7 +693,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
-  //  model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+  if(add_third_signal) model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
   model_1.plotOn(xframe2_1,Range("Fit_Range_1")) ;
@@ -701,7 +702,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   // Construct a histogram with the pulls of the data w.r.t the curve
   RooHist* hpull_1 = xframe2_1->pullHist() ;
   // Create a new frame to draw the pull distribution and add the distribution to the frame
-  RooPlot* xframe4_1 = x.frame(Title("Pull Distribution")) ;
+  RooPlot* xframe4_1 = x.frame(Title(Form("Pull Distribution fiber 1 - ch %d",ch)));
   xframe4_1->addPlotable(hpull_1,"P") ;
   
   
@@ -719,7 +720,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   ds_1.plotOn(xframe2_1_log);//,DataError(RooAbsData::SumW2)) ;
   model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
   model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
-  //  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+   if(add_third_signal)  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
   model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
   model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
   model_1.plotOn(xframe2_1_log,Range("Fit_Range_1")) ;
@@ -1047,7 +1048,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooHist* hpull = xframe2->pullHist() ;
   xframe3->addPlotable(hresid,"P") ;
   // Create a new frame to draw the pull distribution and add the distribution to the frame
-  RooPlot* xframe4 = x.frame(Title("Pull Distribution")) ;
+  RooPlot* xframe4 = x.frame(Title(Form("Pull Distribution fiber 0 #oplus 1 - ch %d",ch)));
   xframe4->addPlotable(hpull,"P") ;
   xframe2->GetXaxis()->SetLabelSize(0.05);
   xframe2->GetXaxis()->SetLabelFont(70);

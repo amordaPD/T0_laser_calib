@@ -16,7 +16,8 @@
 
 using namespace RooFit ;
 vector<int> Fits_status;
-
+const char * Type_minim="Minuit";
+const char * Algo_minim="minimize";
 struct Fit_results{
   float Results[80];
   int n_POIs;
@@ -43,6 +44,7 @@ TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
 Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
+  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll 
   bool draw_results;
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
   Fit_results my_fit_results;
@@ -56,7 +58,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   // ---------------------
  
   //RooRealVar x("Time","Time [ns]",8,25) ;//
-  RooRealVar x("Time","Time [ns]",8,10) ;
+  RooRealVar x("Time","Time [ns]",8,11) ;
   ///////fixing starting values and boundaries for two positions
 
 
@@ -195,7 +197,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
 
 
    //////POS 1 ////////
-   low_x_1=8.0; up_x_1=11;
+   low_x_1=8; up_x_1=11;
   
   low_delta_H_1=0.180;
    up_delta_H_1=0.5;
@@ -339,19 +341,9 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooArgList  fracList_1(Frac_sig_1);
   RooAddPdf   model_1("model_1","model_1",pdfList_1,fracList_1,kTRUE);
 
-   RooArgSet* model_params_0 = model_0.getParameters(x) ;
-   model_params_0->Print("v") ;
-   /*
-  vector<RooAbsPdf> Sig_list;
-  Sig_list.clear();
-  Sig_list.push_back(model_0);
-  Sig_list.push_back(model_1);
-  cout<<Sig_list.size()<<endl;
-  for(auto& siglists: Sig_list){
-    RooArgSet* model_params=siglists.getParameters(x);
-    model_params->Print("v") ;
-  }
-   */
+  // RooArgSet* model_params_0 = model_0.getParameters(x) ;
+  //  model_params_0->Print("v") ;
+
 
   // I m p o r t    d a t a
   // ------------------------
@@ -444,6 +436,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   x.setRange("Fit_Range_1",low_x_1,up_x_1);
 
   
+  
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
 
@@ -461,7 +454,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     //Delta_H_0.setConstant(kTRUE);
     sigma_L_0.setConstant(kTRUE);
     sigma_H_0.setConstant(kTRUE);
-    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer("Minuit","minimize"),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer(Type_minim,Algo_minim),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
     sigma_L_0.setConstant(kFALSE);
     sigma_H_0.setConstant(kFALSE);
     //Delta_H_0.setConstant(kFALSE);
@@ -477,18 +470,20 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   cout<<"STATUS MIGRAD EDM 0"<<endl;
 
 
-  /*
-    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Save(),SumW2Error(kFALSE),Extended(kFALSE)) ;
-    RooMinuit RMN_0 = RooMinuit(*nll_model_0);
+
+  RooFitResult* fit_results_0;
+  if(use_NLL){
+    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE)) ;
+    RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
     RMN_0.setErrorLevel(-1);
     RMN_0.setVerbose(kFALSE);
-    RMN_0.setWarnLevel(-1);
+    RMN_0.setPrintEvalErrors(-1);
     RMN_0.setStrategy(2);
-    RooFitResult* fit_results_0=RMN_0.fit("shr") ;
-  */
+    RMN_0.minimize(Type_minim,Algo_minim);
+    fit_results_0=RMN_0.fit("hmr") ;
+  }else{fit_results_0 = model_0.fitTo(ds_0,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
+  }
   
-  
-  RooFitResult* fit_results_0 = model_0.fitTo(ds_0,Save(),InitialHesse(true),Minimizer("Minuit","minimize"),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//);
   fit_results_0->Print("v");
   RooPlot* xframe2_0 = x.frame(Title(Form("pos. 0, channel %d",ch))) ;
   ds_0.plotOn(xframe2_0);//,DataError(RooAbsData::SumW2)) ;
@@ -578,7 +573,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   //Delta_H_1.setConstant(kTRUE);
   sigma_L_1.setConstant(kTRUE);
   sigma_H_1.setConstant(kTRUE);
-  RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer("Minuit","minimize"),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+  RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer(Type_minim,Algo_minim),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
   sigma_L_1.setConstant(kFALSE);
   sigma_H_1.setConstant(kFALSE);
   //Delta_H_1.setConstant(kFALSE);
@@ -592,7 +587,21 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   cout<<"-----------------------------------"<<endl;
   cout<<"___________________________________"<<endl;
   cout<<"STATUS MIGRAD EDM 1"<<endl;
-  RooFitResult* fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Minimizer("Minuit","minimize"),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//);
+
+
+  RooFitResult* fit_results_1;
+  if(use_NLL){
+    RooAbsReal* nll_model_1 = model_1.createNLL(ds_1,Extended(kFALSE)) ;
+    RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
+    RMN_1.setErrorLevel(-1);
+    RMN_1.setVerbose(kFALSE);
+    RMN_1.setPrintEvalErrors(-1);
+    RMN_1.setStrategy(2);
+    RMN_1.minimize(Type_minim,Algo_minim);
+    fit_results_1=RMN_1.fit("hmr") ;
+  }else{
+    fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
+  }
   fit_results_1->Print("v");
   RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
   ds_1.plotOn(xframe2_1);
@@ -685,6 +694,13 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   PAR_NAMES[5]="sigma_T";
   PAR_NAMES[6]="alpha";
   PAR_NAMES[7]="beta";
+
+
+
+
+  cout<<"eeeih Delta H 0   ch : "<<ch<<"   "<<Delta_H_0.getVal()<<" +- "<<Delta_H_0.getError()<<endl;
+  cout<<"eeeih Delta H 1   ch : "<<ch<<"   "<<Delta_H_1.getVal()<<" +- "<<Delta_H_1.getError()<<endl;
+  cout<<"eeeih Delta H 0 1 ch : "<<ch<<"   "<<delta_means_L.getVal()<<" +- "<<delta_means_L.getError()<<endl;
   cout<<"<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
   cout<<"<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
   cout<<"<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
@@ -831,7 +847,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   sigma_H_0.setConstant(kTRUE);
   sigma_L_1.setConstant(kTRUE);
   sigma_H_1.setConstant(kTRUE);
-  RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer("Minuit","minimize"),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+  RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer(Type_minim,Algo_minim),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
   sigma_L_1.setConstant(kFALSE);
   sigma_H_1.setConstant(kFALSE);
   sigma_L_0.setConstant(kFALSE);
@@ -853,7 +869,23 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   cout<<"-----------------------------------"<<endl;
   cout<<"___________________________________"<<endl;
   cout<<"STATUS MIGRAD EDM 10"<<endl;
-  
+
+
+
+
+  RooFitResult* fit_results;
+  if(use_NLL){  
+    RooAbsReal* nll_model = model.createNLL(DS,Extended(kFALSE)) ;
+    RooMinimizer RMN = RooMinimizer(*nll_model);
+    RMN.setErrorLevel(-1);
+    RMN.setVerbose(kFALSE);
+    RMN.setPrintEvalErrors(-1);
+    RMN.setStrategy(2);
+    RMN.minimize(Type_minim,Algo_minim);
+    fit_results=RMN.fit("hmr") ;
+  }else{
+    fit_results = model.fitTo(DS,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//Minimizer(Type_minim,Algo_minim)
+  }
   /*
   alpha_0.setVal(starting_alpha_0);
   alpha_1.setVal(starting_alpha_1);
@@ -890,9 +922,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
 
   
   */
-  
-  //  RooFitResult* fit_results_1 = model_1.fitTo(ds_1,Range("Fit_Range_1"),Save(),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE),InitialHesse(true));//,Extended(kFALSE),Verbose(kFALSE));//);
-  RooFitResult* fit_results = model.fitTo(DS,Save(),InitialHesse(true),Minimizer("Minuit","minimize"),Strategy(2),SumW2Error(kFALSE),PrintLevel(1),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//
+
   fit_results->Print("v");
   
   Fits_status.push_back(fit_results->status());
@@ -1424,14 +1454,33 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //RESULTS.push_back(my_fit_Results);
 
     
+    TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
+    TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
+    TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
+    TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
+    TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
+    TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
+    TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
       c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
       c_pos1_AllChannels->cd(index_channel_pixel[i]);my_fit_Results.xframe2_fit_1->Draw();
-      c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->Draw();
-      c_pos1_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_1->Draw();
+      c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
+      line_3ns->Draw("same");line_3ps->Draw("same");
+      line_2ns->Draw("same");line_2ps->Draw("same");
+      line_1ns->Draw("same");line_1ps->Draw("same");
+      line_0s->Draw("same");line_0s->Draw("same");
+      c_pos1_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_1->GetYaxis()->SetRangeUser(-5,5);my_fit_Results.xframe2_pull_1->Draw();
+      line_3ns->Draw("same");line_3ps->Draw("same");
+      line_2ns->Draw("same");line_2ps->Draw("same");
+      line_1ns->Draw("same");line_1ps->Draw("same");
+      line_0s->Draw("same");line_0s->Draw("same");
       c_pos0_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_0->Draw("colz:text");
       c_pos1_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_1->Draw("colz:text");
       c_pos01_AllChannels->cd(index_channel_pixel[i]);my_fit_Results.xframe2_fit_01->Draw(); 
-      c_pos01_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_01->Draw(); 
+      c_pos01_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_01->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_01->Draw(); 
+      line_3ns->Draw("same");line_3ps->Draw("same");
+      line_2ns->Draw("same");line_2ps->Draw("same");
+      line_1ns->Draw("same");line_1ps->Draw("same");
+      line_0s->Draw("same");line_0s->Draw("same");
       c_pos01_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_01->Draw("colz:text"); 
     
     

@@ -891,6 +891,10 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     gStyle->SetOptFit(0111); 
     c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
     c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
+    TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
+     xframe2_0->Draw() ;
+    TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
+     xframe2_1->Draw() ;
   }
   
   mean_L_0.setConstant(kFALSE);
@@ -1097,6 +1101,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     c_Fit->cd(12) ; gPad->SetLeftMargin(0.15) ; h_correlation->Draw("colz:text");
     c_Fit_zoom->cd();
     c_Fit_zoom->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
+    TCanvas* c_Fit_01 = new TCanvas("c_Fit_01","c_Fit_01");
+     xframe2->Draw() ;
   }
   ///////BOTH FIBER FIT VALUES////////
   /*32   */   POIs.push_back(mean_L_0.getVal()); 

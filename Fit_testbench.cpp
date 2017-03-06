@@ -1888,18 +1888,19 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TMultiGraph *mg_DELTAMEANS_L_1 = new TMultiGraph();
     mg_DELTAMEANS_L_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} - vs Channel - pos.1");
     mg_DELTAMEANS_L_1->Add(MEAN_L_B_1);
-    mg_DELTAMEANS_L_1->Add(MEAN_L_A_1);
+    //mg_DELTAMEANS_L_1->Add(MEAN_L_A_1);
     
-    TCanvas *c_absolute_positions_01 = new TCanvas("c_absolute_position_01","c_absolute_position_01");
-    c_absolute_positions_01->Divide(2,1);
-    c_absolute_positions_01->cd(1);
+    TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b");
+    //c_absolute_positions_01->Divide(2,1);
+    //c_absolute_positions_01->cd(1);
     mg_MEANS_L_0->Draw("AP");
     mg_MEANS_L_0->GetXaxis()->SetTitle("Channel");
     mg_MEANS_L_0->GetYaxis()->SetTitle("T_{L}^{pos.0} [ns]");
     gPad->BuildLegend();
     gPad->Update();
     gPad->SetGridy();
-    c_absolute_positions_01->cd(2);
+    TCanvas *c_absolute_positions_01 = new TCanvas("c_absolute_position_01","c_absolute_position_01");
+    //c_absolute_positions_01->cd(2);
     mg_DELTAMEANS_L_1->Draw("AP");
     mg_DELTAMEANS_L_1->GetXaxis()->SetTitle("Channel");
     mg_DELTAMEANS_L_1->GetYaxis()->SetTitle("#Delta T_{L} [ns]");
@@ -2058,10 +2059,10 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_FRAC_SIGMA_H_0->GetXaxis()->SetTitle("f_{L}");
     mg_FRAC_SIGMA_H_0->GetYaxis()->SetTitle("#delta t [ns]");
     c_frac_sig->cd(3);
-    mg_FRAC_SIGMA_L_0->Draw("AP");
+    mg_FRAC_SIGMA_L_1->Draw("AP");
     gPad->Update();
-    mg_FRAC_SIGMA_L_0->GetXaxis()->SetTitle("f_{L}");
-    mg_FRAC_SIGMA_L_0->GetYaxis()->SetTitle("#delta t [ns]");
+    mg_FRAC_SIGMA_L_1->GetXaxis()->SetTitle("f_{L}");
+    mg_FRAC_SIGMA_L_1->GetYaxis()->SetTitle("#delta t [ns]");
     c_frac_sig->cd(4);
     mg_FRAC_SIGMA_H_1->Draw("AP");
     gPad->Update();

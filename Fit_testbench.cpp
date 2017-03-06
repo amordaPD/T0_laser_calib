@@ -416,11 +416,16 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
 
   
-  
+   //merged dataset
+  TH1*h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
+  h_input_histogram->Add(h_input_histogram_1,1);
+  RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
+  /*
   RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram_0)) ;
   RooDataHist DS_1("DS_1","DS_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
-  Double_t rel_weight = 0.5;
+  Double_t rel_weight = 10;
   DS.add(DS_1);
+  */
   RooPlot* xframe2 = x.frame(Title(Form("pos.0 #oplus pos.1,  channel %d",ch))) ;
   DS.plotOn(xframe2);
   

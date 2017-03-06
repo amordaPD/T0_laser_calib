@@ -1742,8 +1742,25 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TGraphErrors *REF_sigma_L = new TGraphErrors(16,x,ref_sigma_L,err_x,err_x);REF_sigma_L->SetTitle("#delta t_{low}^{ref} pos.0 - fit pos.0");
     TGraphErrors *REF_sigma_H = new TGraphErrors(16,x,ref_sigma_H,err_x,err_x);REF_sigma_H->SetTitle("#delta t_{high}^{ref} pos.0 - fit pos.0");
     TGraphErrors *REF_sigma_T = new TGraphErrors(16,x,ref_sigma_T,err_x,err_x);REF_sigma_T->SetTitle("#delta t_{third}^{ref} pos.0 - fit pos.0");
-    
-    
+
+    TGraphErrors *SIGMA_FRAC_L_0 = new TGraphErrors(16,frac_L_B_0,sigma_L_0_B,err_frac_L_B_0,err_sigma_L_0_B);SIGMA_FRAC_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_H_0 = new TGraphErrors(16,frac_L_B_0,sigma_H_0_B,err_frac_L_B_0,err_sigma_H_0_B);SIGMA_FRAC_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_L_1 = new TGraphErrors(16,frac_L_B_1,sigma_L_1_B,err_frac_L_B_1,err_sigma_L_1_B);SIGMA_FRAC_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_H_1 = new TGraphErrors(16,frac_L_B_1,sigma_H_1_B,err_frac_L_B_1,err_sigma_H_1_B);SIGMA_FRAC_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_L_0_A = new TGraphErrors(16,frac_L_B_0,sigma_L_0_A,err_frac_L_B_0,err_sigma_L_0_A);SIGMA_FRAC_L_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_H_0_A = new TGraphErrors(16,frac_L_B_0,sigma_H_0_A,err_frac_L_B_0,err_sigma_H_0_A);SIGMA_FRAC_H_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_L_1_A = new TGraphErrors(16,frac_L_B_1,sigma_L_1_A,err_frac_L_B_1,err_sigma_L_1_A);SIGMA_FRAC_L_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_H_1_A = new TGraphErrors(16,frac_L_B_1,sigma_H_1_A,err_frac_L_B_1,err_sigma_H_1_A);SIGMA_FRAC_H_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    SIGMA_FRAC_H_0->SetMarkerStyle(20);SIGMA_FRAC_H_0->SetMarkerColor(4);SIGMA_FRAC_H_0->SetMarkerSize(2.0);
+    SIGMA_FRAC_L_0->SetMarkerStyle(20);SIGMA_FRAC_L_0->SetMarkerColor(4);SIGMA_FRAC_L_0->SetMarkerSize(2.0);
+    SIGMA_FRAC_H_1->SetMarkerStyle(20);SIGMA_FRAC_H_1->SetMarkerColor(4);SIGMA_FRAC_H_1->SetMarkerSize(2.0);
+    SIGMA_FRAC_L_1->SetMarkerStyle(20);SIGMA_FRAC_L_1->SetMarkerColor(4);SIGMA_FRAC_L_1->SetMarkerSize(2.0);
+    SIGMA_FRAC_H_0_A->SetMarkerStyle(20);SIGMA_FRAC_H_0_A->SetMarkerColor(2);SIGMA_FRAC_H_0_A->SetMarkerSize(2.0);
+    SIGMA_FRAC_L_0_A->SetMarkerStyle(20);SIGMA_FRAC_L_0_A->SetMarkerColor(2);SIGMA_FRAC_L_0_A->SetMarkerSize(2.0);
+    SIGMA_FRAC_H_1_A->SetMarkerStyle(20);SIGMA_FRAC_H_1_A->SetMarkerColor(2);SIGMA_FRAC_H_1_A->SetMarkerSize(2.0);
+    SIGMA_FRAC_L_1_A->SetMarkerStyle(20);SIGMA_FRAC_L_1_A->SetMarkerColor(2);SIGMA_FRAC_L_1_A->SetMarkerSize(2.0);
+
+
     FRAC_0->SetMarkerStyle(20); FRAC_0->SetMarkerColor(4);
     DELTA_means_ref->SetMarkerStyle(29);
     DELTA_means_ref->SetMarkerColor(kOrange-2);DELTA_means_ref->SetMarkerSize(2.0);
@@ -2005,6 +2022,46 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_SIGMA_T_1->Add(SIGMA_T_B_1);
     mg_SIGMA_T_1->Add(SIGMA_T_A_1);
     
+    TMultiGraph *mg_FRAC_SIGMA_L_0 = new TMultiGraph();
+    mg_FRAC_SIGMA_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - low time peak");
+    mg_FRAC_SIGMA_L_0->Add(SIGMA_FRAC_L_0);
+    mg_FRAC_SIGMA_L_0->Add(SIGMA_FRAC_L_0_A);
+    TMultiGraph *mg_FRAC_SIGMA_H_0 = new TMultiGraph();
+    mg_FRAC_SIGMA_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - high time peak");
+    mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0);
+    mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0_A);
+    TMultiGraph *mg_FRAC_SIGMA_L_1 = new TMultiGraph();
+    mg_FRAC_SIGMA_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1 - low time peak");
+    mg_FRAC_SIGMA_L_1->Add(SIGMA_FRAC_L_1);
+    mg_FRAC_SIGMA_L_1->Add(SIGMA_FRAC_L_1_A);
+    TMultiGraph *mg_FRAC_SIGMA_H_1 = new TMultiGraph();
+    mg_FRAC_SIGMA_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1 - high time peak");
+    mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1);
+    mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1_A);
+
+
+    TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma");
+    c_frac_sig->Divide(2,2);
+    c_frac_sig->cd(1);
+    mg_FRAC_SIGMA_L_0->Draw("AP");
+    gPad->Update();
+    mg_FRAC_SIGMA_L_0->GetXaxis()->SetTitle("f_{L}");
+    mg_FRAC_SIGMA_L_0->GetYaxis()->SetTitle("#delta t [ns]");
+    c_frac_sig->cd(2);
+    mg_FRAC_SIGMA_H_0->Draw("AP");
+    gPad->Update();
+    mg_FRAC_SIGMA_H_0->GetXaxis()->SetTitle("f_{L}");
+    mg_FRAC_SIGMA_H_0->GetYaxis()->SetTitle("#delta t [ns]");
+    c_frac_sig->cd(3);
+    mg_FRAC_SIGMA_L_0->Draw("AP");
+    gPad->Update();
+    mg_FRAC_SIGMA_L_0->GetXaxis()->SetTitle("f_{L}");
+    mg_FRAC_SIGMA_L_0->GetYaxis()->SetTitle("#delta t [ns]");
+    c_frac_sig->cd(4);
+    mg_FRAC_SIGMA_H_1->Draw("AP");
+    gPad->Update();
+    mg_FRAC_SIGMA_H_1->GetXaxis()->SetTitle("f_{L}");
+    mg_FRAC_SIGMA_H_1->GetYaxis()->SetTitle("#delta t [ns]");
     //////
     
     TCanvas *c_DELTA_FRAC = new TCanvas("mean peak separation","mean peak separation",0,0,1124,700);

@@ -1,4 +1,6 @@
 ////////TIME CALIBRATION CODE///////****
+///to run:
+///gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_channels(2,true); > ridaje.log
 
 
 #ifndef __CINT__
@@ -35,11 +37,12 @@ struct Fit_results{
 //  ofstream cout("fits_report.txt");
 
 
+//TFile *f_input_histogram_1 = new TFile("new_run.root");
 TFile *f_input_histogram = new TFile("compare.root");
 TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
-Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
+Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){ 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -52,6 +55,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
+  bool simulate_CB_tail=false;
 
 
   
@@ -68,7 +72,6 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   // S e t u p   m o d e l 
   // ---------------------
  
-  //RooRealVar x("Time","Time [ns]",8,25) ;//
   RooRealVar x("Time","Time [ns]",8,11) ;
   ///////fixing starting values and boundaries for two positions
 
@@ -562,7 +565,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooFitResult* fit_results_0;
   if(use_NLL){
     RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE)) ;
-    RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
+    //RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
+    RooMinimizer RMN_0 (*nll_model_0);
     RMN_0.setErrorLevel(-1);
     RMN_0.setVerbose(kFALSE);
     RMN_0.setPrintEvalErrors(-1);
@@ -681,7 +685,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooFitResult* fit_results_1;
   if(use_NLL){
     RooAbsReal* nll_model_1 = model_1.createNLL(ds_1,Extended(kFALSE)) ;
-    RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
+    //RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
+    RooMinimizer RMN_1(*nll_model_1);
     RMN_1.setErrorLevel(-1);
     RMN_1.setVerbose(kFALSE);
     RMN_1.setPrintEvalErrors(-1);
@@ -854,48 +859,28 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
     }
   }
   
-  
-  
-  TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
-  TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
-  TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
-  TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
-  TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
-  TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
-  TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
-  if(draw_results){  
-    TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
-    c_Fit->Divide(3,4) ;
-    gStyle->SetOptFit(0111); 
-    c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
-    c_Fit->cd(4) ; gPad->SetLeftMargin(0.15) ; xframe2_0_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_0_log->Draw() ;
-    c_Fit->cd(7) ; gPad->SetLeftMargin(0.15) ; xframe4_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_0->GetYaxis()->SetRangeUser(-5,5); xframe4_0->Draw() ;
-    line_3ns->Draw("same");line_3ps->Draw("same");
-    line_2ns->Draw("same");line_2ps->Draw("same");
-    line_1ns->Draw("same");line_1ps->Draw("same");
-    line_0s->Draw("same");line_0s->Draw("same");
-    c_Fit->cd(10) ; gPad->SetLeftMargin(0.15) ; h_correlation_0->Draw("colz:text");
+
+
+  if(simulate_CB_tail){
+    // TH1 *h_input_histogram_1_cut = (TH1*)f_input_histogram->Get(channel_1);
+    //RooDataHist *ds_1_toy_core=
+    // RooDataHist ds_1_s ("ds_1_s","ds_1_s",RooArgSet(x),Import(*h_input_histogram_1)) ;
+    //x.setBins(110) ;
+    ///    taking the core of the distribution
+    RooDataHist *ds_1_toy_core=(RooDataHist*)ds_1.reduce("Time<9.5");
+    //generating the tail of the distribution
+    x.setRange("tail",9.5,11) ;
+    RooAbsReal* igx_1 = model_1.getNormIntegral(RooArgSet(x));//createIntegral(x,Range("tail")) ;
+    cout << "gx_Int[x] = " << igx_1->getVal() << "    "<<model_1.expectedEvents(0)<<"   "<<model_1.getValV(0)<<endl ;
     
-    c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
-    c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1_log->Draw() ;
-    //c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1->Draw() ;
-    c_Fit->cd(8) ; gPad->SetLeftMargin(0.15) ; xframe4_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_1->GetYaxis()->SetRangeUser(-5,5); xframe4_1->Draw() ;
-    line_3ns->Draw("same");line_3ps->Draw("same");
-    line_2ns->Draw("same");line_2ps->Draw("same");
-    line_1ns->Draw("same");line_1ps->Draw("same");
-    line_0s->Draw("same");line_0s->Draw("same");
-    c_Fit->cd(11) ; gPad->SetLeftMargin(0.15) ; h_correlation_1->Draw("colz:text");
-    
-    TCanvas* c_Fit_zoom = new TCanvas("c_Fit_zoom","Fit results zoom",0,0,1124,700) ;
-    c_Fit_zoom->Divide(2,2) ;
-    gStyle->SetOptFit(0111); 
-    c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
-    c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
-    TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
-     xframe2_0->Draw() ;
-    TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
-     xframe2_1->Draw() ;
+    RooPlot* xframe2_1_toy = x.frame(Title(Form("pos. 1, channel toy tail %d",ch))) ;
+    ds_1_toy_core->plotOn(xframe2_1_toy);
+    TCanvas *ggg = new TCanvas("ggg","ggg");
+    xframe2_1_toy->Draw();
   }
+
+
+
   
   mean_L_0.setConstant(kFALSE);
   if(fix_params==0){ ///////everything is free
@@ -987,7 +972,8 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooFitResult* fit_results;
   if(use_NLL){  
     RooAbsReal* nll_model = model.createNLL(DS,Extended(kFALSE)) ;
-    RooMinimizer RMN = RooMinimizer(*nll_model);
+    //RooMinimizer RMN = RooMinimizer(*nll_model);
+    RooMinimizer RMN (*nll_model);
     RMN.setErrorLevel(-1);
     RMN.setVerbose(kFALSE);
     RMN.setPrintEvalErrors(-1);
@@ -1088,8 +1074,50 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   xframe2_log->GetXaxis()->SetLabelFont(70);
   xframe2_log->GetXaxis()->SetTitleSize(0.05);
   xframe2_log->GetXaxis()->SetTitleFont(70);
+
+
   
-  if(draw_results){
+  
+  TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
+  TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
+  TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
+  TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
+  TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
+  TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
+  TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
+  if(draw_results){  
+    TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
+    c_Fit->Divide(3,4) ;
+    gStyle->SetOptFit(0111); 
+    c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
+    c_Fit->cd(4) ; gPad->SetLeftMargin(0.15) ; xframe2_0_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_0_log->Draw() ;
+    c_Fit->cd(7) ; gPad->SetLeftMargin(0.15) ; xframe4_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_0->GetYaxis()->SetRangeUser(-5,5); xframe4_0->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
+    c_Fit->cd(10) ; gPad->SetLeftMargin(0.15) ; h_correlation_0->Draw("colz:text");
+    
+    c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
+    c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1_log->Draw() ;
+    //c_Fit->cd(5) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_1->Draw() ;
+    c_Fit->cd(8) ; gPad->SetLeftMargin(0.15) ; xframe4_1->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_1->GetYaxis()->SetRangeUser(-5,5); xframe4_1->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
+    c_Fit->cd(11) ; gPad->SetLeftMargin(0.15) ; h_correlation_1->Draw("colz:text");
+    
+    TCanvas* c_Fit_zoom = new TCanvas("c_Fit_zoom","Fit results zoom",0,0,1124,700) ;
+    c_Fit_zoom->Divide(2,2) ;
+    gStyle->SetOptFit(0111); 
+    c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
+    c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
+    TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
+     xframe2_0->Draw() ;
+    TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
+     xframe2_1->Draw() ;
+
     c_Fit->cd();
     c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
     c_Fit->cd(6) ; gPad->SetLeftMargin(0.15) ; xframe2_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_log->Draw() ;

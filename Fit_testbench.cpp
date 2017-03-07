@@ -39,7 +39,8 @@ struct Fit_results{
 
 //TFile *f_input_histogram_1 = new TFile("new_run.root");
 TFile *f_input_histogram = new TFile("compare.root");
-TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
+TFile *f_input_histogram_full_ds = new TFile("run070317-3-T77-newLens-out.root");
+//TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){ 
@@ -56,6 +57,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
+  bool fit_real_FiberCombs_data=true;
 
 
   
@@ -418,10 +420,15 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
   RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
 
-  
+ 
    //merged dataset
-  TH1*h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
-  h_input_histogram->Add(h_input_histogram_1,1);
+  TH1*h_input_histogram;
+  if(fit_real_FiberCombs_data){
+    h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-1-%d",ch));
+  }else{
+    h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
+    h_input_histogram->Add(h_input_histogram_1,1);
+  }
   RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
   /*
   RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram_0)) ;

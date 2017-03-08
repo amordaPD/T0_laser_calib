@@ -57,7 +57,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
-  bool fit_real_FiberCombs_data=true;
+  bool fit_real_FiberCombs_data=false;
+  int bkg_Chebychev_polynomial_degree=0;//set to n to have  degree n+1!!!!!!!!!
 
 
   
@@ -340,18 +341,32 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
-  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0));//,a2_0));//
+  RooArgList  coeffList_sig_0(a0_0);
 
   RooRealVar a0_1("a0_1", "", 0.0, -10, 10);
   RooRealVar a1_1("a1_1", "", 0.0, -20, 20);
   RooRealVar a2_1("a2_1", "", 0.0015, -20, 20);
-  RooChebychev PDF_B_1("PDF_B_1","PDF_B_1",x,RooArgList(a0_1,a1_1));//,a2_1));//
+  RooArgList  coeffList_sig_1(a0_1);
 
   RooRealVar a0_bkg("a0_bkg", "", 0.0, -10, 10);
   RooRealVar a1_bkg("a1_bkg", "", 0.0, -10, 10);
   RooRealVar a2_bkg("a2_bkg", "", 0.0015, -10, 10);
-  RooChebychev PDF_bkg("PDF_bkg","PDF_bkg",x,RooArgList(a0_bkg,a1_bkg));//,a2_bkg));//
-  
+  RooArgList  coeffList_sig_bkg(a0_bkg);
+
+  if(bkg_Chebychev_polynomial_degree>=1){
+    coeffList_sig_0.add(a1_0);
+    coeffList_sig_1.add(a1_1);
+    coeffList_sig_bkg.add(a1_bkg);
+    
+    if(bkg_Chebychev_polynomial_degree>2){
+      coeffList_sig_0.add(a2_0);
+      coeffList_sig_1.add(a2_1);
+      coeffList_sig_bkg.add(a2_bkg);
+    }
+  }
+  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);//,a2_0));//
+  RooChebychev PDF_B_1("PDF_B_1","PDF_B_1",x,coeffList_sig_1);//,a2_1));//
+  RooChebychev PDF_bkg("PDF_bkg","PDF_bkg",x,coeffList_sig_bkg);//,a2_bkg));//
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   RooArgList  pdfList_0(PDF_sig_0,PDF_B_0);//
   RooArgList  fracList_0(Frac_sig_0);

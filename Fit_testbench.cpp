@@ -37,10 +37,8 @@ struct Fit_results{
 //  ofstream cout("fits_report.txt");
 
 
-//TFile *f_input_histogram_1 = new TFile("new_run.root");
-TFile *f_input_histogram = new TFile("compare.root");
-TFile *f_input_histogram_full_ds = new TFile("run070317-3-T77-newLens-out.root");
-//TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
+TFile *f_input_histogram = new TFile("fit_input_data/separate_fibers_DAQ.root");
+TFile *f_input_histogram_full_ds = new TFile("fit_input_data/run070317-3-T77-newLens-out.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){ 
@@ -434,7 +432,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
   TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
   RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
-
+  cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
+  cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
  
    //merged dataset
   TH1*h_input_histogram;

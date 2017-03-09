@@ -6,16 +6,19 @@ using namespace std;
 #include <TH1F.h>
 #include <TCanvas.h>
 
-void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=22., float xmax=25, TString input_path,TString rfile){
+void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xmax=30, TString input_path,TString rfile){
   TString out_path="flat_ntuples/";
   double Amplitude (99);
   double Time (-999);
+  double weight(-9);
   int Channel (-9);
+  
   TFile *f_data = new TFile(out_path+rfile+"_out.root","recreate");
   TTree *tree_input = new TTree("tree_input","tree_input");
   tree_input->Branch("Amplitude",&Amplitude,"Amplitude/D");
   tree_input->Branch("Time",&Time,"Time/D");
   tree_input->Branch("Channel",&Channel,"Channel/I");
+  tree_input->Branch("weight",&weight,"weight/D");
   
 
 

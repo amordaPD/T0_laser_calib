@@ -74,6 +74,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   // ---------------------
  
   RooRealVar x("Time","Time [ns]",8,11) ;
+  RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
+  RooRealVar CH("Channel","PMT Channel",0,16) ;
   ///////fixing starting values and boundaries for two positions
 
 
@@ -432,6 +434,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
   TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
   RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
+  //RooDataHist ds_1=(RooDataHist)ds_1_b.reduce("Time<9.5||Time>10.5");
+  // ds_1.reduce("Time<9.8||Time>10.5");
   cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
   cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
  
@@ -458,7 +462,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
 
   
-
+  /*
   if(do_simultaneous_fit){
     RooDataHist ds_0_s ("ds_0_s","ds_0_s",RooArgSet(x),Import(*h_input_histogram_0)) ;
     RooDataHist ds_1_s ("ds_1_s","ds_1_s",RooArgSet(x),Import(*h_input_histogram_1)) ;
@@ -527,7 +531,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     c_simultaneous->cd(5) ; xframe4_0_sim->Draw();
     
     
-  } else {
+    } */
   
   // D o  F i t 
   // ------------------------
@@ -888,7 +892,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     // RooDataHist ds_1_s ("ds_1_s","ds_1_s",RooArgSet(x),Import(*h_input_histogram_1)) ;
     //x.setBins(110) ;
     ///    taking the core of the distribution
-    RooDataHist *ds_1_toy_core=(RooDataHist*)ds_1.reduce("Time<9.5");
+    RooDataHist *ds_1_toy_core=(RooDataHist*)ds_1.reduce("Time<9.8||Time>10.5");
     //generating the tail of the distribution
     x.setRange("tail",9.5,11) ;
     RooAbsReal* igx_1 = model_1.getNormIntegral(RooArgSet(x));//createIntegral(x,Range("tail")) ;
@@ -1283,7 +1287,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   delete  h_input_histogram_0; //cout<<"test 1"<<endl;
   delete  h_input_histogram_1; //cout<<"test 2"<<endl;
   
-  }
+  
   return my_fit_results;//POIs;
   
   //return POIs;

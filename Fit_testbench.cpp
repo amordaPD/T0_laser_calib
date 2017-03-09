@@ -59,6 +59,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   int bkg_Chebychev_polynomial_degree=0;//set to n to have  degree n+1!!!!!!!!!
 
 
+
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
   bool draw_results;
@@ -70,12 +71,41 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   //bool fix_params = true;
   vector<float> POIs;
   POIs.clear();
+
+
+  
   // S e t u p   m o d e l 
   // ---------------------
  
   RooRealVar x("Time","Time [ns]",8,11) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
+
+
+
+
+  
+  TH1 *h_input_histogram_0 = (TH1*)f_input_histogram->Get(channel_0);
+  RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
+  TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
+  RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
+  cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
+  cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
+ 
+   //merged dataset
+  TH1*h_input_histogram;
+  if(fit_real_FiberCombs_data){
+    h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-1-%d",ch));
+  }else{
+    h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
+    h_input_histogram->Add(h_input_histogram_1,1);
+  }
+  RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
+
+
+
+
+  
   ///////fixing starting values and boundaries for two positions
 
 
@@ -429,35 +459,6 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   if(ch==14) {Belle2_pixel=189 ;}
   if(ch==15) {Belle2_pixel=253 ;}
   
-  
-  TH1 *h_input_histogram_0 = (TH1*)f_input_histogram->Get(channel_0);
-  RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
-  TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
-  RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
-  //RooDataHist ds_1=(RooDataHist)ds_1_b.reduce("Time<9.5||Time>10.5");
-  // ds_1.reduce("Time<9.8||Time>10.5");
-  cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
-  cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
- 
-   //merged dataset
-  TH1*h_input_histogram;
-  if(fit_real_FiberCombs_data){
-    h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-1-%d",ch));
-  }else{
-    h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
-    h_input_histogram->Add(h_input_histogram_1,1);
-  }
-  RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
-  /*
-  RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram_0)) ;
-  RooDataHist DS_1("DS_1","DS_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
-  Double_t rel_weight = 10;
-  DS.add(DS_1);
-  */
-  RooPlot* xframe2 = x.frame(Title(Form("pos.0 #oplus pos.1,  channel %d",ch))) ;
-  DS.plotOn(xframe2);
-  
-
 
 
 
@@ -1050,6 +1051,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   Fits_status.push_back(fit_results->status());
   
+  RooPlot* xframe2 = x.frame(Title(Form("pos.0 #oplus pos.1,  channel %d",ch))) ;
+  DS.plotOn(xframe2);
   TH2 *h_correlation = fit_results->correlationHist();  h_correlation->SetTitle("correlation matrix 0 #oplus 1");h_correlation->SetTitle(Form("correlation matrix 0 #oplus 1 ch %d",ch));h_correlation->GetYaxis()->SetLabelSize(0.1); h_correlation->GetYaxis()->SetLabelFont(70); h_correlation->SetMarkerSize(2);
   model.plotOn(xframe2,Range("Fit_Range"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
   model.plotOn(xframe2,Range("Fit_Range"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;

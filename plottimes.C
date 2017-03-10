@@ -12,12 +12,14 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
   double Time (-999);
   double weight(-9);
   int Channel (-9);
+  int NTimes (-9);
   
   TFile *f_data = new TFile(out_path+rfile+"_out.root","recreate");
   TTree *tree_input = new TTree("tree_input","tree_input");
   tree_input->Branch("Amplitude",&Amplitude,"Amplitude/D");
   tree_input->Branch("Time",&Time,"Time/D");
   tree_input->Branch("Channel",&Channel,"Channel/I");
+  tree_input->Branch("NTimes",&NTimes,"NTimes/I");
   tree_input->Branch("weight",&weight,"weight/D");
   
 
@@ -82,6 +84,7 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
 	Amplitude=amplitudes[l][j];
 	Time=times[l][j];
 	Channel=channels[l];
+	NTimes=ntimes[l];
 	tree_input->Fill();
       }
     }

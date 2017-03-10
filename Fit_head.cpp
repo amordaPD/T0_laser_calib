@@ -315,7 +315,7 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
   RooArgList  fracList_sig_1(alpha_1);//,beta_1);
   RooAddPdf   PDF_sig_1("PDF_sig_1","PDF_sig_1",pdfList_sig_1,fracList_sig_1,kTRUE);
 
-
+  
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
@@ -339,6 +339,17 @@ Fit_results Fit_head(string _draw_results, int fix_params, int ch ){
 
    RooArgSet* model_params_0 = model_0.getParameters(x) ;
    model_params_0->Print("v") ;
+   /*
+  vector<RooAbsPdf> Sig_list;
+  Sig_list.clear();
+  Sig_list.push_back(model_0);
+  Sig_list.push_back(model_1);
+  cout<<Sig_list.size()<<endl;
+  for(auto& siglists: Sig_list){
+    RooArgSet* model_params=siglists.getParameters(x);
+    model_params->Print("v") ;
+  }
+   */
 
   // I m p o r t    d a t a
   // ------------------------

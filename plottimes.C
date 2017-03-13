@@ -85,6 +85,7 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
 	Time=times[l][j];
 	Channel=channels[l];
 	NTimes=ntimes[l];
+	if(TMath::Abs(Time-23.2)<0.3) {weight=1.0;}else{weight=0.3/TMath::Abs(Time-23.2);}
 	tree_input->Fill();
       }
     }

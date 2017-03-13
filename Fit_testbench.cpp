@@ -37,14 +37,15 @@ struct Fit_results{
 //  ofstream cout("fits_report.txt");
 
 
-TFile *f_input_histogram = new TFile("fit_input_data/separate_fibers_DAQ.root");
-TFile *f_input_histogram_full_ds = new TFile("fit_input_data/run070317-3-T77-newLens-out.root");
+TFile *f_input_histogram_pos0    = new TFile("./flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
+TFile *f_input_histogram_pos1    = new TFile("./flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
+TFile *f_input_histogram_full_ds = new TFile("./flat_ntuples/run100317-4-T77-nuovalente-p0e1_out.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){ 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
-  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
+  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll  ///true recomended
   int MN_output_print_level=-1;
   int MN_output_print_level_prefit;
   bool print_prefit_info=false;
@@ -55,8 +56,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
-  bool fit_real_FiberCombs_data=false;
-  int bkg_Chebychev_polynomial_degree=0;//set to n to have  degree n+1!!!!!!!!!
+  bool fit_real_FiberCombs_data=true;
+  bool binned_fit = true; //recomended binned fit if you don't want to wait 7 minutes fot the fit output
+  int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
+  int amplitude_cut = -40;
 
 
 
@@ -66,8 +69,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
   Fit_results my_fit_results;
   //TString channel_0 = Form("fiber%d-10-%d",0,ch);
-  TString channel_0 = Form("fiber%d-%d",0,ch);
-  TString channel_1 = Form("fiber%d-%d",1,ch);
+  TString hist_channel_0 = Form("fiber0-0-%d",ch);
+  TString hist_channel_1 = Form("fiber0-0-%d",ch);
   //bool fix_params = true;
   vector<float> POIs;
   POIs.clear();
@@ -77,31 +80,52 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   // S e t u p   m o d e l 
   // ---------------------
  
-  RooRealVar x("Time","Time [ns]",8,11) ;
+  // double my_low_x=8;
+  //double my_up_x=11;
+  double my_low_x=22;
+  double my_up_x=25;
+  RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
 
 
 
+  TTree *tree_0 = (TTree*)f_input_histogram_pos0->Get("tree_input");
+  TTree *tree_1 = (TTree*)f_input_histogram_pos1->Get("tree_input");
+  TTree *tree_ds = (TTree*)f_input_histogram_full_ds->Get("tree_input");
+  //RooDataSet ds_0_amp("ds_0_amp","ds_0_amp", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+  //RooDataSet ds_1_amp("ds_1_amp","ds_1_amp", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+  
+  if(binned_fit){
+    
+    TH1 *h_input_histogram_0 = (TH1*)f_input_histogram_pos0->Get(hist_channel_0);
+    RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
+    TH1 *h_input_histogram_1 = (TH1*)f_input_histogram_pos1->Get(hist_channel_1);
+    RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
+    cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
+    cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
+        
+    TH1*h_input_histogram;
+    if(fit_real_FiberCombs_data){
+      h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-0-%d",ch));
+    }else{
+      h_input_histogram = (TH1*)f_input_histogram_pos0->Get(hist_channel_0);
+      h_input_histogram->Add(h_input_histogram_1,1);
+    }
+    RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
+    
+  }else{
+    RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+    RooDataSet ds_1("ds_1","ds_1", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+    if(fit_real_FiberCombs_data){
+      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+      DS.append(ds_1);
+    }else{
+      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+    }
+  }
 
   
-  TH1 *h_input_histogram_0 = (TH1*)f_input_histogram->Get(channel_0);
-  RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_input_histogram_0)) ;
-  TH1 *h_input_histogram_1 = (TH1*)f_input_histogram->Get(channel_1);
-  RooDataHist ds_1("ds_1","ds_1",RooArgSet(x),Import(*h_input_histogram_1)) ;
-  cout<<Form("dataset 0 ch %d info :",ch)<<ds_0.Print("v")<<endl;
-  cout<<Form("dataset 1 ch %d info :",ch)<<ds_1.Print("v")<<endl;
- 
-   //merged dataset
-  TH1*h_input_histogram;
-  if(fit_real_FiberCombs_data){
-    h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-1-%d",ch));
-  }else{
-    h_input_histogram = (TH1*)f_input_histogram->Get(channel_0);
-    h_input_histogram->Add(h_input_histogram_1,1);
-  }
-  RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
-
 
 
 
@@ -201,8 +225,6 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   double low_n_CB;
   double up_n_CB;
   
-  double my_low_x=8;
-  double my_up_x=11;
   
   /////POS 0
    low_x_0=my_low_x; up_x_0=my_up_x;
@@ -229,8 +251,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_beta_0=1.0;
 
   
-   starting_mean_L_0=8.5;
-   if(ch==3||ch==7) starting_mean_L_0=8.4;
+   starting_mean_L_0=22.7;//8.5;
+   if(ch==3||ch==7) starting_mean_L_0=22.6;//8.4;
    starting_delta_H_0=0.280;
    starting_delta_T_0=0.200;
    starting_sigma_L_0=0.080;
@@ -250,7 +272,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   low_delta_H_1=0.180;
    up_delta_H_1=0.5;
   
-  low_delta_T_1=-0.2;
+  low_delta_T_1=0;
    up_delta_T_1=0.5;
   
   low_sigma_L_1=0.035;
@@ -599,7 +621,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RMN_0.setPrintLevel(MN_output_print_level);
     RMN_0.setStrategy(2);
     RMN_0.minimize(Type_minim,Algo_minim);
-    fit_results_0=RMN_0.fit("hmr") ;
+    fit_results_0=RMN_0.fit("hmrt") ;
   }else{fit_results_0 = model_0.fitTo(ds_0,Save(),Strategy(2),SumW2Error(kFALSE),InitialHesse(true),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
   }
   
@@ -719,7 +741,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RMN_1.setPrintLevel(MN_output_print_level);
     RMN_1.setStrategy(2);
     RMN_1.minimize(Type_minim,Algo_minim);
-    fit_results_1=RMN_1.fit("hmr") ;
+    fit_results_1=RMN_1.fit("hmrt") ;
   }else{
     fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
   }
@@ -1006,7 +1028,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RMN.setPrintLevel(MN_output_print_level);
     RMN.setStrategy(2);
     RMN.minimize(Type_minim,Algo_minim);
-    fit_results=RMN.fit("hmr") ;
+    fit_results=RMN.fit("hmrt") ;
   }else{
     fit_results = model.fitTo(DS,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//Minimizer(Type_minim,Algo_minim)
   }
@@ -1287,8 +1309,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   
   //  cout<<"test"<<endl;
-  delete  h_input_histogram_0; //cout<<"test 1"<<endl;
-  delete  h_input_histogram_1; //cout<<"test 2"<<endl;
+  //  delete  h_input_histogram_0; //cout<<"test 1"<<endl;
+  //  delete  h_input_histogram_1; //cout<<"test 2"<<endl;
   
   
   return my_fit_results;//POIs;

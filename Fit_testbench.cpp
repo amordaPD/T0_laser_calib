@@ -53,14 +53,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Algo_minim="minimize";//
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
-  bool do_PixByPix_CBparams_fit = false;
+  bool do_PixByPix_CBparams_fit = true;
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool fit_real_FiberCombs_data=true;
   bool binned_fit = true; //recomended true if you don't want to wait 7 minutes fot the fit output
   bool compute_FWHM = true;
-  int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
+  int bkg_Chebychev_polynomial_degree=0;//set to n to have  degree n+1!!!!!!!!!
   int amplitude_cut = -40;
 
   
@@ -238,10 +238,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_delta_T_0=0.5;
   
   low_sigma_L_0=0.035;
-   up_sigma_L_0=0.200;
+   up_sigma_L_0=0.5200;
   
   low_sigma_H_0=0.045;
-   up_sigma_H_0=0.150;
+   up_sigma_H_0=0.5150;
   
   low_sigma_T_0=0.050;
    up_sigma_T_0=0.500;
@@ -278,10 +278,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_delta_T_1=0.5;
   
   low_sigma_L_1=0.035;
-   up_sigma_L_1=0.200;
+   up_sigma_L_1=0.5200;
   
   low_sigma_H_1=0.045;
-   up_sigma_H_1=0.150;
+   up_sigma_H_1=0.5150;
   
   low_sigma_T_1=0.050;
    up_sigma_T_1=0.500;
@@ -294,7 +294,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
   
    starting_mean_L_1=8.7;
-   starting_delta_H_1=0.280;
+   starting_delta_H_1=0.300;
   starting_delta_T_1=0.3;
   starting_sigma_L_1=0.080;
   starting_sigma_H_1=0.080;
@@ -644,7 +644,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
-  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
+  if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}//
 
 
 
@@ -744,7 +744,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
-  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
+  if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); }//alpha_CB.setConstant(kTRUE);}
   
   
   
@@ -875,8 +875,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       n= n_CB.getVal();
       Double_t A = TMath::Power(n/absAlpha,n)*exp(-0.5*absAlpha*absAlpha);
       Double_t B= n/absAlpha - absAlpha;
-      HW_CB = B - TMath::Power(2*A,1/n);
-      cout<<" eddaje "<<absAlpha<<"  "<<n<<"  "<<A<<"  "<<B<<"  "<<HW_CB<<endl;
+      HW_CB = -B + TMath::Power(2*A,1/n); ////////the proper formula is multiplied by -1
+      cout<<" eddaje "<<absAlpha<<"  "<<n<<"  "<<A<<"  "<<B<<"  "<<TMath::Power(2*A,1/n)<<"  "<<HW_CB<<endl;
     }
     Res=sigma_L_0.getVal();
     sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
@@ -1066,7 +1066,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
-  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
+  if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}
 
   sigma_L_0.setVal(starting_sigma_L_0);
   sigma_H_0.setVal(starting_sigma_H_0);
@@ -1298,7 +1298,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       n= n_CB.getVal();
       Double_t A = TMath::Power(n/absAlpha,n)*exp(-0.5*absAlpha*absAlpha);
       Double_t B= n/absAlpha - absAlpha;
-      HW_CB = B - TMath::Power(2*A,1/n);
+      HW_CB = -B + TMath::Power(2*A,1/n);////////the proper formula is multiplied by -1
     }
     Res=sigma_L_0.getVal();
     sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));

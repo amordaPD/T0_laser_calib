@@ -36,7 +36,7 @@ struct Fit_results{
 
 //  ofstream cout("fits_report.txt");
 
-
+TFile *f_input_histogram_noPrism = new TFile("./flat_ntuples/noprism-T50-V2490_out.root");
 TFile *f_input_histogram_pos0    = new TFile("./flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
 TFile *f_input_histogram_pos1    = new TFile("./flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
 TFile *f_input_histogram_full_ds = new TFile("./flat_ntuples/run100317-4-T77-nuovalente-p0e1_out.root");
@@ -53,16 +53,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Algo_minim="minimize";//
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
+  bool do_PixByPix_CBparams_fit = false;
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool fit_real_FiberCombs_data=true;
-  bool binned_fit = true; //recomended binned fit if you don't want to wait 7 minutes fot the fit output
+  bool binned_fit = true; //recomended true if you don't want to wait 7 minutes fot the fit output
+  bool compute_FWHM = true;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
   int amplitude_cut = -40;
 
-
-
+  
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
   bool draw_results;
@@ -87,6 +88,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
+  RooRealVar weight("weight","Event weight",0,1) ;
 
 
 
@@ -115,13 +117,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
     
   }else{
-    RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
-    RooDataSet ds_1("ds_1","ds_1", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+    RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//,WeightVar("weight"));//
+    RooDataSet ds_1("ds_1","ds_1", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//,WeightVar("weight"));
     if(fit_real_FiberCombs_data){
-      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//WeightVar("weight"));
       DS.append(ds_1);
     }else{
-      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+      RooDataSet DS("DS","DS", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//,WeightVar("weight"));
     }
   }
 
@@ -329,6 +331,69 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   RooRealVar alpha_CB("alpha_CB","alpha parameter of CB",   starting_alpha_CB,low_alpha_CB,up_alpha_CB);
   RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
+
+
+  if(do_PixByPix_CBparams_fit){
+    
+    
+    RooRealVar xR("Time","Time [ns]",26.0,27.8) ;//26.2,27.2) ;
+    RooRealVar meanR("meanR","mean of L gaussian background pos 0",26.5,26,27);
+    RooRealVar sigmaR("sigmaR","width of H gaussian background",0.060,0.0350,0.180);
+    RooRealVar alphaR("alphaR","alphaR",-1.4,-5,0);
+    RooRealVar nR("nR","nR",2,0,10);
+    RooCBShape  modelR_sig("modelR_sig","gaussian",xR,meanR,sigmaR,alphaR,nR) ;
+    
+    
+    
+    RooRealVar a0R_bkg("a0R_bkg", "", 0.166, -100, 100);
+    RooRealVar a1R_bkg("a1R_bkg", "", -0.027, -10, 10);
+    RooChebychev modelR_bkg("modelR_bkg","PDFR_bkg",xR,RooArgList(a0R_bkg,a1R_bkg));//,a2_bkg));//
+    
+    
+    RooRealVar  FracR("FracR","fraction of sig events", 0.8, 0.05,1.0);
+    RooArgList  pdfListR(modelR_sig,modelR_bkg);
+    RooArgList  fracListR(FracR);
+    RooAddPdf   modelR("modelR","modelR",pdfListR,fracListR);
+    
+    TH1 *h_input_histogramR = (TH1*)f_input_histogram_noPrism->Get(Form("fiber0-0-%d",ch));
+    RooDataHist dsR("dsR","dsR",RooArgSet(xR),Import(*h_input_histogramR)) ;
+    RooFitResult* fit_resultsR = modelR.fitTo(dsR,Save(),Extended(kFALSE),SumW2Error(kFALSE),PrintLevel(-1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));
+    
+    starting_alpha_CB=alphaR.getVal();
+    starting_n_CB=nR.getVal(); 
+
+
+    
+    if(draw_results){
+      RooPlot* xframe2R = xR.frame() ;
+      dsR.plotOn(xframe2R);//,DataError(RooAbsData::SumW2)) ;
+      modelR.plotOn(xframe2R,Components("modelR_sig"),LineStyle(kDashed),LineColor(8)) ;
+      modelR.plotOn(xframe2R,Components("modelR_bkg"),LineStyle(kDashed),LineColor(2)) ;
+      modelR.plotOn(xframe2R,LineColor(4)) ;
+      RooHist* hpullR = xframe2R->pullHist() ;
+      // Create a new frame to draw the pull distribution and add the distribution to the frame
+      RooPlot* xframe4R = xR.frame(Title("Pull Distribution")) ;
+      xframe4R->addPlotable(hpullR,"P") ;
+      
+      
+      TCanvas* c_FitR = new TCanvas("Fit results single signal","Fit results single signal",0,0,1124,700) ;
+      c_FitR->Divide(1,2);
+      gStyle->SetOptFit(1111); 
+      modelR.paramOn(xframe2R);
+      c_FitR->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2R->GetYaxis()->SetTitleOffset(1.6) ; xframe2R->Draw() ;
+      TPaveLabel *t1R = new TPaveLabel(0.7,0.6,0.9,0.68, Form("#chi^{2}/nDOF = %f", xframe2R->chiSquare()));
+      t1R->Draw("same");
+      
+      c_FitR->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2R->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4R->Draw() ;
+      fit_resultsR->Print("v");
+    }
+    
+  }
+
+
+
+
+  
   
   RooRealVar x_0("Time","Time [ns]",low_x_0,up_x_0);//eee
   RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
@@ -579,6 +644,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
+  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
+
+
+
   
   if(do_prefit){
     
@@ -670,11 +739,12 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   xframe2_0_log->GetXaxis()->SetTitleFont(70);
   
   Fits_status.push_back(fit_results_0->status());
-  
+
+
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
-  
+  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
   
   
   
@@ -790,6 +860,34 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   xframe2_1_log->GetXaxis()->SetLabelFont(70);
   xframe2_1_log->GetXaxis()->SetTitleSize(0.05);
   xframe2_1_log->GetXaxis()->SetTitleFont(70);
+
+
+
+  if(compute_FWHM){
+    double Res;
+    Double_t HW_CB;
+    double absAlpha; 
+    double n;
+    if(absAlpha>=sqrt(2*log(2))) {
+      HW_CB=sqrt(2*log(2));
+    } else {
+      absAlpha=TMath::Abs(alpha_CB.getVal());
+      n= n_CB.getVal();
+      Double_t A = TMath::Power(n/absAlpha,n)*exp(-0.5*absAlpha*absAlpha);
+      Double_t B= n/absAlpha - absAlpha;
+      HW_CB = B - TMath::Power(2*A,1/n);
+      cout<<" eddaje "<<absAlpha<<"  "<<n<<"  "<<A<<"  "<<B<<"  "<<HW_CB<<endl;
+    }
+    Res=sigma_L_0.getVal();
+    sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_L_1.getVal();
+    sigma_L_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_H_0.getVal();
+    sigma_H_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_H_1.getVal();
+    sigma_H_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+  }
+
   
   ///////SINGLE FIBER FIT VALUES////////
   /*0   */   POIs.push_back(mean_L_0.getVal()); 
@@ -968,6 +1066,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
+  //if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); alpha_CB.setConstant(kTRUE);}
+
   sigma_L_0.setVal(starting_sigma_L_0);
   sigma_H_0.setVal(starting_sigma_H_0);
   sigma_L_1.setVal(starting_sigma_L_1);
@@ -1182,6 +1282,34 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     TCanvas* c_Fit_01 = new TCanvas("c_Fit_01","c_Fit_01");
      xframe2->Draw() ;
   }
+
+
+  
+
+  if(compute_FWHM){
+    double Res;
+    Double_t HW_CB;
+    double absAlpha; 
+    double n;
+    if(absAlpha>=sqrt(2*log(2))) {
+      HW_CB=sqrt(2*log(2));
+    } else {
+      absAlpha=TMath::Abs(alpha_CB.getVal());
+      n= n_CB.getVal();
+      Double_t A = TMath::Power(n/absAlpha,n)*exp(-0.5*absAlpha*absAlpha);
+      Double_t B= n/absAlpha - absAlpha;
+      HW_CB = B - TMath::Power(2*A,1/n);
+    }
+    Res=sigma_L_0.getVal();
+    sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_L_1.getVal();
+    sigma_L_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_H_0.getVal();
+    sigma_H_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    Res=sigma_H_1.getVal();
+    sigma_H_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+  }
+  
   ///////BOTH FIBER FIT VALUES////////
   /*32   */   POIs.push_back(mean_L_0.getVal()); 
   /*33   */   POIs.push_back(mean_L_0.getError());

@@ -34,7 +34,7 @@ struct Fit_results{
 };
 
 
-//  ofstream cout("fits_report.txt"); 
+//  ofstream cout("fits_report.txt");   
 
 TFile *f_input_histogram_noPrism = new TFile("./flat_ntuples/noprism-T50-V2490_out.root");
 TFile *f_input_histogram_pos0    = new TFile("./flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");

@@ -53,14 +53,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Algo_minim="minimize";//
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
-  bool do_PixByPix_CBparams_fit = true;
+  bool do_PixByPix_CBparams_fit = false;
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool fit_real_FiberCombs_data=true;
   bool binned_fit = true; //recomended true if you don't want to wait 7 minutes fot the fit output
-  bool compute_FWHM = true;
-  int bkg_Chebychev_polynomial_degree=0;//set to n to have  degree n+1!!!!!!!!!
+  bool compute_FWHM = false;
+  int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
   int amplitude_cut = -40;
 
   
@@ -861,8 +861,23 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   xframe2_1_log->GetXaxis()->SetTitleSize(0.05);
   xframe2_1_log->GetXaxis()->SetTitleFont(70);
 
-
-
+  double T_Res_L_0(-9); 
+  double T_Res_H_0(-9);
+  double T_Res_L_1(-9);
+  double T_Res_H_1(-9);
+  double err_T_Res_L_0(-9); 
+  double err_T_Res_H_0(-9);
+  double err_T_Res_L_1(-9);
+  double err_T_Res_H_1(-9);
+  T_Res_L_0=sigma_L_0.getVal();
+  T_Res_H_0=sigma_H_0.getVal();
+  T_Res_L_1=sigma_L_1.getVal();
+  T_Res_H_1=sigma_H_1.getVal();
+  err_T_Res_L_0=sigma_L_0.getError();
+  err_T_Res_H_0=sigma_H_0.getError();
+  err_T_Res_L_1=sigma_L_1.getError();
+  err_T_Res_H_1=sigma_H_1.getError();
+  
   if(compute_FWHM){
     double Res;
     Double_t HW_CB;
@@ -879,13 +894,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       cout<<" eddaje "<<absAlpha<<"  "<<n<<"  "<<A<<"  "<<B<<"  "<<TMath::Power(2*A,1/n)<<"  "<<HW_CB<<endl;
     }
     Res=sigma_L_0.getVal();
-    sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_L_0=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_L_1.getVal();
-    sigma_L_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_L_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_H_0.getVal();
-    sigma_H_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_H_0=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_H_1.getVal();
-    sigma_H_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_H_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
   }
 
   
@@ -896,10 +911,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   /*3   */   POIs.push_back(Delta_H_0.getError());
   /*4   */   POIs.push_back(Delta_T_0.getVal());
   /*5   */   POIs.push_back(Delta_T_0.getError());
-  /*6   */   POIs.push_back(sigma_L_0.getVal());
-  /*7   */   POIs.push_back(sigma_L_0.getError());
-  /*8   */   POIs.push_back(sigma_H_0.getVal());
-  /*9   */   POIs.push_back(sigma_H_0.getError());
+  /*6   */   POIs.push_back(T_Res_L_0);
+  /*7   */   POIs.push_back(err_T_Res_L_0);
+  /*8   */   POIs.push_back(T_Res_H_0);
+  /*9   */   POIs.push_back(err_T_Res_H_0);
   /*10  */   POIs.push_back(sigma_T_0.getVal());
   /*11  */   POIs.push_back(sigma_T_0.getError());
   /*12  */   POIs.push_back(alpha_0.getVal());
@@ -913,10 +928,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   /*19   */  POIs.push_back(Delta_H_1.getError());
   /*20   */  POIs.push_back(Delta_T_1.getVal());
   /*21   */  POIs.push_back(Delta_T_1.getError());
-  /*22   */  POIs.push_back(sigma_L_1.getVal());
-  /*23   */  POIs.push_back(sigma_L_1.getError());
-  /*24   */  POIs.push_back(sigma_H_1.getVal());
-  /*25   */  POIs.push_back(sigma_H_1.getError());
+  /*6   */   POIs.push_back(T_Res_L_1);
+  /*7   */   POIs.push_back(err_T_Res_L_1);
+  /*8   */   POIs.push_back(T_Res_H_1);
+  /*9   */   POIs.push_back(err_T_Res_H_1);
   /*26  */   POIs.push_back(sigma_T_1.getVal());
   /*27  */   POIs.push_back(sigma_T_1.getError());
   /*28  */   POIs.push_back(alpha_1.getVal());
@@ -1284,8 +1299,15 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   }
 
 
+   T_Res_L_0=sigma_L_0.getVal();
+  T_Res_H_0=sigma_H_0.getVal();
+  T_Res_L_1=sigma_L_1.getVal();
+  T_Res_H_1=sigma_H_1.getVal();
+  err_T_Res_L_0=sigma_L_0.getError();
+  err_T_Res_H_0=sigma_H_0.getError();
+  err_T_Res_L_1=sigma_L_1.getError();
+  err_T_Res_H_1=sigma_H_1.getError();
   
-
   if(compute_FWHM){
     double Res;
     Double_t HW_CB;
@@ -1298,17 +1320,19 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       n= n_CB.getVal();
       Double_t A = TMath::Power(n/absAlpha,n)*exp(-0.5*absAlpha*absAlpha);
       Double_t B= n/absAlpha - absAlpha;
-      HW_CB = -B + TMath::Power(2*A,1/n);////////the proper formula is multiplied by -1
+      HW_CB = -B + TMath::Power(2*A,1/n); ////////the proper formula is multiplied by -1
+      cout<<" eddaje "<<absAlpha<<"  "<<n<<"  "<<A<<"  "<<B<<"  "<<TMath::Power(2*A,1/n)<<"  "<<HW_CB<<endl;
     }
     Res=sigma_L_0.getVal();
-    sigma_L_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_L_0=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_L_1.getVal();
-    sigma_L_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_L_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_H_0.getVal();
-    sigma_H_0.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_H_0=Res*0.5*(sqrt(2*log(2))+HW_CB);
     Res=sigma_H_1.getVal();
-    sigma_H_1.setVal(Res*0.5*(sqrt(2*log(2))+HW_CB));
+    T_Res_H_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
   }
+
   
   ///////BOTH FIBER FIT VALUES////////
   /*32   */   POIs.push_back(mean_L_0.getVal()); 
@@ -1317,10 +1341,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   /*35   */   POIs.push_back(Delta_H_0.getError());
   /*36   */   POIs.push_back(Delta_T_0.getVal());
   /*37   */   POIs.push_back(Delta_T_0.getError());
-  /*38   */   POIs.push_back(sigma_L_0.getVal());
-  /*39   */   POIs.push_back(sigma_L_0.getError());
-  /*40   */   POIs.push_back(sigma_H_0.getVal());
-  /*41   */   POIs.push_back(sigma_H_0.getError());
+  /*38   */   POIs.push_back(T_Res_L_0);
+  /*39   */   POIs.push_back(err_T_Res_L_0);
+  /*40   */   POIs.push_back(T_Res_H_0);
+  /*41   */   POIs.push_back(err_T_Res_H_0);
   /*42   */   POIs.push_back(sigma_T_0.getVal());
   /*43   */   POIs.push_back(sigma_T_0.getError());
   /*44   */   POIs.push_back(alpha_0.getVal());
@@ -1334,16 +1358,16 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   /*51   */  POIs.push_back(Delta_H_1.getError());
   /*52   */  POIs.push_back(Delta_T_1.getVal());
   /*53   */  POIs.push_back(Delta_T_1.getError());
-  /*54   */  POIs.push_back(sigma_L_1.getVal());
-  /*55   */  POIs.push_back(sigma_L_1.getError());
-  /*56   */  POIs.push_back(sigma_H_1.getVal());
-  /*57   */  POIs.push_back(sigma_H_1.getError());
-  /*58  */   POIs.push_back(sigma_T_1.getVal());
-  /*59  */   POIs.push_back(sigma_T_1.getError());
-  /*60  */   POIs.push_back(alpha_1.getVal());
-  /*61  */   POIs.push_back(alpha_1.getError());
-  /*62  */   POIs.push_back(beta_1.getVal());
-  /*63  */   POIs.push_back(beta_1.getError());
+  /*54   */  POIs.push_back(T_Res_L_0);
+  /*55   */  POIs.push_back(err_T_Res_L_0);
+  /*56   */  POIs.push_back(T_Res_H_0);
+  /*57   */  POIs.push_back(err_T_Res_H_0);
+  /*58   */  POIs.push_back(sigma_T_1.getVal());
+  /*59   */  POIs.push_back(sigma_T_1.getError());
+  /*60   */  POIs.push_back(alpha_1.getVal());
+  /*61   */  POIs.push_back(alpha_1.getError());
+  /*62   */  POIs.push_back(beta_1.getVal());
+  /*63   */  POIs.push_back(beta_1.getError());
   
   /*64 */   POIs.push_back(Frac_0.getVal());
   /*65 */   POIs.push_back(Frac_0.getError());

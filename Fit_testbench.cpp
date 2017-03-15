@@ -36,7 +36,6 @@ struct Fit_results{
 
 //  ofstream cout("fits_report.txt");   
 
-TFile *f_input_histogram_noPrism = new TFile("./flat_ntuples/noprism-T50-V2490_out.root");
 TFile *f_input_histogram_pos0    = new TFile("./flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
 TFile *f_input_histogram_pos1    = new TFile("./flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
 TFile *f_input_histogram_full_ds = new TFile("./flat_ntuples/run100317-4-T77-nuovalente-p0e1_out.root");
@@ -54,16 +53,16 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_PixByPix_CBparams_fit = true;
-  bool do_simultaneous_fit=false;
-  bool add_third_signal=false;
-  bool simulate_CB_tail=false;
-  bool fit_real_FiberCombs_data=true;
-  bool binned_fit = false; //recomended true if you don't want to wait 7 minutes fot the fit output
+  bool fit_real_FiberCombs_data=true;//true;
+  bool binned_fit = false; //recomended true if you don't want to wait 7 minutes for the fit output
   bool compute_FWHM = false;
   bool direct_parametrization =true;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
   int amplitude_cut = -40;
 
+  bool do_simultaneous_fit=false;
+  bool add_third_signal=false;
+  bool simulate_CB_tail=false;
   
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -85,7 +84,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   // double my_low_x=8;
   //double my_up_x=11;
   double my_low_x=22;
-  double my_up_x=25;
+  double my_up_x=24;
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
@@ -116,8 +115,27 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       h_input_histogram->Add(h_input_histogram_1,1);
     }
     RooDataHist DS("DS","DS",RooArgSet(x),Import(*h_input_histogram)) ;
+
+    
+    RooDataHist ds_0_H("ds_0_H","ds_0_H",RooArgSet(x),Import(*h_input_histogram_0)) ;
+    RooDataHist ds_1_H("ds_1_H","ds_1_H",RooArgSet(x),Import(*h_input_histogram_1)) ;
+    RooDataHist DS_H("DS_H","DS_H",RooArgSet(x),Import(*h_input_histogram)) ;
     
   }else{
+
+    TH1 *h_input_histogram_0 = (TH1*)f_input_histogram_pos0->Get(hist_channel_0);
+    RooDataHist ds_0_H("ds_0_H","ds_0_H",RooArgSet(x),Import(*h_input_histogram_0)) ;
+    TH1 *h_input_histogram_1 = (TH1*)f_input_histogram_pos1->Get(hist_channel_1);
+    RooDataHist ds_1_H("ds_1_H","ds_1_H",RooArgSet(x),Import(*h_input_histogram_1)) ;
+    TH1*h_input_histogram;
+    if(fit_real_FiberCombs_data){
+      h_input_histogram = (TH1*)f_input_histogram_full_ds->Get(Form("fiber0-0-%d",ch));
+    }else{
+      h_input_histogram = (TH1*)f_input_histogram_pos0->Get(hist_channel_0);
+      h_input_histogram->Add(h_input_histogram_1,1);
+    }
+    RooDataHist DS_H("DS_H","DS_H",RooArgSet(x),Import(*h_input_histogram)) ;
+    
     RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//,WeightVar("weight"));//
     RooDataSet ds_1("ds_1","ds_1", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));//,WeightVar("weight"));
     if(fit_real_FiberCombs_data){
@@ -128,6 +146,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     }
   }
 
+  
+  //RooDataHist ds(ds_0,"ds");
   
 
 
@@ -254,7 +274,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_beta_0=1.0;
 
   
-   starting_mean_L_0=22.7;//8.5;
+   starting_mean_L_0=22.5;//8.5;
    if(ch==3||ch==7) starting_mean_L_0=22.6;//8.4;
    starting_delta_H_0=0.280;
    starting_delta_T_0=0.200;
@@ -264,8 +284,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    starting_alpha_0=0.5;
    starting_beta_0=0.5;
   
-  low_mean_L_0=starting_mean_L_0-0.15;
-   up_mean_L_0=starting_mean_L_0+0.15;
+  low_mean_L_0=starting_mean_L_0-0.315;
+   up_mean_L_0=starting_mean_L_0+0.315;
 
 
 
@@ -356,6 +376,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RooArgList  fracListR(FracR);
     RooAddPdf   modelR("modelR","modelR",pdfListR,fracListR);
     
+    TFile *f_input_histogram_noPrism = new TFile("./flat_ntuples/noprism-T50-V2490_out.root");
     TH1 *h_input_histogramR = (TH1*)f_input_histogram_noPrism->Get(Form("fiber0-0-%d",ch));
     RooDataHist dsR("dsR","dsR",RooArgSet(xR),Import(*h_input_histogramR)) ;
     RooFitResult* fit_resultsR = modelR.fitTo(dsR,Save(),Extended(kFALSE),SumW2Error(kFALSE),PrintLevel(-1),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));
@@ -668,7 +689,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     //Delta_H_0.setConstant(kTRUE);
     if(direct_parametrization){sigma_L_0.setConstant(kTRUE);}else{sigma_L_0_SF.setConstant(kTRUE);}
     sigma_H_0.setConstant(kTRUE);
-    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
     if(direct_parametrization){sigma_L_0.setConstant(kFALSE);}else{sigma_L_0_SF.setConstant(kFALSE);}
     sigma_H_0.setConstant(kFALSE);
     //Delta_H_0.setConstant(kFALSE);
@@ -687,7 +708,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   RooFitResult* fit_results_0;
   if(use_NLL){
-    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE)) ;
+    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0_H,Extended(kFALSE)) ;
     //RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
     RooMinimizer RMN_0 (*nll_model_0);
     RMN_0.setErrorLevel(-1);
@@ -790,7 +811,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     //Delta_H_1.setConstant(kTRUE);
     if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
     sigma_H_1.setConstant(kTRUE);
-    RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
     if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
     sigma_H_1.setConstant(kFALSE);
     //Delta_H_1.setConstant(kFALSE);
@@ -808,7 +829,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   RooFitResult* fit_results_1;
   if(use_NLL){
-    RooAbsReal* nll_model_1 = model_1.createNLL(ds_1,Extended(kFALSE)) ;
+    RooAbsReal* nll_model_1 = model_1.createNLL(ds_1_H,Extended(kFALSE)) ;
     //RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
     RooMinimizer RMN_1(*nll_model_1);
     RMN_1.setErrorLevel(-1);
@@ -1118,7 +1139,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     sigma_H_0.setConstant(kTRUE);
     if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
     sigma_H_1.setConstant(kTRUE);
-    RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    RooFitResult* fit_results_b = model_b.fitTo(DS_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
     if(direct_parametrization){sigma_L_0.setConstant(kFALSE);}else{sigma_L_0_SF.setConstant(kFALSE);}
     sigma_H_1.setConstant(kFALSE);
     if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}

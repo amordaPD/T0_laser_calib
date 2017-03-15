@@ -53,13 +53,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Algo_minim="minimize";//
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
-  bool do_PixByPix_CBparams_fit = false;
+  bool do_PixByPix_CBparams_fit = true;
   bool do_simultaneous_fit=false;
   bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool fit_real_FiberCombs_data=true;
-  bool binned_fit = true; //recomended true if you don't want to wait 7 minutes fot the fit output
+  bool binned_fit = false; //recomended true if you don't want to wait 7 minutes fot the fit output
   bool compute_FWHM = false;
+  bool direct_parametrization =true;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have  degree n+1!!!!!!!!!
   int amplitude_cut = -40;
 
@@ -393,20 +394,23 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
 
 
+  RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
+
+  if(direct_parametrization){
+    RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
+  }else{
+    RooRealVar    sigma_L_0_SF("sigma_L_0_SF","width of L gaussian background",1.,0.5,5);
+    RooFormulaVar sigma_L_0("sigma_L_0","width of L gaussian background","sigma_L_0_SF*sigma_H_0",RooArgList(sigma_L_0_SF,sigma_H_0));
+    //RooRealVar Delta_H_0_SF("Delta_H_0_SF","Delta H pos 0 scale factor",2.5,0,10);
+    //RooFormulaVar Delta_H_0("Delta_H_0","width of L gaussian background","Delta_H_0_SF*sigma_H_0",RooArgList(Delta_H_0_SF,sigma_H_0));
+  }
   
-  
-  RooRealVar x_0("Time","Time [ns]",low_x_0,up_x_0);//eee
+  RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
-  RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
-  RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
-  RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
-  /*RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
-  RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;
-  RooGaussian PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0) ;*/
   RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
   RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB,n_CB) ;
   RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB,n_CB) ;  
@@ -428,19 +432,21 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
 
   
-  RooRealVar x_1("Time","Time [ns]",low_x_1,up_x_1) ;//
+  RooRealVar sigma_H_1("sigma_H_1","width of H gaussian background",starting_sigma_H_1,low_sigma_H_1,up_sigma_H_1);
+
+  if(direct_parametrization){
+    RooRealVar sigma_L_1("sigma_L_1","width of L gaussian background",starting_sigma_L_1,low_sigma_L_1,up_sigma_L_1);
+  }else{
+    RooRealVar    sigma_L_1_SF("sigma_L_1_SF","width of L gaussian background",1.,0.5,5);
+    RooFormulaVar sigma_L_1("sigma_L_1","width of L gaussian background","sigma_L_1_SF*sigma_H_1",RooArgList(sigma_L_1_SF,sigma_H_1));
+  }
   RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_L_0+delta_means_L",RooArgList(mean_L_0,delta_means_L));
   //  RooRealVar mean_L_1("mean_L_1","mean of L gaussian background pos 0",starting_mean_L_1,low_mean_L_1,up_mean_L_1);
   RooRealVar Delta_H_1("Delta_H_1","Delta H pos 1",starting_delta_H_1,low_delta_H_1,up_delta_H_1);
   RooRealVar Delta_T_1("Delta_T_1","Delta T pos 1",starting_delta_T_1,low_delta_T_1,up_delta_T_1);
   RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_L_1+Delta_H_1",RooArgList(mean_L_1,Delta_H_1));
   RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
-  RooRealVar sigma_L_1("sigma_L_1","width of L gaussian background",starting_sigma_L_1,low_sigma_L_1,up_sigma_L_1);
-  RooRealVar sigma_H_1("sigma_H_1","width of H gaussian background",starting_sigma_H_1,low_sigma_H_1,up_sigma_H_1);
   RooRealVar sigma_T_1("sigma_T_1","width of T gaussian background",starting_sigma_T_1,low_sigma_T_1,up_sigma_T_1);
-  /*RooGaussian PDF_L_1("PDF_L_1","gaussian L_1",x,mean_L_1,sigma_L_1) ;
-  RooGaussian PDF_H_1("PDF_H_1","gaussian H_1",x,mean_H_1,sigma_H_1) ; 
-  RooGaussian PDF_T_1("PDF_T_1","gaussian T_1",x,mean_T_1,sigma_T_1) ;*/
   RooCBShape PDF_L_1("PDF_L_1","gaussian L_1",x,mean_L_1,sigma_L_1,alpha_CB,n_CB) ;
   RooCBShape PDF_H_1("PDF_H_1","gaussian H_1",x,mean_H_1,sigma_H_1,alpha_CB,n_CB) ; 
   RooCBShape PDF_T_1("PDF_T_1","gaussian T_1",x,mean_T_1,sigma_T_1,alpha_CB,n_CB) ;
@@ -660,10 +666,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     cout<<"STATUS MIGRAD EDM 0 0"<<endl;
     
     //Delta_H_0.setConstant(kTRUE);
-    sigma_L_0.setConstant(kTRUE);
+    if(direct_parametrization){sigma_L_0.setConstant(kTRUE);}else{sigma_L_0_SF.setConstant(kTRUE);}
     sigma_H_0.setConstant(kTRUE);
     RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
-    sigma_L_0.setConstant(kFALSE);
+    if(direct_parametrization){sigma_L_0.setConstant(kFALSE);}else{sigma_L_0_SF.setConstant(kFALSE);}
     sigma_H_0.setConstant(kFALSE);
     //Delta_H_0.setConstant(kFALSE);
     if(print_prefit_info) fit_results_0_b->Print("v");
@@ -697,7 +703,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   fit_results_0->Print("v");
   RooPlot* xframe2_0 = x.frame(Title(Form("pos. 0, channel %d",ch))) ;
   ds_0.plotOn(xframe2_0);//,DataError(RooAbsData::SumW2)) ;
-  TH2 *h_correlation_0 = fit_results_0->correlationHist(); h_correlation_0->SetTitle(Form("correlation matrix 0 ch %d",ch));h_correlation_0->GetYaxis()->SetLabelSize(0.1); h_correlation_0->GetYaxis()->SetLabelFont(70); h_correlation_0->SetMarkerSize(2);
+  TH2 *h_correlation_0 = fit_results_0->correlationHist(); h_correlation_0->SetTitle(Form("correlation matrix 0 ch %d",ch));h_correlation_0->GetYaxis()->SetLabelSize(0.1); h_correlation_0->GetYaxis()->SetLabelFont(70);h_correlation_0->GetXaxis()->SetLabelSize(0.075); h_correlation_0->GetXaxis()->SetLabelFont(70); h_correlation_0->SetMarkerSize(2);
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
   if(add_third_signal) model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
@@ -782,10 +788,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     cout<<"STATUS MIGRAD EDM 1 0"<<endl;
     
     //Delta_H_1.setConstant(kTRUE);
-    sigma_L_1.setConstant(kTRUE);
+    if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
     sigma_H_1.setConstant(kTRUE);
     RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
-    sigma_L_1.setConstant(kFALSE);
+    if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
     sigma_H_1.setConstant(kFALSE);
     //Delta_H_1.setConstant(kFALSE);
     if(print_prefit_info) fit_results_1_b->Print("v");
@@ -818,7 +824,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   fit_results_1->Print("v");
   RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
   ds_1.plotOn(xframe2_1);
-  TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
+  TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetXaxis()->SetLabelSize(0.075); h_correlation_1->GetXaxis()->SetLabelFont(70); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
   model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
   if(add_third_signal) model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
@@ -869,13 +875,20 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   double err_T_Res_H_0(-9);
   double err_T_Res_L_1(-9);
   double err_T_Res_H_1(-9);
-  T_Res_L_0=sigma_L_0.getVal();
+  if(direct_parametrization){
+    T_Res_L_0=sigma_L_0.getVal();
+    T_Res_L_1=sigma_L_1.getVal();
+    err_T_Res_L_0=sigma_L_0.getError();
+    err_T_Res_L_1=sigma_L_1.getError();
+  }else{
+    T_Res_L_0=sigma_L_0_SF.getVal()*sigma_H_0.getVal();
+    T_Res_L_1=sigma_L_1_SF.getVal()*sigma_H_1.getVal();
+    err_T_Res_L_0=sigma_L_0_SF.getError()*sigma_H_0.getVal()+sigma_L_0_SF.getError()*sigma_H_0.getVal();
+    err_T_Res_L_1=sigma_L_1_SF.getError()*sigma_H_1.getVal()+sigma_L_1_SF.getError()*sigma_H_1.getVal();
+  }
   T_Res_H_0=sigma_H_0.getVal();
-  T_Res_L_1=sigma_L_1.getVal();
   T_Res_H_1=sigma_H_1.getVal();
-  err_T_Res_L_0=sigma_L_0.getError();
   err_T_Res_H_0=sigma_H_0.getError();
-  err_T_Res_L_1=sigma_L_1.getError();
   err_T_Res_H_1=sigma_H_1.getError();
   
   if(compute_FWHM){
@@ -1083,9 +1096,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   n_CB.setVal(starting_n_CB);
   if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}
 
-  sigma_L_0.setVal(starting_sigma_L_0);
+  if(direct_parametrization){sigma_L_0.setVal(starting_sigma_L_0);}else{sigma_L_0_SF.setVal(1.0);}
   sigma_H_0.setVal(starting_sigma_H_0);
-  sigma_L_1.setVal(starting_sigma_L_1);
+  if(direct_parametrization){sigma_L_1.setVal(starting_sigma_L_1);}else{sigma_L_1_SF.setVal(1.0);}
   sigma_H_1.setVal(starting_sigma_H_1);
   
   
@@ -1101,14 +1114,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     
     //alpha_CB.setConstant(kTRUE);
     //n_CB.setConstant(kTRUE);
-    sigma_L_0.setConstant(kTRUE);
+    if(direct_parametrization){sigma_L_0.setConstant(kTRUE);}else{sigma_L_0_SF.setConstant(kTRUE);}
     sigma_H_0.setConstant(kTRUE);
-    sigma_L_1.setConstant(kTRUE);
+    if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
     sigma_H_1.setConstant(kTRUE);
     RooFitResult* fit_results_b = model_b.fitTo(DS,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
-    sigma_L_1.setConstant(kFALSE);
+    if(direct_parametrization){sigma_L_0.setConstant(kFALSE);}else{sigma_L_0_SF.setConstant(kFALSE);}
     sigma_H_1.setConstant(kFALSE);
-    sigma_L_0.setConstant(kFALSE);
+    if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
     sigma_H_0.setConstant(kFALSE);
     // alpha_CB.setConstant(kFALSE);
     //n_CB.setConstant(kFALSE);
@@ -1190,7 +1203,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   RooPlot* xframe2 = x.frame(Title(Form("pos.0 #oplus pos.1,  channel %d",ch))) ;
   DS.plotOn(xframe2);
-  TH2 *h_correlation = fit_results->correlationHist();  h_correlation->SetTitle("correlation matrix 0 #oplus 1");h_correlation->SetTitle(Form("correlation matrix 0 #oplus 1 ch %d",ch));h_correlation->GetYaxis()->SetLabelSize(0.1); h_correlation->GetYaxis()->SetLabelFont(70); h_correlation->SetMarkerSize(2);
+  TH2 *h_correlation = fit_results->correlationHist();  h_correlation->SetTitle("correlation matrix 0 #oplus 1");h_correlation->SetTitle(Form("correlation matrix 0 #oplus 1 ch %d",ch));h_correlation->GetXaxis()->SetLabelSize(0.075); h_correlation->GetXaxis()->SetLabelFont(70);h_correlation->GetYaxis()->SetLabelSize(0.1); h_correlation->GetYaxis()->SetLabelFont(70); h_correlation->SetMarkerSize(2);
   model.plotOn(xframe2,Range("Fit_Range"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
   model.plotOn(xframe2,Range("Fit_Range"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
   //  model.plotOn(xframe2,Range("Fit_Range"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
@@ -1298,14 +1311,20 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
      xframe2->Draw() ;
   }
 
-
-   T_Res_L_0=sigma_L_0.getVal();
+  if(direct_parametrization){
+    T_Res_L_0=sigma_L_0.getVal();
+    T_Res_L_1=sigma_L_1.getVal();
+    err_T_Res_L_0=sigma_L_0.getError();
+    err_T_Res_L_1=sigma_L_1.getError();
+  }else{
+    T_Res_L_0=sigma_L_0_SF.getVal()*sigma_H_0.getVal();
+    T_Res_L_1=sigma_L_1_SF.getVal()*sigma_H_1.getVal();
+    err_T_Res_L_0=sigma_L_0_SF.getError()*sigma_H_0.getVal()+sigma_L_0_SF.getError()*sigma_H_0.getVal();
+    err_T_Res_L_1=sigma_L_1_SF.getError()*sigma_H_1.getVal()+sigma_L_1_SF.getError()*sigma_H_1.getVal();
+  }
   T_Res_H_0=sigma_H_0.getVal();
-  T_Res_L_1=sigma_L_1.getVal();
   T_Res_H_1=sigma_H_1.getVal();
-  err_T_Res_L_0=sigma_L_0.getError();
   err_T_Res_H_0=sigma_H_0.getError();
-  err_T_Res_L_1=sigma_L_1.getError();
   err_T_Res_H_1=sigma_H_1.getError();
   
   if(compute_FWHM){

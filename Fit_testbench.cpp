@@ -21,12 +21,15 @@ vector<int> Fits_status;
 struct Fit_results{
   float Results[80];
   int n_POIs;
+  RooPlot* xframe2_amp_0;
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
   TH2 *h_correlation_0;
+  RooPlot* xframe2_amp_1;
   RooPlot* xframe2_fit_1;
   RooPlot* xframe2_pull_1;
   TH2 *h_correlation_1;
+  RooPlot* xframe2_amp_01;
   RooPlot* xframe2_fit_01;
   RooPlot* xframe2_pull_01;
   TH2 *h_correlation_01;
@@ -55,11 +58,11 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool do_PixByPix_CBparams_fit = true;
   bool fit_real_FiberCombs_data=true;
   bool binned_fit = true; //recomended true if you don't want to wait 7 minutes for the fit output
-  bool compute_FWHM = false;
+  bool compute_FWHM = true;
   bool direct_parametrization =true;
   bool fit_for_first_peak=false;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  int amplitude_cut = -40;
+  int amplitude_cut = -10;
 
   bool do_simultaneous_fit=false;
   bool add_third_signal_pos0=false;
@@ -100,6 +103,18 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   TTree *tree_ds = (TTree*)f_input_histogram_full_ds->Get("tree_input");
   //RooDataSet ds_0_amp("ds_0_amp","ds_0_amp", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
   //RooDataSet ds_1_amp("ds_1_amp","ds_1_amp", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+
+  RooDataSet ds_0_amp("ds_0_amp","ds_0_amp", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+  RooPlot* xframe2_0_amp = amp.frame(Title(Form("amplitude pos. 0, channel %d",ch))) ;
+  ds_0_amp.plotOn(xframe2_0_amp);//,DataError(RooAbsData::SumW2)) ;
+  RooDataSet ds_1_amp("ds_1_amp","ds_1_amp", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+  RooPlot* xframe2_1_amp = amp.frame(Title(Form("amplitude pos. 1, channel %d",ch))) ;
+  ds_1_amp.plotOn(xframe2_1_amp);//,DataError(RooAbsData::SumW2)) ;
+  RooDataSet ds_01_amp("ds_01_amp","ds_01_amp", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
+  RooPlot* xframe2_01_amp = amp.frame(Title(Form("amplitude pos. 1, channel %d",ch))) ;
+  ds_01_amp.plotOn(xframe2_01_amp);//,DataError(RooAbsData::SumW2)) ;
+
+
   
   if(binned_fit){
     
@@ -123,7 +138,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
     
     RooDataHist DS_H("DS_H","DS_H",RooArgSet(x),Import(*h_input_histogram)) ;
-    
+    cout<<" Number of entries : "<<ds_0.sumEntries()<<"   "<<ds_1.sumEntries()<<"   "<<DS_H.sumEntries()<<endl;
   }else{
 
     TH1 *h_input_histogram_0 = (TH1*)f_input_histogram_pos0->Get(hist_channel_0);
@@ -862,6 +877,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
   }
   fit_results_1->Print("v");
+
+
+  
   RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
   ds_1.plotOn(xframe2_1);
   TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetXaxis()->SetLabelSize(0.075); h_correlation_1->GetXaxis()->SetLabelFont(70); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
@@ -969,7 +987,6 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     err_T0=mean_H_0.getError();
   }
 
-  
   ///////SINGLE FIBER FIT VALUES////////
   /*0   */   POIs.push_back(T0); 
   /*1   */   POIs.push_back(err_T0);
@@ -1085,8 +1102,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       }
     }
   }
-  
 
+  
 
   if(simulate_CB_tail){
     // TH1 *h_input_histogram_1_cut = (TH1*)f_input_histogram->Get(channel_1);
@@ -1106,8 +1123,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     xframe2_1_toy->Draw();
   }
 
-
-
+  //Frac_0.setVal((ds_0.sumEntries()*Frac_sig_0.getVal())/(ds_1.sumEntries()*Frac_sig_1.getVal()));
+  //Frac_0.setConstant(kTRUE);
   
   if(fit_for_first_peak){mean_L_0.setConstant(kFALSE);}else{mean_H_0.setConstant(kFALSE);}
   if(fix_params==0){ ///////everything is free
@@ -1137,11 +1154,12 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   } else if(fix_params==3){//fix absolute positions+separations+fractions
     Delta_H_0.setConstant(kTRUE);//
     Delta_H_1.setConstant(kTRUE);//
+    if(add_third_signal_pos1) Delta_T_1.setConstant(kTRUE);
     if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}
     delta_means_L.setConstant(kTRUE);
     //mean_L_1.setConstant(kTRUE);
     alpha_0.setConstant(kTRUE);
-    alpha_1.setConstant(kTRUE);
+    alpha_1.setConstant(kTRUE);if(add_third_signal_pos1) {beta_1.setConstant(kTRUE);}
   }
   
   alpha_CB.setVal(starting_alpha_CB);
@@ -1533,6 +1551,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   my_fit_results.xframe2_fit_01=xframe2;
   my_fit_results.xframe2_pull_01=xframe4;
   my_fit_results.h_correlation_01=h_correlation;
+  my_fit_results.xframe2_amp_0=xframe2_0_amp;
+  my_fit_results.xframe2_amp_1=xframe2_1_amp;
+  my_fit_results.xframe2_amp_01=xframe2_01_amp;
   
   //cout<<my_fit_results.Results[0]<<endl;
   
@@ -1553,12 +1574,15 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   
   
   TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
+  TCanvas *c_pos0_AllChannels_amp = new TCanvas("c_pos0_AllChannels_amp","c_pos0_AllChannels_amp",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_pulls = new TCanvas("c_pos0_AllChannels_pulls","c_pos0_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_corr = new TCanvas("c_pos0_AllChannels_corr","c_pos0_AllChannels_corr",0,0,1124,700);
   TCanvas *c_pos1_AllChannels = new TCanvas("c_pos1_AllChannels","c_pos1_AllChannels",0,0,1124,700);
+  TCanvas *c_pos1_AllChannels_amp = new TCanvas("c_pos1_AllChannels_amp","c_pos1_AllChannels_amp",0,0,1124,700);
   TCanvas *c_pos1_AllChannels_pulls = new TCanvas("c_pos1_AllChannels_pulls","c_pos1_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos1_AllChannels_corr = new TCanvas("c_pos1_AllChannels_corr","c_pos1_AllChannels_corr",0,0,1124,700);
   TCanvas *c_pos01_AllChannels = new TCanvas("c_pos01_AllChannels","c_pos01_AllChannels",0,0,1124,700);
+  TCanvas *c_pos01_AllChannels_amp = new TCanvas("c_pos01_AllChannels_amp","c_pos01_AllChannels_amp",0,0,1124,700);
   TCanvas *c_pos01_AllChannels_pulls = new TCanvas("c_pos01_AllChannels_pulls","c_pos01_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos01_AllChannels_corr = new TCanvas("c_pos01_AllChannels_corr","c_pos01_AllChannels_corr",0,0,1124,700);
   
@@ -1574,6 +1598,9 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   c_pos0_AllChannels_corr->Divide(4,4);
   c_pos1_AllChannels_corr->Divide(4,4);
   c_pos01_AllChannels_corr->Divide(4,4);
+  c_pos0_AllChannels_amp->Divide(4,4);
+  c_pos1_AllChannels_amp->Divide(4,4);
+  c_pos01_AllChannels_amp->Divide(4,4);
   
   
   
@@ -1885,7 +1912,9 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
     TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
     c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
-    c_pos1_AllChannels->cd(index_channel_pixel[i]);my_fit_Results.xframe2_fit_1->Draw();
+    c_pos1_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_1->Draw();
+    c_pos0_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_amp_0->Draw(); 
+    c_pos1_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_amp_1->Draw();
     c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
     line_3ns->Draw("same");line_3ps->Draw("same");
     line_2ns->Draw("same");line_2ps->Draw("same");
@@ -1899,6 +1928,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     c_pos0_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_0->Draw("colz:text");
     c_pos1_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_1->Draw("colz:text");
     c_pos01_AllChannels->cd(index_channel_pixel[i]);my_fit_Results.xframe2_fit_01->Draw(); 
+    c_pos01_AllChannels_amp->cd(index_channel_pixel[i]);my_fit_Results.xframe2_amp_01->Draw(); 
     c_pos01_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_01->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_01->Draw(); 
     line_3ns->Draw("same");line_3ps->Draw("same");
     line_2ns->Draw("same");line_2ps->Draw("same");

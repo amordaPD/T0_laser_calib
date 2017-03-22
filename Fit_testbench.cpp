@@ -21,14 +21,17 @@ vector<int> Fits_status;
 struct Fit_results{
   float Results[80];
   int n_POIs;
+  TH2F* xframe2_t_amp_0;
   RooPlot* xframe2_amp_0;
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
   TH2 *h_correlation_0;
+  TH2F* xframe2_t_amp_1;
   RooPlot* xframe2_amp_1;
   RooPlot* xframe2_fit_1;
   RooPlot* xframe2_pull_1;
   TH2 *h_correlation_1;
+  TH2F* xframe2_t_amp_01;
   RooPlot* xframe2_amp_01;
   RooPlot* xframe2_fit_01;
   RooPlot* xframe2_pull_01;
@@ -107,12 +110,15 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooDataSet ds_0_amp("ds_0_amp","ds_0_amp", RooArgSet(x,amp,CH),Import(*tree_0),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
   RooPlot* xframe2_0_amp = amp.frame(Title(Form("amplitude pos. 0, channel %d",ch))) ;
   ds_0_amp.plotOn(xframe2_0_amp);//,DataError(RooAbsData::SumW2)) ;
+  TH2F* h_time_amp_0 = (TH2F*)f_input_histogram_pos0->Get(Form("fibertA0-0-%d",ch));
   RooDataSet ds_1_amp("ds_1_amp","ds_1_amp", RooArgSet(x,amp,CH),Import(*tree_1),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
   RooPlot* xframe2_1_amp = amp.frame(Title(Form("amplitude pos. 1, channel %d",ch))) ;
   ds_1_amp.plotOn(xframe2_1_amp);//,DataError(RooAbsData::SumW2)) ;
+  TH2F* h_time_amp_1 = (TH2F*)f_input_histogram_pos1->Get(Form("fibertA0-0-%d",ch));
   RooDataSet ds_01_amp("ds_01_amp","ds_01_amp", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
   RooPlot* xframe2_01_amp = amp.frame(Title(Form("amplitude pos. 1, channel %d",ch))) ;
   ds_01_amp.plotOn(xframe2_01_amp);//,DataError(RooAbsData::SumW2)) ;
+  TH2F* h_time_amp_01 = (TH2F*)f_input_histogram_full_ds->Get(Form("fibertA0-0-%d",ch));
 
 
   
@@ -1554,7 +1560,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   my_fit_results.xframe2_amp_0=xframe2_0_amp;
   my_fit_results.xframe2_amp_1=xframe2_1_amp;
   my_fit_results.xframe2_amp_01=xframe2_01_amp;
-  
+  my_fit_results.xframe2_t_amp_0= h_time_amp_0;
+  my_fit_results.xframe2_t_amp_1= h_time_amp_1;
+  my_fit_results.xframe2_t_amp_01= h_time_amp_01;
   //cout<<my_fit_results.Results[0]<<endl;
   
   
@@ -1913,8 +1921,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
     c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
     c_pos1_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_1->Draw();
-    c_pos0_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_amp_0->Draw(); 
-    c_pos1_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_amp_1->Draw();
+    c_pos0_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_t_amp_0->Draw("colz"); 
+    c_pos1_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_t_amp_1->Draw("colz");
     c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
     line_3ns->Draw("same");line_3ps->Draw("same");
     line_2ns->Draw("same");line_2ps->Draw("same");
@@ -1928,7 +1936,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     c_pos0_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_0->Draw("colz:text");
     c_pos1_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_1->Draw("colz:text");
     c_pos01_AllChannels->cd(index_channel_pixel[i]);my_fit_Results.xframe2_fit_01->Draw(); 
-    c_pos01_AllChannels_amp->cd(index_channel_pixel[i]);my_fit_Results.xframe2_amp_01->Draw(); 
+    c_pos01_AllChannels_amp->cd(index_channel_pixel[i]);my_fit_Results.xframe2_t_amp_01->Draw("colz"); 
     c_pos01_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_01->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_01->Draw(); 
     line_3ns->Draw("same");line_3ps->Draw("same");
     line_2ns->Draw("same");line_2ps->Draw("same");

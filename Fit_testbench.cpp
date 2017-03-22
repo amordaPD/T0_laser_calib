@@ -65,7 +65,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool direct_parametrization =true;
   bool fit_for_first_peak=false;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  int amplitude_cut = -10;
+  int amplitude_cut = -40;
 
   bool do_simultaneous_fit=false;
   bool add_third_signal_pos0=false;
@@ -116,7 +116,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   ds_1_amp.plotOn(xframe2_1_amp);//,DataError(RooAbsData::SumW2)) ;
   TH2F* h_time_amp_1 = (TH2F*)f_input_histogram_pos1->Get(Form("fibertA0-0-%d",ch));
   RooDataSet ds_01_amp("ds_01_amp","ds_01_amp", RooArgSet(x,amp,CH),Import(*tree_ds),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
-  RooPlot* xframe2_01_amp = amp.frame(Title(Form("amplitude pos. 1, channel %d",ch))) ;
+  RooPlot* xframe2_01_amp = amp.frame(Title(Form("amplitude pos. 01, channel %d",ch))) ;
   ds_01_amp.plotOn(xframe2_01_amp);//,DataError(RooAbsData::SumW2)) ;
   TH2F* h_time_amp_01 = (TH2F*)f_input_histogram_full_ds->Get(Form("fibertA0-0-%d",ch));
 
@@ -2355,12 +2355,12 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_SIGMA_L_0->SetTitle("Time resolution (#delta t) low time vs Channel - pos. 0");
     //mg_SIGMA_L_0->Add(REF_sigma_L);
     mg_SIGMA_L_0->Add(SIGMA_L_B_0);
-    mg_SIGMA_L_0->Add(SIGMA_L_A_0);
+    //mg_SIGMA_L_0->Add(SIGMA_L_A_0);
     TMultiGraph *mg_SIGMA_H_0 = new TMultiGraph();
     mg_SIGMA_H_0->SetTitle("Time resolution (#delta t) high time vs Channel - pos. 0");
     //mg_SIGMA_H_0->Add(REF_sigma_H);
     mg_SIGMA_H_0->Add(SIGMA_H_B_0);
-    mg_SIGMA_H_0->Add(SIGMA_H_A_0);
+    //mg_SIGMA_H_0->Add(SIGMA_H_A_0);
     TMultiGraph *mg_SIGMA_T_0 = new TMultiGraph();
     mg_SIGMA_T_0->SetTitle("Time resolution (#delta t) third time vs Channel - pos. 0");
     //mg_SIGMA_T_0->Add(REF_sigma_T);
@@ -2370,11 +2370,11 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TMultiGraph *mg_SIGMA_L_1 = new TMultiGraph();
     mg_SIGMA_L_1->SetTitle("Time resolution (#delta t) low time vs Channel - pos. 1");
     mg_SIGMA_L_1->Add(SIGMA_L_B_1);
-    mg_SIGMA_L_1->Add(SIGMA_L_A_1);
+    //mg_SIGMA_L_1->Add(SIGMA_L_A_1);
     TMultiGraph *mg_SIGMA_H_1 = new TMultiGraph();
     mg_SIGMA_H_1->SetTitle("Time resolution (#delta t) high time vs Channel - pos. 1");
     mg_SIGMA_H_1->Add(SIGMA_H_B_1);
-    mg_SIGMA_H_1->Add(SIGMA_H_A_1);
+    //mg_SIGMA_H_1->Add(SIGMA_H_A_1);
     TMultiGraph *mg_SIGMA_T_1 = new TMultiGraph();
     mg_SIGMA_T_1->SetTitle("Time resolution (#delta t) third time vs Channel - pos. 1");
     mg_SIGMA_T_1->Add(SIGMA_T_B_1);

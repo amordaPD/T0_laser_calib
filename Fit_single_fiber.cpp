@@ -1,5 +1,6 @@
 ////////TIME CALIBRATION CODE///////****
-
+////////////////////////////////////
+/////To RUN: gROOT->ProcessLine(".L Fit_single_fiber.cpp"); loop_channels(2,true); > ee.log
 
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
@@ -29,8 +30,9 @@ struct Fit_results{
 
 //  ofstream cout("fits_report.txt");
 
-
-TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
+//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-1-T77-vecchialente_out.root");
+//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
+TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
 //TFile *f_input_histogram = new TFile("compare.root");
 TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
 
@@ -48,10 +50,12 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
-  bool add_third_signal=true;
+  bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool binned_fit=true;//if false fit is unbinned
-  int amplitude_cut = -10;
+  int amplitude_cut = -40;
+  bool fit_highest_peak=true;
+  bool no_grease=false;
 
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -65,7 +69,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   // S e t u p   m o d e l 
   // ---------------------
  
-  double my_low_x=22.5;
+  double my_low_x=21.5;
   double my_up_x=24.5;
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
@@ -94,6 +98,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   double starting_mean_L_0;
   double low_mean_L_0;
   double up_mean_L_0;
+  double starting_mean_H_0;
+  double low_mean_H_0;
+  double up_mean_H_0;
   double low_delta_H_0;
   double up_delta_H_0;
   double starting_delta_H_0;
@@ -140,7 +147,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   /////POS 0
    low_x_0=my_low_x; up_x_0=my_up_x;
   
-  low_delta_H_0=0.180;
+  low_delta_H_0=0.01080;
    up_delta_H_0=0.5;
   
   low_delta_T_0=-0.0;
@@ -161,8 +168,15 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   low_beta_0=0.5;
    up_beta_0=1.0;
 
-  
-   starting_mean_L_0=22.7;
+   if(no_grease){
+     starting_mean_L_0=22.7;
+     if(ch==12||ch==14) starting_mean_L_0=22.5;
+   }else{
+     starting_mean_L_0=22.7;
+     if(ch==14) starting_mean_L_0=22.5;
+
+   }
+   //if(ch==2) starting_mean_L_0=23.0;
    //   if(ch==3||ch==7) starting_mean_L_0=8.4;
    starting_delta_H_0=0.280;
    starting_delta_T_0=0.500;
@@ -171,11 +185,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    starting_sigma_T_0=0.1000;
    starting_alpha_0=0.5;
    starting_beta_0=0.5;
-  
+   
    //  low_mean_L_0=starting_mean_L_0-0.15;
    //   up_mean_L_0=starting_mean_L_0+0.15;
   low_mean_L_0=starting_mean_L_0-0.35;
    up_mean_L_0=starting_mean_L_0+0.35;
+  starting_mean_H_0=starting_mean_L_0+starting_delta_H_0;
+   low_mean_H_0=low_mean_L_0+starting_delta_H_0;
+   up_mean_H_0=up_mean_L_0+starting_delta_H_0;
 
 
 
@@ -195,10 +212,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
   
   RooRealVar x_0("Time","Time [ns]",low_x_0,up_x_0);//eee
+  /*
   RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
+  RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+  */
+  RooRealVar mean_H_0("mean_H_0","mean of L gaussian background pos 0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+  RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
+  RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
+  RooFormulaVar mean_L_0("mean_L_0","mean_l_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
@@ -377,11 +401,21 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   
   
-  
+  double T0(-9);
+  double T0_err(-9);
+
+  if(!fit_highest_peak){
+    T0=mean_L_0.getVal();
+    T0_err=mean_L_0.getError();
+  }else{
+    T0=mean_H_0.getVal();
+    T0_err=mean_H_0.getError();
+    
+  }
   
   ///////SINGLE FIBER FIT VALUES////////
-  /*0   */   POIs.push_back(mean_L_0.getVal()); 
-  /*1   */   POIs.push_back(mean_L_0.getError());
+  /*0   */   POIs.push_back(T0); 
+  /*1   */   POIs.push_back(T0_err);
   /*2   */   POIs.push_back(Delta_H_0.getVal());
   /*3   */   POIs.push_back(Delta_H_0.getError());
   /*4   */   POIs.push_back(Delta_T_0.getVal());
@@ -1066,13 +1100,9 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TMultiGraph *mg_MEANS_L_0 = new TMultiGraph();
     mg_MEANS_L_0->SetTitle("T_{L}^{pos.0} vs Channel - pos.0");
     mg_MEANS_L_0->Add(MEAN_L_B_0);
-    mg_MEANS_L_0->Add(MEAN_L_A_0);
-    TMultiGraph *mg_DELTAMEANS_L_1 = new TMultiGraph();
-    mg_DELTAMEANS_L_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} - vs Channel - pos.1");
-    mg_DELTAMEANS_L_1->Add(MEAN_L_B_1);
-    //mg_DELTAMEANS_L_1->Add(MEAN_L_A_1);
+    //mg_MEANS_L_0->Add(MEAN_L_A_0);
     
-    TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b");
+    TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b",0,0,1124,700);
     //c_absolute_positions_01->Divide(2,1);
     //c_absolute_positions_01->cd(1);
     mg_MEANS_L_0->Draw("AP");
@@ -1081,14 +1111,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->BuildLegend();
     gPad->Update();
     gPad->SetGridy();
-    TCanvas *c_absolute_positions_01 = new TCanvas("c_absolute_position_01","c_absolute_position_01");
-    //c_absolute_positions_01->cd(2);
-    mg_DELTAMEANS_L_1->Draw("AP");
-    mg_DELTAMEANS_L_1->GetXaxis()->SetTitle("Channel");
-    mg_DELTAMEANS_L_1->GetYaxis()->SetTitle("#Delta T_{L} [ns]");
-    gPad->BuildLegend();
-    gPad->Update();
-    gPad->SetGridy();
+  
     
     TMultiGraph *mg_DELTA_B_pos0 = new TMultiGraph();
     mg_DELTA_B_pos0->SetTitle("#Delta t (#equiv t_{H}-t_{L}) vs Channel - pos.0");
@@ -1099,7 +1122,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //mg_DELTA_B_pos0->Add(DELTA_means_pos0_MC_PD);
     mg_DELTA_B_pos0->SetMinimum(0.1);
     mg_DELTA_B_pos0->SetMaximum(0.4);
-    TCanvas *c_pos0_deltas_data_MC = new TCanvas("c_pos0_deltas_data_MC","c_pos0_deltas_data_MC");
+    TCanvas *c_pos0_deltas_data_MC = new TCanvas("c_pos0_deltas_data_MC","c_pos0_deltas_data_MC",0,0,1124,700);
     mg_DELTA_B_pos0->Draw("AP");
     gPad->BuildLegend();
     gPad->Update();
@@ -1110,42 +1133,25 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->Update();
     
     
-    TMultiGraph *mg_DELTA_B_pos1 = new TMultiGraph();
-    mg_DELTA_B_pos1->SetTitle("#Delta t (#equiv t_{H}-t_{L}) vs Channel - pos.1");
-    mg_DELTA_B_pos1->Add(DELTA_means_pos1_3G);
-    mg_DELTA_B_pos1->Add(DELTA_H_B_1);
-    //    mg_DELTA_B_pos1->Add(DELTA_means_pos1_MC_B2);
-    mg_DELTA_B_pos1->SetMinimum(0.1);
-    mg_DELTA_B_pos1->SetMaximum(0.4);
-    TCanvas *c_pos1_deltas_data_MC = new TCanvas("c_pos1_deltas_data_MC","c_pos1_deltas_data_MC");
-    mg_DELTA_B_pos1->Draw("AP");
-    gPad->BuildLegend();
-    gPad->Update();
-    gPad->SetGridy();
-    mg_DELTA_B_pos1->GetXaxis()->SetTitle("Channel");
-    mg_DELTA_B_pos1->GetYaxis()->SetTitle("#Delta t [ns]");
-    mg_DELTA_B_pos1->GetYaxis()->SetNdivisions(20);
-    gPad->Update();
-    
     
     
     TMultiGraph *mg_SIGMA_B_L = new TMultiGraph();
     mg_SIGMA_B_L->SetTitle("Time resolution (#delta t) low time vs Channel");
     mg_SIGMA_B_L->Add(REF_sigma_L);
     mg_SIGMA_B_L->Add(SIGMA_L_B_0);
-    mg_SIGMA_B_L->Add(SIGMA_L_A_0);
+    //mg_SIGMA_B_L->Add(SIGMA_L_A_0);
     TMultiGraph *mg_SIGMA_B_H = new TMultiGraph();
     mg_SIGMA_B_H->SetTitle("Time resolution (#delta t) high time vs Channel");
     mg_SIGMA_B_H->Add(REF_sigma_H);
     mg_SIGMA_B_H->Add(SIGMA_H_B_0);
-    mg_SIGMA_B_H->Add(SIGMA_H_A_0);
+    //mg_SIGMA_B_H->Add(SIGMA_H_A_0);
     TMultiGraph *mg_SIGMA_B_T = new TMultiGraph();
     mg_SIGMA_B_T->SetTitle("Time resolution (#delta t) third time vs Channel");
     mg_SIGMA_B_T->Add(REF_sigma_T);
+    //mg_SIGMA_B_T->Add(SIGMA_T_B_0);
+    //mg_SIGMA_B_T->Add(SIGMA_T_A_0);
     mg_SIGMA_B_T->Add(SIGMA_T_B_0);
-    mg_SIGMA_B_T->Add(SIGMA_T_A_0);
-    mg_SIGMA_B_T->Add(SIGMA_T_B_1);
-    mg_SIGMA_B_T->Add(SIGMA_T_A_1);
+    //mg_SIGMA_B_T->Add(SIGMA_T_A_1);
     
     
     
@@ -1158,13 +1164,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //mg_DELTA_0->Add(DELTA_H_A_0);
     //mg_DELTA_0->Add(DELTA_T_B_0);
     //mg_DELTA_0->Add(DELTA_T_A_0);
-    
-    TMultiGraph *mg_DELTA_1 = new TMultiGraph();
-    mg_DELTA_1->SetTitle("#Delta t (#equiv t_{H}-t_{L}) vs Channel - pos.1 ");
-    mg_DELTA_1->Add(DELTA_H_B_1);
-    //mg_DELTA_1->Add(DELTA_H_A_1);
-    //mg_DELTA_1->Add(DELTA_T_B_1);
-    //mg_DELTA_1->Add(DELTA_T_A_1);
+
     
     
     TMultiGraph *mg_FRAC_0 = new TMultiGraph();
@@ -1172,43 +1172,25 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //mg_FRAC_0->Add(FRAC_H_B_0);
     //mg_FRAC_0->Add(FRAC_H_A_0);
     mg_FRAC_0->Add(FRAC_L_B_0);
-    mg_FRAC_0->Add(FRAC_L_A_0);
-    
-    TMultiGraph *mg_FRAC_1 = new TMultiGraph();
-    mg_FRAC_1->SetTitle("Fraction of paths  vs Channel - pos.1 ");
-    //mg_FRAC_1->Add(FRAC_H_B_1);
-    //mg_FRAC_1->Add(FRAC_H_A_1);
-    mg_FRAC_1->Add(FRAC_L_B_1);
-    mg_FRAC_1->Add(FRAC_L_A_1);
+    //mg_FRAC_0->Add(FRAC_L_A_0);
+
     
     TMultiGraph *mg_SIGMA_L_0 = new TMultiGraph();
     mg_SIGMA_L_0->SetTitle("Time resolution (#delta t) low time vs Channel - pos. 0");
     //mg_SIGMA_L_0->Add(REF_sigma_L);
     mg_SIGMA_L_0->Add(SIGMA_L_B_0);
-    mg_SIGMA_L_0->Add(SIGMA_L_A_0);
+    //mg_SIGMA_L_0->Add(SIGMA_L_A_0);
     TMultiGraph *mg_SIGMA_H_0 = new TMultiGraph();
     mg_SIGMA_H_0->SetTitle("Time resolution (#delta t) high time vs Channel - pos. 0");
     //mg_SIGMA_H_0->Add(REF_sigma_H);
     mg_SIGMA_H_0->Add(SIGMA_H_B_0);
-    mg_SIGMA_H_0->Add(SIGMA_H_A_0);
+    //mg_SIGMA_H_0->Add(SIGMA_H_A_0);
     TMultiGraph *mg_SIGMA_T_0 = new TMultiGraph();
     mg_SIGMA_T_0->SetTitle("Time resolution (#delta t) third time vs Channel - pos. 0");
     //mg_SIGMA_T_0->Add(REF_sigma_T);
     mg_SIGMA_T_0->Add(SIGMA_T_B_0);
-    mg_SIGMA_T_0->Add(SIGMA_T_A_0);
+    //mg_SIGMA_T_0->Add(SIGMA_T_A_0);
     
-    TMultiGraph *mg_SIGMA_L_1 = new TMultiGraph();
-    mg_SIGMA_L_1->SetTitle("Time resolution (#delta t) low time vs Channel - pos. 1");
-    mg_SIGMA_L_1->Add(SIGMA_L_B_1);
-    mg_SIGMA_L_1->Add(SIGMA_L_A_1);
-    TMultiGraph *mg_SIGMA_H_1 = new TMultiGraph();
-    mg_SIGMA_H_1->SetTitle("Time resolution (#delta t) high time vs Channel - pos. 1");
-    mg_SIGMA_H_1->Add(SIGMA_H_B_1);
-    mg_SIGMA_H_1->Add(SIGMA_H_A_1);
-    TMultiGraph *mg_SIGMA_T_1 = new TMultiGraph();
-    mg_SIGMA_T_1->SetTitle("Time resolution (#delta t) third time vs Channel - pos. 1");
-    mg_SIGMA_T_1->Add(SIGMA_T_B_1);
-    mg_SIGMA_T_1->Add(SIGMA_T_A_1);
     
     TMultiGraph *mg_FRAC_SIGMA_L_0 = new TMultiGraph();
     mg_FRAC_SIGMA_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - low time peak");
@@ -1218,18 +1200,11 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_FRAC_SIGMA_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - high time peak");
     mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0);
     mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0_A);
-    TMultiGraph *mg_FRAC_SIGMA_L_1 = new TMultiGraph();
-    mg_FRAC_SIGMA_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1 - low time peak");
-    mg_FRAC_SIGMA_L_1->Add(SIGMA_FRAC_L_1);
-    mg_FRAC_SIGMA_L_1->Add(SIGMA_FRAC_L_1_A);
-    TMultiGraph *mg_FRAC_SIGMA_H_1 = new TMultiGraph();
-    mg_FRAC_SIGMA_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1 - high time peak");
-    mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1);
-    mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1_A);
+ 
 
 
-    TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma");
-    c_frac_sig->Divide(2,2);
+    TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma",0,0,1124,700);
+    c_frac_sig->Divide(1,2);
     c_frac_sig->cd(1);
     mg_FRAC_SIGMA_L_0->Draw("AP");
     gPad->Update();
@@ -1240,21 +1215,12 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->Update();
     mg_FRAC_SIGMA_H_0->GetXaxis()->SetTitle("f_{L}");
     mg_FRAC_SIGMA_H_0->GetYaxis()->SetTitle("#delta t [ns]");
-    c_frac_sig->cd(3);
-    mg_FRAC_SIGMA_L_1->Draw("AP");
-    gPad->Update();
-    mg_FRAC_SIGMA_L_1->GetXaxis()->SetTitle("f_{L}");
-    mg_FRAC_SIGMA_L_1->GetYaxis()->SetTitle("#delta t [ns]");
-    c_frac_sig->cd(4);
-    mg_FRAC_SIGMA_H_1->Draw("AP");
-    gPad->Update();
-    mg_FRAC_SIGMA_H_1->GetXaxis()->SetTitle("f_{L}");
-    mg_FRAC_SIGMA_H_1->GetYaxis()->SetTitle("#delta t [ns]");
+  
     //////
     
     TCanvas *c_DELTA_FRAC = new TCanvas("mean peak separation","mean peak separation",0,0,1124,700);
-    c_DELTA_FRAC->Divide(1,2);
-    c_DELTA_FRAC->cd(1);
+    //c_DELTA_FRAC->Divide(1,2);
+    c_DELTA_FRAC->cd();
     mg_DELTA_0->Draw("AP");
     gPad->Update();
     mg_DELTA_0->GetXaxis()->SetTitle("Channel");
@@ -1262,19 +1228,11 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->Update();
     mg_DELTA_0->Draw("AP");
     gPad->BuildLegend();
-    c_DELTA_FRAC->cd(2);
-    mg_DELTA_1->Draw("AP");
-    gPad->Update();
-    mg_DELTA_1->GetXaxis()->SetTitle("Channel");
-    mg_DELTA_1->GetYaxis()->SetTitle("#Delta t[ns]");
-    gPad->Update();
-    mg_DELTA_1->Draw("AP");
-    gPad->BuildLegend();
     
     
     TCanvas *c_FRAC = new TCanvas("c_FRAC","c_FRAC",0,0,1124,700);
-    c_FRAC->Divide(1,2);
-    c_FRAC->cd(1);
+    //   c_FRAC->Divide(1,2);
+    c_FRAC->cd();
     mg_FRAC_0->Draw("AP");
     gPad->Update();
     mg_FRAC_0->GetXaxis()->SetTitle("Channel");
@@ -1282,14 +1240,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->Update();
     mg_FRAC_0->Draw("AP");
     gPad->BuildLegend();
-    c_FRAC->cd(2);
-    mg_FRAC_1->Draw("AP");
-    gPad->Update();
-    mg_FRAC_1->GetXaxis()->SetTitle("Channel");
-    mg_FRAC_1->GetYaxis()->SetTitle("#Delta t[ns]");
-    gPad->Update();
-    mg_FRAC_1->Draw("AP");
-    gPad->BuildLegend();
+  
     /*
       TCanvas *c1 = new TCanvas("c1","c1");
       c1->Divide(2,2);
@@ -1356,25 +1307,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
       mg_SIGMA_T_0->GetYaxis()->SetTitle("#delta t [ns]");
       gPad->Update();
     */
-    
-    TCanvas* c_Res_pos1 = new TCanvas("c_Res_pos1","c_Res_pos1",0,0,1124,700);
-    c_Res_pos1->Divide(2,1);
-    c_Res_pos1->cd(1);
-    mg_SIGMA_L_1->Draw("AP");
-    line->Draw("same");
-    gPad->BuildLegend();
-    gPad->Update();
-    mg_SIGMA_L_1->GetXaxis()->SetTitle("Channel");
-    mg_SIGMA_L_1->GetYaxis()->SetTitle("#delta t [ns]");
-    gPad->Update();
-    c_Res_pos1->cd(2);
-    mg_SIGMA_H_1->Draw("AP");
-    line->Draw("same");
-    gPad->BuildLegend();
-    gPad->Update();
-    mg_SIGMA_H_1->GetXaxis()->SetTitle("Channel");
-    mg_SIGMA_H_1->GetYaxis()->SetTitle("#delta t [ns]");
-    gPad->Update();
+  
     /*
       c_Res_pos1->cd(3);
       mg_SIGMA_T_1->Draw("AP");

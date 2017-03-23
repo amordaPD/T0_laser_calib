@@ -32,8 +32,9 @@ struct Fit_results{
 
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-1-T77-vecchialente_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
-TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
+//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/grease-1-T77_out.root");
+TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
@@ -49,12 +50,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
-  bool add_third_signal=false;
+  bool add_third_signal=true;
   bool simulate_CB_tail=false;
   bool binned_fit=true;//if false fit is unbinned
   int amplitude_cut = -40;
   bool fit_highest_peak=true;
   bool no_grease=false;
+  bool fix_deltas=true;
 
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -153,13 +155,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_delta_T_0=0.5;
   
   low_sigma_L_0=0.035;
-   up_sigma_L_0=0.500;
+   up_sigma_L_0=0.200;
   
   low_sigma_H_0=0.045;
    up_sigma_H_0=0.180;
   
   low_sigma_T_0=0.050;
-   up_sigma_T_0=0.500;
+   up_sigma_T_0=0.200;
   
   low_alpha_0=0.01;
    up_alpha_0=0.8;
@@ -194,6 +196,41 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_mean_H_0=up_mean_L_0+starting_delta_H_0;
 
 
+   if(fix_deltas){
+     if(ch==0) starting_delta_H_0=0.280;
+     if(ch==1) starting_delta_H_0=0.261;
+     if(ch==2) starting_delta_H_0=0.221;
+     if(ch==3) starting_delta_H_0=0.176;
+     if(ch==4) starting_delta_H_0=0.280;
+     if(ch==5) starting_delta_H_0=0.262;
+     if(ch==6) starting_delta_H_0=0.222;
+     if(ch==7) starting_delta_H_0=0.178;
+     if(ch==8) starting_delta_H_0=0.275;
+     if(ch==9) starting_delta_H_0=0.258;
+     if(ch==10) starting_delta_H_0=0.221;
+     if(ch==11) starting_delta_H_0=0.168;
+     if(ch==12) starting_delta_H_0=0.273;
+     if(ch==13) starting_delta_H_0=0.260;
+     if(ch==14) starting_delta_H_0=0.221;
+     if(ch==15) starting_delta_H_0=0.176;
+     
+     if(ch==0) starting_delta_T_0=0.313-0.280;
+     if(ch==1) starting_delta_T_0=0.307-0.261;
+     if(ch==2) starting_delta_T_0=0.301-0.221;
+     if(ch==3) starting_delta_T_0=0.294-0.176;
+     if(ch==4) starting_delta_T_0=0.315-0.280;
+     if(ch==5) starting_delta_T_0=0.309-0.262;
+     if(ch==6) starting_delta_T_0=0.303-0.222;
+     if(ch==7) starting_delta_T_0=0.298-0.178;
+     if(ch==8) starting_delta_T_0=0.318-0.275;
+     if(ch==9) starting_delta_T_0=0.307-0.258;
+     if(ch==10) starting_delta_T_0=0.304-0.221;
+     if(ch==11) starting_delta_T_0=0.294-0.168;
+     if(ch==12) starting_delta_T_0=0.321-0.273;
+     if(ch==13) starting_delta_T_0=0.305-0.260;
+     if(ch==14) starting_delta_T_0=0.301-0.221;
+     if(ch==15) starting_delta_T_0=0.300-0.176;
+   }
 
 
 
@@ -241,7 +278,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooArgList  fracList_sig_0(alpha_0);if(add_third_signal) {fracList_sig_0.add(beta_0);}
   RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
 
-
+  if(fix_deltas){Delta_H_0.setConstant(kTRUE); Delta_T_0.setConstant(kTRUE);}
   
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);

@@ -30,7 +30,7 @@ struct Fit_results{
 //  ofstream cout("fits_report.txt");
 
 
-TFile *f_input_histogram = new TFile("flat_ntuples/run070317-2-T77_out.root");
+TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
 //TFile *f_input_histogram = new TFile("compare.root");
 TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
 
@@ -48,9 +48,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
-  bool add_third_signal=false;
+  bool add_third_signal=true;
   bool simulate_CB_tail=false;
-  bool binned_fit=true;
+  bool binned_fit=true;//if false fit is unbinned
   int amplitude_cut = -10;
 
   
@@ -65,8 +65,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   // S e t u p   m o d e l 
   // ---------------------
  
-  double my_low_x=22;
-  double my_up_x=25;
+  double my_low_x=22.5;
+  double my_up_x=24.5;
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
@@ -143,7 +143,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   low_delta_H_0=0.180;
    up_delta_H_0=0.5;
   
-  low_delta_T_0=-0.2;
+  low_delta_T_0=-0.0;
    up_delta_T_0=0.5;
   
   low_sigma_L_0=0.035;
@@ -165,15 +165,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    starting_mean_L_0=22.7;
    //   if(ch==3||ch==7) starting_mean_L_0=8.4;
    starting_delta_H_0=0.280;
-   starting_delta_T_0=0.200;
+   starting_delta_T_0=0.500;
    starting_sigma_L_0=0.0810;
    starting_sigma_H_0=0.0810;
    starting_sigma_T_0=0.1000;
    starting_alpha_0=0.5;
    starting_beta_0=0.5;
   
-  low_mean_L_0=starting_mean_L_0-0.15;
-   up_mean_L_0=starting_mean_L_0+0.15;
+   //  low_mean_L_0=starting_mean_L_0-0.15;
+   //   up_mean_L_0=starting_mean_L_0+0.15;
+  low_mean_L_0=starting_mean_L_0-0.35;
+   up_mean_L_0=starting_mean_L_0+0.35;
 
 
 

@@ -66,7 +66,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool fit_for_first_peak=false;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
   int amplitude_cut = -40;
-
+  
+  bool suppress_negligible_first_peak=false;
   bool do_simultaneous_fit=false;
   bool add_third_signal_pos0=false;
   bool add_third_signal_pos1=false;
@@ -1131,6 +1132,11 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
   //Frac_0.setVal((ds_0.sumEntries()*Frac_sig_0.getVal())/(ds_1.sumEntries()*Frac_sig_1.getVal()));
   //Frac_0.setConstant(kTRUE);
+  bool flag_alpha_0=false;
+  bool flag_alpha_1=false;
+  
+  if(alpha_0.getVal()<0.1) {flag_alpha_0=true; }//alpha_0.setVal(0.0);alpha_0.setConstant(kTRUE);}
+  if(alpha_1.getVal()<0.1) {flag_alpha_1=true; }//alpha_1.setVal(0.0);alpha_1.setConstant(kTRUE);}
   
   if(fit_for_first_peak){mean_L_0.setConstant(kFALSE);}else{mean_H_0.setConstant(kFALSE);}
   if(fix_params==0){ ///////everything is free
@@ -1176,8 +1182,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   sigma_H_0.setVal(starting_sigma_H_0);
   if(direct_parametrization){sigma_L_1.setVal(starting_sigma_L_1);}else{sigma_L_1_SF.setVal(1.0);}
   sigma_H_1.setVal(starting_sigma_H_1);
-  
-  
+  if(suppress_negligible_first_peak){
+    if(flag_alpha_0==true){alpha_0.setVal(0.0);alpha_0.setConstant(kTRUE);}
+    if(flag_alpha_1==true){alpha_1.setVal(0.0);alpha_1.setConstant(kTRUE);}
+  }
   if(do_prefit_fullSpectrum){
     
     cout<<"___________________________________"<<endl;

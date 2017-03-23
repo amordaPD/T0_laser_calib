@@ -2249,7 +2249,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_DELTAMEANS_L_1->Add(MEAN_L_B_1);
     //mg_DELTAMEANS_L_1->Add(MEAN_L_A_1);
     
-    TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b");
+    TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b",0,0,1124,700);
     //c_absolute_positions_01->Divide(2,1);
     //c_absolute_positions_01->cd(1);
     mg_MEANS_L_0->Draw("AP");
@@ -2259,7 +2259,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->BuildLegend();
     gPad->Update();
     gPad->SetGridy();
-    TCanvas *c_absolute_positions_01 = new TCanvas("c_absolute_position_01","c_absolute_position_01");
+    TCanvas *c_absolute_positions_01 = new TCanvas("c_absolute_position_01","c_absolute_position_01",0,0,1124,700);
     //c_absolute_positions_01->cd(2);
     mg_DELTAMEANS_L_1->Draw("AP");
     mg_DELTAMEANS_L_1->GetXaxis()->SetTitle("Channel");
@@ -2277,7 +2277,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //mg_DELTA_B_pos0->Add(DELTA_means_pos0_MC_PD);
     mg_DELTA_B_pos0->SetMinimum(0.1);
     mg_DELTA_B_pos0->SetMaximum(0.4);
-    TCanvas *c_pos0_deltas_data_MC = new TCanvas("c_pos0_deltas_data_MC","c_pos0_deltas_data_MC");
+    TCanvas *c_pos0_deltas_data_MC = new TCanvas("c_pos0_deltas_data_MC","c_pos0_deltas_data_MC",0,0,1124,700);
     mg_DELTA_B_pos0->Draw("AP");
     gPad->BuildLegend();
     gPad->Update();
@@ -2295,7 +2295,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //    mg_DELTA_B_pos1->Add(DELTA_means_pos1_MC_B2);
     mg_DELTA_B_pos1->SetMinimum(0.1);
     mg_DELTA_B_pos1->SetMaximum(0.4);
-    TCanvas *c_pos1_deltas_data_MC = new TCanvas("c_pos1_deltas_data_MC","c_pos1_deltas_data_MC");
+    TCanvas *c_pos1_deltas_data_MC = new TCanvas("c_pos1_deltas_data_MC","c_pos1_deltas_data_MC",0,0,1124,700);
     mg_DELTA_B_pos1->Draw("AP");
     gPad->BuildLegend();
     gPad->Update();
@@ -2406,7 +2406,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1_A);
 
 
-    TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma");
+    TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma",0,0,1124,700);
     c_frac_sig->Divide(2,2);
     c_frac_sig->cd(1);
     mg_FRAC_SIGMA_L_0->Draw("AP");

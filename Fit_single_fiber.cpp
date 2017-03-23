@@ -32,9 +32,8 @@ struct Fit_results{
 
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-1-T77-vecchialente_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
-TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
-//TFile *f_input_histogram = new TFile("compare.root");
-TFile *f_input_histogram_detached_PMTs = new TFile("fiber0_27022017.root");
+TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
+//TFile *f_input_histogram = new TFile("flat_ntuples/grease-1-T77_out.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
@@ -1237,6 +1236,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->Update();
     mg_FRAC_0->GetXaxis()->SetTitle("Channel");
     mg_FRAC_0->GetYaxis()->SetTitle("#Delta t[ns]");
+    mg_FRAC_0->GetYaxis()->SetRangeUser(0,0.9);
+    gPad->SetGridy();
     gPad->Update();
     mg_FRAC_0->Draw("AP");
     gPad->BuildLegend();

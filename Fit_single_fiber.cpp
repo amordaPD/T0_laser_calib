@@ -32,9 +32,10 @@ struct Fit_results{
 
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-1-T77-vecchialente_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
+TFile *f_input_histogram = new TFile("flat_ntuples/run240317-T77-pos0_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
 //TFile *f_input_histogram = new TFile("flat_ntuples/grease-1-T77_out.root");
-TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
+//TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
 
 //vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
@@ -50,13 +51,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
   bool do_simultaneous_fit=false;
-  bool add_third_signal=true;
+  bool add_third_signal=false;
   bool simulate_CB_tail=false;
   bool binned_fit=true;//if false fit is unbinned
   int amplitude_cut = -40;
   bool fit_highest_peak=true;
-  bool no_grease=false;
-  bool fix_deltas=true;
+  bool no_grease=true;
+  bool fix_deltas=false;
 
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -172,6 +173,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    if(no_grease){
      starting_mean_L_0=22.7;
      if(ch==12||ch==14) starting_mean_L_0=22.5;
+     if(ch==5||ch==8) starting_mean_L_0=23.0;
    }else{
      starting_mean_L_0=22.7;
      if(ch==14) starting_mean_L_0=22.5;
@@ -943,71 +945,71 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     line->SetTitle("100 ps");
     // TLine *line = new TLine(0,100,16,100);
     line->SetLineColor(2);
-    TGraphErrors *DELTA_means_ref = new TGraphErrors(16,x,ref_delta_mean,err_x,err_x);DELTA_means_ref->SetTitle("#Delta t_{ref} pos.0 - fit pos.0");
-    TGraphErrors *DELTA_means_pos0_MC_B2 = new TGraphErrors(16,x,ref_pos0_MC_B2,err_x,err_x);DELTA_means_pos0_MC_B2->SetTitle("#Delta t_{ref} pos.0 - B2 MC");
-    TGraphErrors *DELTA_means_pos1_MC_B2 = new TGraphErrors(16,x,ref_pos1_MC_B2,err_x,err_x);DELTA_means_pos1_MC_B2->SetTitle("#Delta t_{ref} pos.1 - B2 MC");
-    TGraphErrors *DELTA_means_pos0_MC_PD = new TGraphErrors(16,x,ref_pos0_MC_PD,err_x,err_x);DELTA_means_pos0_MC_PD->SetTitle("#Delta t_{ref} pos.0 - PD MC");
+    TGraphErrors *DELTA_means_ref = new TGraphErrors(16,x,ref_delta_mean,err_x,err_x);DELTA_means_ref->SetName("DELTA_means_ref"); DELTA_means_ref->SetTitle("#Delta t_{ref} pos.0 - fit pos.0");
+    TGraphErrors *DELTA_means_pos0_MC_B2 = new TGraphErrors(16,x,ref_pos0_MC_B2,err_x,err_x);DELTA_means_pos0_MC_B2->SetName("DELTA_means_pos0_MC_B2"); DELTA_means_pos0_MC_B2->SetTitle("#Delta t_{ref} pos.0 - B2 MC");
+    TGraphErrors *DELTA_means_pos1_MC_B2 = new TGraphErrors(16,x,ref_pos1_MC_B2,err_x,err_x);DELTA_means_pos1_MC_B2->SetName("DELTA_means_pos1_MC_B2"); DELTA_means_pos1_MC_B2->SetTitle("#Delta t_{ref} pos.1 - B2 MC");
+    TGraphErrors *DELTA_means_pos0_MC_PD = new TGraphErrors(16,x,ref_pos0_MC_PD,err_x,err_x);DELTA_means_pos0_MC_PD->SetName("DELTA_means_pos0_MC_PD"); DELTA_means_pos0_MC_PD->SetTitle("#Delta t_{ref} pos.0 - PD MC");
     
-    TGraphErrors *DELTA_means_pos0_3G = new TGraphErrors(16,x,ref_pos0_3G,err_x,err_ref_pos0_3G);DELTA_means_pos0_3G->SetTitle("#Delta t_{ref} pos.0 - 3 Gaussian model");
-    TGraphErrors *DELTA_means_pos1_3G = new TGraphErrors(16,x,ref_pos1_3G,err_x,err_ref_pos1_3G);DELTA_means_pos1_3G->SetTitle("#Delta t_{ref} pos.1 - 3 Gaussian model");
-    
-    
+    TGraphErrors *DELTA_means_pos0_3G = new TGraphErrors(16,x,ref_pos0_3G,err_x,err_ref_pos0_3G);DELTA_means_pos0_3G->SetName("DELTA_means_pos0_3G"); DELTA_means_pos0_3G->SetTitle("#Delta t_{ref} pos.0 - 3 Gaussian model");
+    TGraphErrors *DELTA_means_pos1_3G = new TGraphErrors(16,x,ref_pos1_3G,err_x,err_ref_pos1_3G);DELTA_means_pos1_3G->SetName("DELTA_means_pos1_3G"); DELTA_means_pos1_3G->SetTitle("#Delta t_{ref} pos.1 - 3 Gaussian model");
     
     
     
-    TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetTitle("T_{L}^{pos.0} - fit pos.0");
-    TGraphErrors *MEAN_L_B_1 = new TGraphErrors(16,x,mean_L_1_B,err_x,err_mean_L_1_B);MEAN_L_B_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} T- fit pos.1");
-    TGraphErrors *MEAN_L_A_0 = new TGraphErrors(16,x,mean_L_0_A,err_x,err_mean_L_0_A);MEAN_L_A_0->SetTitle("T_{L}^{pos.0} - fit pos.0 #oplus 1");
-    TGraphErrors *MEAN_L_A_1 = new TGraphErrors(16,x,mean_L_1_A,err_x,err_mean_L_1_A);MEAN_L_A_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} - fit pos.0 #oplus 1");
-    
-    TGraphErrors *DELTA_H_B_0 = new TGraphErrors(16,x,Delta_H_0_B,err_x,err_Delta_H_0_B);DELTA_H_B_0->SetTitle("#Delta t pos.0 - fit pos.0");
-    TGraphErrors *DELTA_H_B_1 = new TGraphErrors(16,x,Delta_H_1_B,err_x,err_Delta_H_1_B);DELTA_H_B_1->SetTitle("#Delta t pos.1 - fit pos.1");
-    TGraphErrors *DELTA_H_A_0 = new TGraphErrors(16,x,Delta_H_0_A,err_x,err_Delta_H_0_A);DELTA_H_A_0->SetTitle("#Delta t_{LOW-HIGH} pos.0 - fit pos.0 #oplus 1");
-    TGraphErrors *DELTA_H_A_1 = new TGraphErrors(16,x,Delta_H_1_A,err_x,err_Delta_H_1_A);DELTA_H_A_1->SetTitle("#Delta t_{LOW-HIGH} pos.1 - fit pos.0 #oplus 1");
-    TGraphErrors *DELTA_T_B_0 = new TGraphErrors(16,x,Delta_T_0_B,err_x,err_Delta_T_0_B);DELTA_T_B_0->SetTitle("#Delta t_{HIGH-THIRD} pos.0 - fit pos.0");
-    TGraphErrors *DELTA_T_B_1 = new TGraphErrors(16,x,Delta_T_1_B,err_x,err_Delta_T_1_B);DELTA_T_B_1->SetTitle("#Delta t_{HIGH-THIRD} pos.1 - fit pos.1");
-    TGraphErrors *DELTA_T_A_0 = new TGraphErrors(16,x,Delta_T_0_A,err_x,err_Delta_T_0_A);DELTA_T_A_0->SetTitle("#Delta t_{HIGH-THIRD} pos.0 - fit pos.0 #oplus 1");
-    TGraphErrors *DELTA_T_A_1 = new TGraphErrors(16,x,Delta_T_1_A,err_x,err_Delta_T_1_A);DELTA_T_A_1->SetTitle("#Delta t_{HIGH-THIRD} pos.1 - fit pos.0 #oplus 1");
-    
-    TGraphErrors *SIGMA_L_B_0 = new TGraphErrors(16,x,sigma_L_0_B,err_x,err_sigma_L_0_B);SIGMA_L_B_0->SetTitle("#delta t_{low} pos.0 - fit pos.0");
-    TGraphErrors *SIGMA_L_B_1 = new TGraphErrors(16,x,sigma_L_1_B,err_x,err_sigma_L_1_B);SIGMA_L_B_1->SetTitle("#delta t_{low} pos.1 - fit pos.1");
-    TGraphErrors *SIGMA_H_B_0 = new TGraphErrors(16,x,sigma_H_0_B,err_x,err_sigma_H_0_B);SIGMA_H_B_0->SetTitle("#delta t_{high} pos.0 - fit pos.0");
-    TGraphErrors *SIGMA_H_B_1 = new TGraphErrors(16,x,sigma_H_1_B,err_x,err_sigma_H_1_B);SIGMA_H_B_1->SetTitle("#delta t_{high} pos.1 - fit pos.1");
-    TGraphErrors *SIGMA_T_B_0 = new TGraphErrors(16,x,sigma_T_0_B,err_x,err_sigma_T_0_B);SIGMA_T_B_0->SetTitle("#delta t_{third} pos.0 - fit pos.0");
-    TGraphErrors *SIGMA_T_B_1 = new TGraphErrors(16,x,sigma_T_1_B,err_x,err_sigma_T_1_B);SIGMA_T_B_1->SetTitle("#delta t_{third} pos.1 - fit pos.1");
-    
-    TGraphErrors *SIGMA_L_A_0 = new TGraphErrors(16,x,sigma_L_0_A,err_x,err_sigma_L_0_A);SIGMA_L_A_0->SetTitle("#delta t_{low} pos.0 - fit pos.0 #oplus 1");
-    TGraphErrors *SIGMA_L_A_1 = new TGraphErrors(16,x,sigma_L_1_A,err_x,err_sigma_L_1_A);SIGMA_L_A_1->SetTitle("#delta t_{low} pos.1 - fit pos.0 #oplus 1");
-    TGraphErrors *SIGMA_H_A_0 = new TGraphErrors(16,x,sigma_H_0_A,err_x,err_sigma_H_0_A);SIGMA_H_A_0->SetTitle("#delta t_{high} pos.0 - fit pos.0 #oplus 1");
-    TGraphErrors *SIGMA_H_A_1 = new TGraphErrors(16,x,sigma_H_1_A,err_x,err_sigma_H_1_A);SIGMA_H_A_1->SetTitle("#delta t_{high} pos.1 - fit pos.0 #oplus 1");
-    TGraphErrors *SIGMA_T_A_0 = new TGraphErrors(16,x,sigma_T_0_A,err_x,err_sigma_T_0_A);SIGMA_T_A_0->SetTitle("#delta t_{third} pos.0 - fit pos.0 #oplus 1");
-    TGraphErrors *SIGMA_T_A_1 = new TGraphErrors(16,x,sigma_T_1_A,err_x,err_sigma_T_1_A);SIGMA_T_A_1->SetTitle("#delta t_{third} pos.1 - fit pos.0 #oplus 1");
     
     
-    TGraphErrors *FRAC_L_B_0 = new TGraphErrors(16,x,frac_L_B_0,err_x,err_frac_L_B_0);FRAC_L_B_0->SetTitle("f_{L} pos.0 - fit pos 0");
-    TGraphErrors *FRAC_H_B_0 = new TGraphErrors(16,x,frac_H_B_0,err_x,err_frac_H_B_0);FRAC_H_B_0->SetTitle("f_{H} pos.0 - fit pos 0");
-    TGraphErrors *FRAC_L_B_1 = new TGraphErrors(16,x,frac_L_B_1,err_x,err_frac_L_B_1);FRAC_L_B_1->SetTitle("f_{L} pos.1 - fit pos 1");
-    TGraphErrors *FRAC_H_B_1 = new TGraphErrors(16,x,frac_H_B_1,err_x,err_frac_H_B_1);FRAC_H_B_1->SetTitle("f_{H} pos.1 - fit pos 1");
-    TGraphErrors *FRAC_L_A_0 = new TGraphErrors(16,x,frac_L_A_0,err_x,err_frac_L_A_0);FRAC_L_A_0->SetTitle("f_{L} pos.0 - fit pos 0 #oplus 1");
-    TGraphErrors *FRAC_H_A_0 = new TGraphErrors(16,x,frac_H_A_0,err_x,err_frac_H_A_0);FRAC_H_A_0->SetTitle("f_{H} pos.0 - fit pos 0 #oplus 1");
-    TGraphErrors *FRAC_L_A_1 = new TGraphErrors(16,x,frac_L_A_1,err_x,err_frac_L_A_1);FRAC_L_A_1->SetTitle("f_{L} pos.1 - fit pos 0 #oplus 1");
-    TGraphErrors *FRAC_H_A_1 = new TGraphErrors(16,x,frac_H_A_1,err_x,err_frac_H_A_1);FRAC_H_A_1->SetTitle("f_{H} pos.1 - fit pos 0 #oplus 1");
+    TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{L}^{pos.0} - fit pos.0");
+    TGraphErrors *MEAN_L_B_1 = new TGraphErrors(16,x,mean_L_1_B,err_x,err_mean_L_1_B);MEAN_L_B_1->SetName("MEAN_L_B_1"); MEAN_L_B_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} T- fit pos.1");
+    TGraphErrors *MEAN_L_A_0 = new TGraphErrors(16,x,mean_L_0_A,err_x,err_mean_L_0_A);MEAN_L_A_0->SetName("MEAN_L_A_0"); MEAN_L_A_0->SetTitle("T_{L}^{pos.0} - fit pos.0 #oplus 1");
+    TGraphErrors *MEAN_L_A_1 = new TGraphErrors(16,x,mean_L_1_A,err_x,err_mean_L_1_A);MEAN_L_A_1->SetName("MEAN_L_A_1"); MEAN_L_A_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} - fit pos.0 #oplus 1");
+    
+    TGraphErrors *DELTA_H_B_0 = new TGraphErrors(16,x,Delta_H_0_B,err_x,err_Delta_H_0_B);DELTA_H_B_0->SetName("DELTA_H_B_0"); DELTA_H_B_0->SetTitle("#Delta t pos.0 - fit pos.0");
+    TGraphErrors *DELTA_H_B_1 = new TGraphErrors(16,x,Delta_H_1_B,err_x,err_Delta_H_1_B);DELTA_H_B_1->SetName("DELTA_H_B_1"); DELTA_H_B_1->SetTitle("#Delta t pos.1 - fit pos.1");
+    TGraphErrors *DELTA_H_A_0 = new TGraphErrors(16,x,Delta_H_0_A,err_x,err_Delta_H_0_A);DELTA_H_A_0->SetName("DELTA_H_A_0"); DELTA_H_A_0->SetTitle("#Delta t_{LOW-HIGH} pos.0 - fit pos.0 #oplus 1");
+    TGraphErrors *DELTA_H_A_1 = new TGraphErrors(16,x,Delta_H_1_A,err_x,err_Delta_H_1_A);DELTA_H_A_1->SetName("DELTA_H_A_1"); DELTA_H_A_1->SetTitle("#Delta t_{LOW-HIGH} pos.1 - fit pos.0 #oplus 1");
+    TGraphErrors *DELTA_T_B_0 = new TGraphErrors(16,x,Delta_T_0_B,err_x,err_Delta_T_0_B);DELTA_T_B_0->SetName("DELTA_T_B_0"); DELTA_T_B_0->SetTitle("#Delta t_{HIGH-THIRD} pos.0 - fit pos.0");
+    TGraphErrors *DELTA_T_B_1 = new TGraphErrors(16,x,Delta_T_1_B,err_x,err_Delta_T_1_B);DELTA_T_B_1->SetName("DELTA_T_B_1"); DELTA_T_B_1->SetTitle("#Delta t_{HIGH-THIRD} pos.1 - fit pos.1");
+    TGraphErrors *DELTA_T_A_0 = new TGraphErrors(16,x,Delta_T_0_A,err_x,err_Delta_T_0_A);DELTA_T_A_0->SetName("DELTA_T_A_0"); DELTA_T_A_0->SetTitle("#Delta t_{HIGH-THIRD} pos.0 - fit pos.0 #oplus 1");
+    TGraphErrors *DELTA_T_A_1 = new TGraphErrors(16,x,Delta_T_1_A,err_x,err_Delta_T_1_A);DELTA_T_A_1->SetName("DELTA_T_A_1"); DELTA_T_A_1->SetTitle("#Delta t_{HIGH-THIRD} pos.1 - fit pos.0 #oplus 1");
+    
+    TGraphErrors *SIGMA_L_B_0 = new TGraphErrors(16,x,sigma_L_0_B,err_x,err_sigma_L_0_B);SIGMA_L_B_0->SetName("SIGMA_L_B_0"); SIGMA_L_B_0->SetTitle("#delta t_{low} pos.0 - fit pos.0");
+    TGraphErrors *SIGMA_L_B_1 = new TGraphErrors(16,x,sigma_L_1_B,err_x,err_sigma_L_1_B);SIGMA_L_B_1->SetName("SIGMA_L_B_1"); SIGMA_L_B_1->SetTitle("#delta t_{low} pos.1 - fit pos.1");
+    TGraphErrors *SIGMA_H_B_0 = new TGraphErrors(16,x,sigma_H_0_B,err_x,err_sigma_H_0_B);SIGMA_H_B_0->SetName("SIGMA_H_B_0"); SIGMA_H_B_0->SetTitle("#delta t_{high} pos.0 - fit pos.0");
+    TGraphErrors *SIGMA_H_B_1 = new TGraphErrors(16,x,sigma_H_1_B,err_x,err_sigma_H_1_B);SIGMA_H_B_1->SetName("SIGMA_H_B_1"); SIGMA_H_B_1->SetTitle("#delta t_{high} pos.1 - fit pos.1");
+    TGraphErrors *SIGMA_T_B_0 = new TGraphErrors(16,x,sigma_T_0_B,err_x,err_sigma_T_0_B);SIGMA_T_B_0->SetName("SIGMA_T_B_0"); SIGMA_T_B_0->SetTitle("#delta t_{third} pos.0 - fit pos.0");
+    TGraphErrors *SIGMA_T_B_1 = new TGraphErrors(16,x,sigma_T_1_B,err_x,err_sigma_T_1_B);SIGMA_T_B_1->SetName("SIGMA_T_B_1"); SIGMA_T_B_1->SetTitle("#delta t_{third} pos.1 - fit pos.1");
+    
+    TGraphErrors *SIGMA_L_A_0 = new TGraphErrors(16,x,sigma_L_0_A,err_x,err_sigma_L_0_A);SIGMA_L_A_0->SetName("SIGMA_L_A_0"); SIGMA_L_A_0->SetTitle("#delta t_{low} pos.0 - fit pos.0 #oplus 1");
+    TGraphErrors *SIGMA_L_A_1 = new TGraphErrors(16,x,sigma_L_1_A,err_x,err_sigma_L_1_A);SIGMA_L_A_1->SetName("SIGMA_L_A_1"); SIGMA_L_A_1->SetTitle("#delta t_{low} pos.1 - fit pos.0 #oplus 1");
+    TGraphErrors *SIGMA_H_A_0 = new TGraphErrors(16,x,sigma_H_0_A,err_x,err_sigma_H_0_A);SIGMA_H_A_0->SetName("SIGMA_H_A_0"); SIGMA_H_A_0->SetTitle("#delta t_{high} pos.0 - fit pos.0 #oplus 1");
+    TGraphErrors *SIGMA_H_A_1 = new TGraphErrors(16,x,sigma_H_1_A,err_x,err_sigma_H_1_A);SIGMA_H_A_1->SetName("SIGMA_H_A_1"); SIGMA_H_A_1->SetTitle("#delta t_{high} pos.1 - fit pos.0 #oplus 1");
+    TGraphErrors *SIGMA_T_A_0 = new TGraphErrors(16,x,sigma_T_0_A,err_x,err_sigma_T_0_A);SIGMA_T_A_0->SetName("SIGMA_T_A_0"); SIGMA_T_A_0->SetTitle("#delta t_{third} pos.0 - fit pos.0 #oplus 1");
+    TGraphErrors *SIGMA_T_A_1 = new TGraphErrors(16,x,sigma_T_1_A,err_x,err_sigma_T_1_A);SIGMA_T_A_1->SetName("SIGMA_T_A_1"); SIGMA_T_A_1->SetTitle("#delta t_{third} pos.1 - fit pos.0 #oplus 1");
     
     
-    TGraphErrors *FRAC_0 = new TGraphErrors(16,x,frac_0,err_x,err_frac_0);FRAC_0->SetTitle("F_{0}fit pos 0 #oplus 1");
+    TGraphErrors *FRAC_L_B_0 = new TGraphErrors(16,x,frac_L_B_0,err_x,err_frac_L_B_0);FRAC_L_B_0->SetName("FRAC_L_B_0"); FRAC_L_B_0->SetTitle("f_{L} pos.0 - fit pos 0");
+    TGraphErrors *FRAC_H_B_0 = new TGraphErrors(16,x,frac_H_B_0,err_x,err_frac_H_B_0);FRAC_H_B_0->SetName("FRAC_H_B_0"); FRAC_H_B_0->SetTitle("f_{H} pos.0 - fit pos 0");
+    TGraphErrors *FRAC_L_B_1 = new TGraphErrors(16,x,frac_L_B_1,err_x,err_frac_L_B_1);FRAC_L_B_1->SetName("FRAC_L_B_1"); FRAC_L_B_1->SetTitle("f_{L} pos.1 - fit pos 1");
+    TGraphErrors *FRAC_H_B_1 = new TGraphErrors(16,x,frac_H_B_1,err_x,err_frac_H_B_1);FRAC_H_B_1->SetName("FRAC_H_B_1"); FRAC_H_B_1->SetTitle("f_{H} pos.1 - fit pos 1");
+    TGraphErrors *FRAC_L_A_0 = new TGraphErrors(16,x,frac_L_A_0,err_x,err_frac_L_A_0);FRAC_L_A_0->SetName("FRAC_L_A_0"); FRAC_L_A_0->SetTitle("f_{L} pos.0 - fit pos 0 #oplus 1");
+    TGraphErrors *FRAC_H_A_0 = new TGraphErrors(16,x,frac_H_A_0,err_x,err_frac_H_A_0);FRAC_H_A_0->SetName("FRAC_H_A_0"); FRAC_H_A_0->SetTitle("f_{H} pos.0 - fit pos 0 #oplus 1");
+    TGraphErrors *FRAC_L_A_1 = new TGraphErrors(16,x,frac_L_A_1,err_x,err_frac_L_A_1);FRAC_L_A_1->SetName("FRAC_L_A_1"); FRAC_L_A_1->SetTitle("f_{L} pos.1 - fit pos 0 #oplus 1");
+    TGraphErrors *FRAC_H_A_1 = new TGraphErrors(16,x,frac_H_A_1,err_x,err_frac_H_A_1);FRAC_H_A_1->SetName("FRAC_H_A_1"); FRAC_H_A_1->SetTitle("f_{H} pos.1 - fit pos 0 #oplus 1");
     
-    TGraphErrors *REF_sigma_L = new TGraphErrors(16,x,ref_sigma_L,err_x,err_x);REF_sigma_L->SetTitle("#delta t_{low}^{ref} pos.0 - fit pos.0");
-    TGraphErrors *REF_sigma_H = new TGraphErrors(16,x,ref_sigma_H,err_x,err_x);REF_sigma_H->SetTitle("#delta t_{high}^{ref} pos.0 - fit pos.0");
-    TGraphErrors *REF_sigma_T = new TGraphErrors(16,x,ref_sigma_T,err_x,err_x);REF_sigma_T->SetTitle("#delta t_{third}^{ref} pos.0 - fit pos.0");
+    
+    TGraphErrors *FRAC_0 = new TGraphErrors(16,x,frac_0,err_x,err_frac_0);FRAC_0->SetName("FRAC_0"); FRAC_0->SetTitle("F_{0}fit pos 0 #oplus 1");
+    
+    TGraphErrors *REF_sigma_L = new TGraphErrors(16,x,ref_sigma_L,err_x,err_x);REF_sigma_L->SetName("REF_sigma_L"); REF_sigma_L->SetTitle("#delta t_{low}^{ref} pos.0 - fit pos.0");
+    TGraphErrors *REF_sigma_H = new TGraphErrors(16,x,ref_sigma_H,err_x,err_x);REF_sigma_H->SetName("REF_sigma_H"); REF_sigma_H->SetTitle("#delta t_{high}^{ref} pos.0 - fit pos.0");
+    TGraphErrors *REF_sigma_T = new TGraphErrors(16,x,ref_sigma_T,err_x,err_x);REF_sigma_T->SetName("REF_sigma_T"); REF_sigma_T->SetTitle("#delta t_{third}^{ref} pos.0 - fit pos.0");
 
-    TGraphErrors *SIGMA_FRAC_L_0 = new TGraphErrors(16,frac_L_B_0,sigma_L_0_B,err_frac_L_B_0,err_sigma_L_0_B);SIGMA_FRAC_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
-    TGraphErrors *SIGMA_FRAC_H_0 = new TGraphErrors(16,frac_L_B_0,sigma_H_0_B,err_frac_L_B_0,err_sigma_H_0_B);SIGMA_FRAC_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
-    TGraphErrors *SIGMA_FRAC_L_1 = new TGraphErrors(16,frac_L_B_1,sigma_L_1_B,err_frac_L_B_1,err_sigma_L_1_B);SIGMA_FRAC_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
-    TGraphErrors *SIGMA_FRAC_H_1 = new TGraphErrors(16,frac_L_B_1,sigma_H_1_B,err_frac_L_B_1,err_sigma_H_1_B);SIGMA_FRAC_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
-    TGraphErrors *SIGMA_FRAC_L_0_A = new TGraphErrors(16,frac_L_B_0,sigma_L_0_A,err_frac_L_B_0,err_sigma_L_0_A);SIGMA_FRAC_L_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
-    TGraphErrors *SIGMA_FRAC_H_0_A = new TGraphErrors(16,frac_L_B_0,sigma_H_0_A,err_frac_L_B_0,err_sigma_H_0_A);SIGMA_FRAC_H_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
-    TGraphErrors *SIGMA_FRAC_L_1_A = new TGraphErrors(16,frac_L_B_1,sigma_L_1_A,err_frac_L_B_1,err_sigma_L_1_A);SIGMA_FRAC_L_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
-    TGraphErrors *SIGMA_FRAC_H_1_A = new TGraphErrors(16,frac_L_B_1,sigma_H_1_A,err_frac_L_B_1,err_sigma_H_1_A);SIGMA_FRAC_H_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_L_0 = new TGraphErrors(16,frac_L_B_0,sigma_L_0_B,err_frac_L_B_0,err_sigma_L_0_B);SIGMA_FRAC_L_0->SetName("SIGMA_FRAC_L_0"); SIGMA_FRAC_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_H_0 = new TGraphErrors(16,frac_L_B_0,sigma_H_0_B,err_frac_L_B_0,err_sigma_H_0_B);SIGMA_FRAC_H_0->SetName("SIGMA_FRAC_H_0"); SIGMA_FRAC_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_L_1 = new TGraphErrors(16,frac_L_B_1,sigma_L_1_B,err_frac_L_B_1,err_sigma_L_1_B);SIGMA_FRAC_L_1->SetName("SIGMA_FRAC_L_1"); SIGMA_FRAC_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_H_1 = new TGraphErrors(16,frac_L_B_1,sigma_H_1_B,err_frac_L_B_1,err_sigma_H_1_B);SIGMA_FRAC_H_1->SetName("SIGMA_FRAC_H_1"); SIGMA_FRAC_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_L_0_A = new TGraphErrors(16,frac_L_B_0,sigma_L_0_A,err_frac_L_B_0,err_sigma_L_0_A);SIGMA_FRAC_L_0_A->SetName("SIGMA_FRAC_L_0_A"); SIGMA_FRAC_L_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_H_0_A = new TGraphErrors(16,frac_L_B_0,sigma_H_0_A,err_frac_L_B_0,err_sigma_H_0_A);SIGMA_FRAC_H_0_A->SetName("SIGMA_FRAC_H_0_A"); SIGMA_FRAC_H_0_A->SetTitle("#delta t [ns] vs f_{L} - pos.0");
+    TGraphErrors *SIGMA_FRAC_L_1_A = new TGraphErrors(16,frac_L_B_1,sigma_L_1_A,err_frac_L_B_1,err_sigma_L_1_A);SIGMA_FRAC_L_1_A->SetName("SIGMA_FRAC_L_1_A"); SIGMA_FRAC_L_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
+    TGraphErrors *SIGMA_FRAC_H_1_A = new TGraphErrors(16,frac_L_B_1,sigma_H_1_A,err_frac_L_B_1,err_sigma_H_1_A);SIGMA_FRAC_H_1_A->SetName("SIGMA_FRAC_H_1_A"); SIGMA_FRAC_H_1_A->SetTitle("#delta t [ns] vs f_{L} - pos.1");
     SIGMA_FRAC_H_0->SetMarkerStyle(20);SIGMA_FRAC_H_0->SetMarkerColor(4);SIGMA_FRAC_H_0->SetMarkerSize(2.0);
     SIGMA_FRAC_L_0->SetMarkerStyle(20);SIGMA_FRAC_L_0->SetMarkerColor(4);SIGMA_FRAC_L_0->SetMarkerSize(2.0);
     SIGMA_FRAC_H_1->SetMarkerStyle(20);SIGMA_FRAC_H_1->SetMarkerColor(4);SIGMA_FRAC_H_1->SetMarkerSize(2.0);
@@ -1133,7 +1135,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     FRAC_L_A_0->SetMarkerSize(2);//(22);
     FRAC_H_A_0->SetMarkerSize(2);//(23);
     
-    TMultiGraph *mg_MEANS_L_0 = new TMultiGraph();
+    TMultiGraph *mg_MEANS_L_0 = new TMultiGraph();mg_MEANS_L_0->SetName("mg_MEANS_L_0");
     mg_MEANS_L_0->SetTitle("T_{L}^{pos.0} vs Channel - pos.0");
     mg_MEANS_L_0->Add(MEAN_L_B_0);
     //mg_MEANS_L_0->Add(MEAN_L_A_0);
@@ -1149,7 +1151,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     gPad->SetGridy();
   
     
-    TMultiGraph *mg_DELTA_B_pos0 = new TMultiGraph();
+    TMultiGraph *mg_DELTA_B_pos0 = new TMultiGraph();mg_DELTA_B_pos0->SetName("mg_DELTA_B_pos0");
     mg_DELTA_B_pos0->SetTitle("#Delta t (#equiv t_{H}-t_{L}) vs Channel - pos.0");
     //mg_DELTA_B->Add(DELTA_means_ref);
     mg_DELTA_B_pos0->Add(DELTA_means_pos0_3G);
@@ -1171,17 +1173,17 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     
     
-    TMultiGraph *mg_SIGMA_B_L = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_B_L = new TMultiGraph();mg_SIGMA_B_L->SetName("mg_SIGMA_B_L");
     mg_SIGMA_B_L->SetTitle("Time resolution (#delta t) low time vs Channel");
     mg_SIGMA_B_L->Add(REF_sigma_L);
     mg_SIGMA_B_L->Add(SIGMA_L_B_0);
     //mg_SIGMA_B_L->Add(SIGMA_L_A_0);
-    TMultiGraph *mg_SIGMA_B_H = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_B_H = new TMultiGraph();mg_SIGMA_B_H->SetName("mg_SIGMA_B_H");
     mg_SIGMA_B_H->SetTitle("Time resolution (#delta t) high time vs Channel");
     mg_SIGMA_B_H->Add(REF_sigma_H);
     mg_SIGMA_B_H->Add(SIGMA_H_B_0);
     //mg_SIGMA_B_H->Add(SIGMA_H_A_0);
-    TMultiGraph *mg_SIGMA_B_T = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_B_T = new TMultiGraph();mg_SIGMA_B_T->SetName("mg_SIGMA_B_T");
     mg_SIGMA_B_T->SetTitle("Time resolution (#delta t) third time vs Channel");
     mg_SIGMA_B_T->Add(REF_sigma_T);
     //mg_SIGMA_B_T->Add(SIGMA_T_B_0);
@@ -1193,7 +1195,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     
     ///////NEW MG_GRAPHS/////
-    TMultiGraph *mg_DELTA_0 = new TMultiGraph();
+    TMultiGraph *mg_DELTA_0 = new TMultiGraph();mg_DELTA_0->SetName("mg_DELTA_0");
     mg_DELTA_0->SetTitle("#Delta t (#equiv t_{H}-t_{L}) vs Channel - pos.0 ");
     //mg_DELTA_0->Add(DELTA_means_ref);
     mg_DELTA_0->Add(DELTA_H_B_0);
@@ -1203,7 +1205,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
 
     
     
-    TMultiGraph *mg_FRAC_0 = new TMultiGraph();
+    TMultiGraph *mg_FRAC_0 = new TMultiGraph();mg_FRAC_0->SetName("mg_FRAC_0");
     mg_FRAC_0->SetTitle("Fraction of paths  vs Channel - pos.0 ");
     //mg_FRAC_0->Add(FRAC_H_B_0);
     //mg_FRAC_0->Add(FRAC_H_A_0);
@@ -1211,28 +1213,28 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //mg_FRAC_0->Add(FRAC_L_A_0);
 
     
-    TMultiGraph *mg_SIGMA_L_0 = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_L_0 = new TMultiGraph();mg_SIGMA_L_0->SetName("mg_SIGMA_L_0");
     mg_SIGMA_L_0->SetTitle("Time resolution (#delta t) low time vs Channel - pos. 0");
     //mg_SIGMA_L_0->Add(REF_sigma_L);
     mg_SIGMA_L_0->Add(SIGMA_L_B_0);
     //mg_SIGMA_L_0->Add(SIGMA_L_A_0);
-    TMultiGraph *mg_SIGMA_H_0 = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_H_0 = new TMultiGraph();mg_SIGMA_H_0->SetName("mg_SIGMA_H_0");
     mg_SIGMA_H_0->SetTitle("Time resolution (#delta t) high time vs Channel - pos. 0");
     //mg_SIGMA_H_0->Add(REF_sigma_H);
     mg_SIGMA_H_0->Add(SIGMA_H_B_0);
     //mg_SIGMA_H_0->Add(SIGMA_H_A_0);
-    TMultiGraph *mg_SIGMA_T_0 = new TMultiGraph();
+    TMultiGraph *mg_SIGMA_T_0 = new TMultiGraph();mg_SIGMA_T_0->SetName("mg_SIGMA_T_0");
     mg_SIGMA_T_0->SetTitle("Time resolution (#delta t) third time vs Channel - pos. 0");
     //mg_SIGMA_T_0->Add(REF_sigma_T);
     mg_SIGMA_T_0->Add(SIGMA_T_B_0);
     //mg_SIGMA_T_0->Add(SIGMA_T_A_0);
     
     
-    TMultiGraph *mg_FRAC_SIGMA_L_0 = new TMultiGraph();
+    TMultiGraph *mg_FRAC_SIGMA_L_0 = new TMultiGraph();mg_FRAC_SIGMA_L_0->SetName("mg_FRAC_SIGMA_L_0");
     mg_FRAC_SIGMA_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - low time peak");
     mg_FRAC_SIGMA_L_0->Add(SIGMA_FRAC_L_0);
     mg_FRAC_SIGMA_L_0->Add(SIGMA_FRAC_L_0_A);
-    TMultiGraph *mg_FRAC_SIGMA_H_0 = new TMultiGraph();
+    TMultiGraph *mg_FRAC_SIGMA_H_0 = new TMultiGraph();mg_FRAC_SIGMA_H_0->SetName("mg_FRAC_SIGMA_H_0");
     mg_FRAC_SIGMA_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0 - high time peak");
     mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0);
     mg_FRAC_SIGMA_H_0->Add(SIGMA_FRAC_H_0_A);
@@ -1369,7 +1371,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
       cout<<Fit_status_0[g]<<"  "<<Fit_status_1[g]<<"  "<<Fit_status[g]<<"  "<<endl;
       }
       
-      TGraph *GR_Fit_status_0 = new TGraph(16,X,Fit_status_0);GR_Fit_status_0->SetTitle("Fits status - fit pos 0");
+      TGraph *GR_Fit_status_0 = new TGraph(16,X,Fit_status_0);GR_Fit_status_0->SetName("GR_Fit_status_0"); GR_Fit_status_0->SetTitle("Fits status - fit pos 0");
       TGraph *GR_Fit_status_1 = new TGraph(16,X,Fit_status_1);GR_Fit_status_1->SetTitle("Fits status - fit pos 1");
       TGraph *GR_Fit_status = new TGraph(16,X,Fit_status);GR_Fit_status->SetTitle("Fits status - fit pos 0 #oplus 1");
       GR_Fit_status_0->SetMarkerStyle(20);
@@ -1378,7 +1380,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
       GR_Fit_status_1->SetMarkerColor(2);
       GR_Fit_status->SetMarkerStyle(22);
       GR_Fit_status->SetMarkerColor(3);
-      TMultiGraph *mg_FITSTATUS = new TMultiGraph();
+      TMultiGraph *mg_FITSTATUS = new TMultiGraph();mg_FITSTATUS->SetName("mg_FITSTATUS");
       mg_FITSTATUS->SetTitle("Fits status");
       mg_FITSTATUS->Add(GR_Fit_status_0);
       mg_FITSTATUS->Add(GR_Fit_status_1);
@@ -1493,6 +1495,31 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
       gPad->BuildLegend();
     */
   }
+
+  TString out_path="fit_results";
+  TFile *f_data = new TFile(out_path+"/results_FR.root","recreate");
+  f_data->cd();
+  
+  MEAN_L_B_0->Write();
+  DELTA_H_B_0->Write();
+  SIGMA_L_B_0->Write();
+  SIGMA_H_B_0->Write();
+  
+  mg_MEANS_L_0->Write();
+  mg_FRAC_0->Write();
+  mg_SIGMA_L_0->Write();
+  mg_SIGMA_H_0->Write();
+  
+  c_absolute_positions_01_b->Write();
+  c_FRAC->Write();
+  c_Res_pos0->Write();
+  c_pos0_AllChannels_pulls->Write();
+  c_pos0_AllChannels_corr->Write();
+  c_pos0_AllChannels_amp->Write();
+  
+  f_data->cd();
+  f_data->Close();
+  
   return relative_weight_Frac_0;
 }
 

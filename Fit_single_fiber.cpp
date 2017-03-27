@@ -27,18 +27,10 @@ struct Fit_results{
   
 };
 
+TString input_filename ="run240317-T77-pos0_large_scale_out";
 
-//  ofstream cout("fits_report.txt");
+TFile *f_input_histogram = new TFile("flat_ntuples/"+input_filename+".root");
 
-//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-1-T77-vecchialente_out.root");
-//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-2-T77-nuovalente-p0_out.root");
-//TFile *f_input_histogram = new TFile("flat_ntuples/run240317-T90-pos0_out.root");
-TFile *f_input_histogram = new TFile("flat_ntuples/run240317-T77-pos0_large_scale_out.root");
-//TFile *f_input_histogram = new TFile("flat_ntuples/run100317-3-T77-nuovalente-p1_out.root");
-//TFile *f_input_histogram = new TFile("flat_ntuples/grease-1-T77_out.root");
-//TFile *f_input_histogram = new TFile("flat_ntuples/grease-0-T77_out.root");
-
-//vector<float> Fit_head(string _draw_results, int fix_params, int ch ){
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   bool do_prefit=true;
@@ -318,8 +310,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     
     
     low_sigma_LL_SP_0=0.035;
-    up_sigma_LL_SP_0=2.00;
-    starting_sigma_LL_SP_0=0.40810;
+    up_sigma_LL_SP_0=.700;
+    starting_sigma_LL_SP_0=0.30;
     
     low_sigma_L_SP_0=0.035;
     up_sigma_L_SP_0=2.00;
@@ -330,7 +322,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     up_sigma_H_SP_0=2.00;
     starting_sigma_H_SP_0=0.40810;
     
-    starting_mean_LL_SP_0=23.5;
+    starting_mean_LL_SP_0=24.5;
     low_mean_LL_SP_0=starting_mean_LL_SP_0-0.35;
     up_mean_LL_SP_0=starting_mean_LL_SP_0+0.35;
     
@@ -349,31 +341,34 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     up_alpha_SP_0=0.99;
     starting_alpha_SP_0=0.8;
     
-    low_beta_SP_0=0.01;
+    low_beta_SP_0=0.2;
     up_beta_SP_0=0.99;
-    starting_beta_SP_0=0.8;
+    starting_beta_SP_0=0.3;
     
     
      
     RooRealVar mean_LL_SP_0("mean_LL_SP_0","mean of L gaussian background pos 0",starting_mean_LL_SP_0,low_mean_LL_SP_0,up_mean_LL_SP_0);
     RooRealVar sigma_LL_SP_0("sigma_LL_SP_0","width of L gaussian background",starting_sigma_LL_SP_0,low_sigma_LL_SP_0,up_sigma_LL_SP_0);
-    //RooCBShape PDF_LL_SP_0("PDF_LL_SP_0","gaussian L_SP_0",x,mean_LL_SP_0,sigma_LL_SP_0,alpha_CB,n_CB) ;
-    RooLandau PDF_LL_SP_0("PDF_LL_SP_0","gaussian LL_SP_0",x,mean_LL_SP_0,sigma_LL_SP_0);
     
     RooRealVar mean_L_SP_0("mean_L_SP_0","mean of L gaussian background pos 0",starting_mean_L_SP_0,low_mean_L_SP_0,up_mean_L_SP_0);
     RooRealVar sigma_L_SP_0("sigma_L_SP_0","width of L gaussian background",starting_sigma_L_SP_0,low_sigma_L_SP_0,up_sigma_L_SP_0);
-    //RooCBShape PDF_L_SP_0("PDF_L_SP_0","gaussian L_SP_0",x,mean_L_SP_0,sigma_L_SP_0,alpha_CB,n_CB) ;
-    RooLandau PDF_L_SP_0("PDF_L_SP_0","gaussian L_SP_0",x,mean_L_SP_0,sigma_L_SP_0);
     RooRealVar mean_H_SP_0("mean_H_SP_0","mean of L gaussian background pos 0",starting_mean_H_SP_0,low_mean_H_SP_0,up_mean_H_SP_0);
     RooRealVar sigma_H_SP_0("sigma_H_SP_0","width of L gaussian background",starting_sigma_H_SP_0,low_sigma_H_SP_0,up_sigma_H_SP_0);
+    
+    //RooCBShape PDF_LL_SP_0("PDF_LL_SP_0","gaussian L_SP_0",x,mean_LL_SP_0,sigma_LL_SP_0,alpha_CB,n_CB) ;
+    //RooCBShape PDF_L_SP_0("PDF_L_SP_0","gaussian L_SP_0",x,mean_L_SP_0,sigma_L_SP_0,alpha_CB,n_CB) ;
     //RooCBShape PDF_H_SP_0("PDF_H_SP_0","gaussian L_SP_0",x,mean_H_SP_0,sigma_H_SP_0,alpha_CB,n_CB) ;
+
+    
     RooLandau PDF_H_SP_0("PDF_H_SP_0","gaussian L_SP_0",x,mean_H_SP_0,sigma_H_SP_0);
+    RooLandau PDF_L_SP_0("PDF_L_SP_0","gaussian L_SP_0",x,mean_L_SP_0,sigma_L_SP_0);
+    RooLandau PDF_LL_SP_0("PDF_LL_SP_0","gaussian LL_SP_0",x,mean_LL_SP_0,sigma_LL_SP_0);
     
     RooRealVar alpha_SP_0("alpha_SP_0","alpha_SP_0",starting_alpha_SP_0,low_alpha_SP_0,up_alpha_SP_0);
     RooRealVar beta_SP_0("beta_SP_0","beta_SP_0",starting_beta_SP_0,low_beta_SP_0,up_beta_SP_0);
     
-    RooArgList  pdfList_sig_SP_0(PDF_L_SP_0,PDF_H_SP_0); 
-    RooArgList  fracList_sig_SP_0(alpha_SP_0);
+    RooArgList  pdfList_sig_SP_0(PDF_LL_SP_0,PDF_L_SP_0,PDF_H_SP_0); 
+    RooArgList  fracList_sig_SP_0(beta_SP_0,alpha_SP_0);
     RooAddPdf   PDF_SP_0("PDF_SP_0","PDF_SP_0",pdfList_sig_SP_0,fracList_sig_SP_0,kTRUE);
   
   }
@@ -1607,7 +1602,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   }
 
   TString out_path="fit_results";
-  TFile *f_data = new TFile(out_path+"/results_FR.root","recreate");
+  TFile *f_data = new TFile(out_path+"/"+input_filename+"_FR.root","recreate");
   f_data->cd();
   
   MEAN_L_B_0->Write();

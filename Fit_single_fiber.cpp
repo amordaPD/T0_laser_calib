@@ -59,7 +59,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool fit_highest_peak=true;
   bool no_grease=true;
   bool fix_deltas=false;
-  bool add_SP_components=false;
+  bool add_SP_components=true;
 
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -1623,6 +1623,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   c_absolute_positions_01_b->Write();
   c_FRAC->Write();
   c_Res_pos0->Write();
+  c_pos0_AllChannels->Write();
   c_pos0_AllChannels_pulls->Write();
   c_pos0_AllChannels_corr->Write();
   c_pos0_AllChannels_amp->Write();

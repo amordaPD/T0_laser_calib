@@ -19,6 +19,7 @@ using namespace RooFit ;
 vector<int> Fits_status;
 struct Fit_results{
   float Results[80];
+  float Overall_Fracs[4];
   int n_POIs;
   RooPlot* xframe2_amplitude_0;
   RooPlot* xframe2_fit_0;
@@ -660,6 +661,15 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   for(int g=0; g<POIs.size();g++){
     my_fit_results.Results[g]=POIs[g];
   }
+  my_fit_results.Overall_Fracs[0]=Frac_sig_0.getVal();
+  my_fit_results.Overall_Fracs[1]=Frac_sig_0.getError();
+  if(add_SP_components) {
+    my_fit_results.Overall_Fracs[2]=Frac_SP_0.getVal();
+    my_fit_results.Overall_Fracs[3]=Frac_SP_0.getError();
+  }else{
+    my_fit_results.Overall_Fracs[2]=-9;
+    my_fit_results.Overall_Fracs[3]=-9;
+  }
   my_fit_results.n_POIs=POIs.size();
   my_fit_results.xframe2_amplitude_0=xframe2_0_amp;
   my_fit_results.xframe2_fit_0=xframe2_0;
@@ -722,7 +732,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   
   
   vector<float> POIs;
-  
+  vector<float> FRCs;
   float mean_L_0_B[16];
   float err_mean_L_0_B[16];
   float Delta_H_0_B[16];
@@ -793,6 +803,11 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   
   float frac_0[16];
   float err_frac_0[16];
+
+  float frac_Sig_0[16];
+  float err_frac_Sig_0[16];
+  float frac_SP_0[16];
+  float err_frac_SP_0[16];
   
   float ref_delta_mean[16];
   ref_delta_mean[0]=0.339;
@@ -980,21 +995,23 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   float x[16];
   float err_x[16];
   
-  //vector<Fit_results> RESULTS;
-  //RESULTS.clear();
   Fits_status.clear();
   for(Int_t i=0; i<16; i++){
     x[i]=i; err_x[i]=0;
     POIs.clear();
+    FRCs.clear();
     cout<<"Channel : "<<i<<endl;
     Fit_results my_fit_Results;
     
     my_fit_Results=Fit_head("blind",deep_fixed_params,i);
-    //POIs=my_fit_Results.Results;//Fit_head(i,fix_params,rel_weight,false);
     for(int hg=0;hg<my_fit_Results.n_POIs;hg++){
       POIs.push_back(my_fit_Results.Results[hg]);
-    }//Fit_head(i,fix_params,rel_weight,false);
-    //RESULTS.push_back(my_fit_Results);
+    }
+    
+    FRCs.push_back(my_fit_Results.Overall_Fracs[0]); 
+    FRCs.push_back(my_fit_Results.Overall_Fracs[1]); 
+    FRCs.push_back(my_fit_Results.Overall_Fracs[2]); 
+    FRCs.push_back(my_fit_Results.Overall_Fracs[3]);
     
     
     TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
@@ -1036,6 +1053,12 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     frac_H_B_0[i]         =POIs[14];
     err_frac_H_B_0[i]     =POIs[15];
+
+    frac_Sig_0[i]      = FRCs[0];
+    err_frac_Sig_0[i]  = FRCs[1];
+    frac_SP_0[i]       = FRCs[2];
+    err_frac_SP_0[i]   = FRCs[3];
+    
   }
   
   
@@ -1043,8 +1066,6 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     
     
-    
-    // if (relative_weight_Frac_0.size()!=32){cout<<"Warning, problem with the size of relative_weight_Frac_0"<<endl; return relative_weight_Frac_0;}
     TF1 *line = new TF1("line","0.100",-1,16);
     line->SetTitle("100 ps");
     // TLine *line = new TLine(0,100,16,100);
@@ -1059,7 +1080,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     
     
-    
+    TGraphErrors *FRAC_SIG = new TGraphErrors(16,x,frac_Sig_0,err_x,err_frac_Sig_0);FRAC_SIG->SetName("FRAC_SIG");FRAC_SIG->SetTitle("F_{sig}");
+    TGraphErrors *FRAC_SP = new TGraphErrors(16,x,frac_SP_0,err_x,err_frac_SP_0);FRAC_SP->SetName("FRAC_SP");FRAC_SP->SetTitle("F_{SP}");
     
     TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{0} - fit pos.0");
     TGraphErrors *MEAN_L_B_1 = new TGraphErrors(16,x,mean_L_1_B,err_x,err_mean_L_1_B);MEAN_L_B_1->SetName("MEAN_L_B_1"); MEAN_L_B_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} T- fit pos.1");
@@ -1132,7 +1154,15 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     DELTA_means_pos0_MC_PD->SetMarkerStyle(29);DELTA_means_pos0_MC_PD->SetMarkerColor(2);DELTA_means_pos0_MC_PD->SetMarkerSize(2.0);
     DELTA_means_pos0_3G->SetMarkerStyle(29);DELTA_means_pos0_3G->SetMarkerColor(kOrange-2);DELTA_means_pos0_3G->SetMarkerSize(2.0);
     DELTA_means_pos1_3G->SetMarkerStyle(29);DELTA_means_pos1_3G->SetMarkerColor(kOrange-2);DELTA_means_pos1_3G->SetMarkerSize(2.0);
+
+
     
+    FRAC_SIG->SetMarkerColor(kOrange-2);FRAC_SIG->SetMarkerSize(2.0);
+    FRAC_SP->SetMarkerColor(kOrange-2);FRAC_SP->SetMarkerSize(2.0);
+    FRAC_SIG->SetMarkerColor(4);
+    FRAC_SP->SetMarkerColor(kOrange-2);
+    FRAC_SIG->SetMarkerStyle(20);
+    FRAC_SP->SetMarkerStyle(20);
     REF_sigma_L->SetMarkerStyle(29);
     REF_sigma_L->SetMarkerColor(kOrange-2);
     REF_sigma_H->SetMarkerStyle(29);
@@ -1609,6 +1639,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   DELTA_H_B_0->Write();
   SIGMA_L_B_0->Write();
   SIGMA_H_B_0->Write();
+  FRAC_SIG->Write();
   
   mg_MEANS_L_0->Write();
   mg_FRAC_0->Write();

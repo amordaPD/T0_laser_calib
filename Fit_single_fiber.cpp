@@ -28,7 +28,7 @@ struct Fit_results{
   
 };
 
-TString input_filename ="run240317-T77-pos0_large_scale_out";
+TString input_filename ="runScan-T77-pos0_large_scale_out";
 
 TFile *f_input_histogram = new TFile("flat_ntuples/"+input_filename+".root");
 
@@ -152,10 +152,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_delta_T_0=0.5;
   
   low_sigma_L_0=0.035;
-   up_sigma_L_0=0.200;
+   up_sigma_L_0=0.500;
   
   low_sigma_H_0=0.045;
-   up_sigma_H_0=0.180;
+   up_sigma_H_0=0.5180;
   
   low_sigma_T_0=0.050;
    up_sigma_T_0=0.200;

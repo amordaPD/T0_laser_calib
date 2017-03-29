@@ -28,7 +28,7 @@ struct Fit_results{
   
 };
 
-TString input_filename ="runScan-T77-pos0_large_scale_out";
+TString input_filename ="runScan-T82-pos0_large_scale_out";
 
 TFile *f_input_histogram = new TFile("flat_ntuples/"+input_filename+".root");
 
@@ -53,6 +53,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool no_grease=true;
   bool fix_deltas=false;
   bool add_SP_components=true;
+  bool use_marginalize_method=true;
 
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -271,8 +272,31 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooFormulaVar Frac_T_0("Frac_T_0","Frac_T_0","1-alpha_0-beta_0+alpha_0*beta_0",RooArgList(alpha_0,beta_0));
   RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal) {pdfList_sig_0.add(PDF_T_0);}//
   RooArgList  fracList_sig_0(alpha_0);if(add_third_signal) {fracList_sig_0.add(beta_0);}
-  RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  if(use_marginalize_method){
+    RooAddPdf   PDF_sig_0_marginal("PDF_sig_0_marginal","PDF_sig_0_marginal",pdfList_sig_0,fracList_sig_0,kTRUE); //PDF(x|y)
 
+    
+    RooRealVar y("y","y",-2.5,2.5,"mm") ; //in mm
+    // Create function w(y) = i/(bin width) //  PDF(y)
+    RooRealVar a0("a0","a0",1.0/5) ;
+    //RooPolyVar wy("wy","wy",y,RooArgSet(a0)) ;
+    RooPolynomial wy("wy","wy",y,RooArgSet(a0)) ;
+
+    // Create PDF(x|y)*w(y)
+    RooProdPdf model("model","PDF(x|y)*w(y)",wy,Conditional(PDF_sig_0_marginal,x)) ;
+  
+    
+    
+    // M a r g i n a l i z e   m ( x , y )   t o   m ( x ) 
+    // ----------------------------------------------------
+    
+    // modelx(x) = Int model(x,y) dy
+    RooAbsPdf *PDF_sig_0 = model.createProjection(y) ;
+    
+  } else {
+    RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  }
+  
   if(fix_deltas){Delta_H_0.setConstant(kTRUE); Delta_T_0.setConstant(kTRUE);}
 
 
@@ -386,7 +410,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   
   RooRealVar  Frac_SP_0("Frac_SP_0","fraction of secondary peaks events", 0.3, 0.1,0.99);
-  RooArgList  pdfList_0(PDF_sig_0);//
+  if(use_marginalize_method){RooArgList  pdfList_0(*PDF_sig_0);}else{RooArgList  pdfList_0(PDF_sig_0);}
+  //RooArgList  pdfList_0(PDF_sig_0);
   RooArgList  fracList_0(Frac_sig_0);
   if(add_SP_components){pdfList_0.add(PDF_SP_0);fracList_0.add(Frac_SP_0); }
   pdfList_0.add(PDF_B_0);

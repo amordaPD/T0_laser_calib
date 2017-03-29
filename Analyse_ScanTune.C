@@ -92,6 +92,9 @@ void Analyse_ScanTune(){
   ////////////////////////////////////////////////
   /// Single pixel graphs //////
   //////////////////////////////
+
+
+  Int_t n=14;
   
   float TUNES[6];
   TUNES[0]=77;
@@ -114,19 +117,19 @@ void Analyse_ScanTune(){
   float FRAC_CH[6];
   float err_FRAC_CH[6];
   
-  FRAC_SIG_T77->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[0]=FRAC_CH_au;
-  FRAC_SIG_T82->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[1]=FRAC_CH_au;
-  FRAC_SIG_T84->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[2]=FRAC_CH_au;
-  FRAC_SIG_T86->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[3]=FRAC_CH_au;
-  FRAC_SIG_T88->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[4]=FRAC_CH_au;
-  FRAC_SIG_T90->GetPoint(4,x_au,FRAC_CH_au); FRAC_CH[5]=FRAC_CH_au;
+  FRAC_SIG_T77->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[0]=FRAC_CH_au;
+  FRAC_SIG_T82->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[1]=FRAC_CH_au;
+  FRAC_SIG_T84->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[2]=FRAC_CH_au;
+  FRAC_SIG_T86->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[3]=FRAC_CH_au;
+  FRAC_SIG_T88->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[4]=FRAC_CH_au;
+  FRAC_SIG_T90->GetPoint(n,x_au,FRAC_CH_au); FRAC_CH[5]=FRAC_CH_au;
 
-  err_FRAC_CH[0]=(float)FRAC_SIG_T77->GetErrorXhigh(4);
-  err_FRAC_CH[1]=(float)FRAC_SIG_T82->GetErrorXhigh(4);
-  err_FRAC_CH[2]=(float)FRAC_SIG_T84->GetErrorXhigh(4);
-  err_FRAC_CH[3]=(float)FRAC_SIG_T86->GetErrorXhigh(4);
-  err_FRAC_CH[4]=(float)FRAC_SIG_T88->GetErrorXhigh(4);
-  err_FRAC_CH[5]=(float)FRAC_SIG_T90->GetErrorXhigh(4);
+  err_FRAC_CH[0]=(float)FRAC_SIG_T77->GetErrorXhigh(n);
+  err_FRAC_CH[1]=(float)FRAC_SIG_T82->GetErrorXhigh(n);
+  err_FRAC_CH[2]=(float)FRAC_SIG_T84->GetErrorXhigh(n);
+  err_FRAC_CH[3]=(float)FRAC_SIG_T86->GetErrorXhigh(n);
+  err_FRAC_CH[4]=(float)FRAC_SIG_T88->GetErrorXhigh(n);
+  err_FRAC_CH[5]=(float)FRAC_SIG_T90->GetErrorXhigh(n);
 
   
   TGraphErrors *TGE_FRAC_CH = new TGraphErrors(6,TUNES,FRAC_CH,err_TUNES,err_FRAC_CH);TGE_FRAC_CH->SetName("FRAC_CH 4"); TGE_FRAC_CH->SetTitle("FRAC_CH 4"); 
@@ -154,24 +157,24 @@ void Analyse_ScanTune(){
   float T0[6];
   float err_T0[6];
   
-  T0_T77->GetPoint(4,x_au,T0_au); T0[0]=T0_au;
-  T0_T82->GetPoint(4,x_au,T0_au); T0[1]=T0_au;
-  T0_T84->GetPoint(4,x_au,T0_au); T0[2]=T0_au;
-  T0_T86->GetPoint(4,x_au,T0_au); T0[3]=T0_au;
-  T0_T88->GetPoint(4,x_au,T0_au); T0[4]=T0_au;
-  T0_T90->GetPoint(4,x_au,T0_au); T0[5]=T0_au;
+  T0_T77->GetPoint(n,x_au,T0_au); T0[0]=T0_au;
+  T0_T82->GetPoint(n,x_au,T0_au); T0[1]=T0_au;
+  T0_T84->GetPoint(n,x_au,T0_au); T0[2]=T0_au;
+  T0_T86->GetPoint(n,x_au,T0_au); T0[3]=T0_au;
+  T0_T88->GetPoint(n,x_au,T0_au); T0[4]=T0_au;
+  T0_T90->GetPoint(n,x_au,T0_au); T0[5]=T0_au;
 
-  err_T0[0]=T0_T77->GetErrorX(4);
-  err_T0[1]=T0_T82->GetErrorX(4);
-  err_T0[2]=T0_T84->GetErrorX(4);
-  err_T0[3]=T0_T86->GetErrorX(4);
-  err_T0[4]=T0_T88->GetErrorX(4);
-  err_T0[5]=T0_T90->GetErrorX(4);
+  err_T0[0]=T0_T77->GetErrorX(n);
+  err_T0[1]=T0_T82->GetErrorX(n);
+  err_T0[2]=T0_T84->GetErrorX(n);
+  err_T0[3]=T0_T86->GetErrorX(n);
+  err_T0[4]=T0_T88->GetErrorX(n);
+  err_T0[5]=T0_T90->GetErrorX(n);
 
   
   TGraphErrors *TGE_T0 = new TGraphErrors(6,TUNES,T0,err_TUNES,err_T0);TGE_T0->SetName("T0 che 4"); TGE_T0->SetTitle("T0 ch 4"); 
   TGE_T0->SetMarkerStyle(20);TGE_T0->SetMarkerColor(4);         TGE_T0->SetMarkerSize(2);
-  TCanvas* c_T0 = new TCanvas("c_T0","c_T0");
+  TCanvas* c_T0_CH = new TCanvas("c_T0_CH","c_T0_CH");
   TGE_T0->Draw("AP");
   TGE_T0->GetXaxis()->SetTitle("Laser Tune");
   TGE_T0->GetYaxis()->SetTitle("T_{0} [ns]");

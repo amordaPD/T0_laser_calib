@@ -1,6 +1,6 @@
 ////////TIME CALIBRATION CODE///////****
 ////////////////////////////////////
-/////To RUN: gROOT->ProcessLine(".L Fit_single_fiber.cpp"); loop_channels(2,true); > ee.log
+/////To RUN: gROOT->ProcessLine(".L Fit_single_fiber.cpp"); loop_channels(2,"T74",true); > ee.log
 
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
@@ -21,6 +21,7 @@ struct Fit_results{
   float Results[80];
   float Overall_Fracs[4];
   int n_POIs;
+  float most_probable_amp[2];
   RooPlot* xframe2_amplitude_0;
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
@@ -28,12 +29,12 @@ struct Fit_results{
   
 };
 
-TString input_filename ="runScan-T76-pos0_large_scale_out";
+//TString input_filename ="runScan-T74-pos0_large_scale_out";
 
-TFile *f_input_histogram = new TFile("flat_ntuples/"+input_filename+".root");
 
-Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
-  
+
+Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString input_tune, int ch =0 ){
+  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -61,6 +62,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
   Fit_results my_fit_results;
   TString channel_0 = Form("fiber0-0-%d",ch);
+  TString channel_A_0 = Form("fibertA0-0-%d",ch);
   //bool fix_params = true;
   vector<float> POIs;
   POIs.clear();
@@ -78,6 +80,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
   
   TTree *tree = (TTree*)f_input_histogram->Get("tree_input");
+  TH2D *h_amp_histogram_0 = (TH2D*)f_input_histogram->Get(channel_A_0);
   RooDataSet ds_0_amp("ds_0_amp","ds_0_amp", RooArgSet(x,amp,CH),Import(*tree),Cut(Form("Amplitude<%d &&Channel==%d",amplitude_cut,ch)));
   RooPlot* xframe2_0_amp = amp.frame(Title(Form("amplitude pos. 0, channel %d",ch))) ;
   ds_0_amp.plotOn(xframe2_0_amp);//,DataError(RooAbsData::SumW2)) ;
@@ -700,7 +703,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   my_fit_results.xframe2_fit_0=xframe2_0;
   my_fit_results.xframe2_pull_0=xframe4_0;
   my_fit_results.h_correlation_0=h_correlation_0;
-  
+  my_fit_results.most_probable_amp[0]=TMath::Abs(h_amp_histogram_0->ProjectionY()->GetMaximumBin());
+  my_fit_results.most_probable_amp[1]=h_amp_histogram_0->ProjectionY()->GetRMS();
   
   
   //  delete  h_input_histogram_0;
@@ -713,7 +717,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 
 
 
-vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_weight is the relative weight of the 1 to 0 pois, i.e. total dataset= pos.0 + rel_weight*pos.1 - in the real case rel_weight=1.0
+vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_summaries){ //rel_weight is the relative weight of the 1 to 0 pois, i.e. total dataset= pos.0 + rel_weight*pos.1 - in the real case rel_weight=1.0
   
   
   TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
@@ -758,6 +762,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   
   vector<float> POIs;
   vector<float> FRCs;
+  vector<float> AMPs;
   float mean_L_0_B[16];
   float err_mean_L_0_B[16];
   float Delta_H_0_B[16];
@@ -833,6 +838,10 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   float err_frac_Sig_0[16];
   float frac_SP_0[16];
   float err_frac_SP_0[16];
+
+  
+  float amp_Sig_0[16];
+  float err_amp_Sig_0[16];
   
   float ref_delta_mean[16];
   ref_delta_mean[0]=0.339;
@@ -1025,10 +1034,11 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     x[i]=i; err_x[i]=0;
     POIs.clear();
     FRCs.clear();
+    AMPs.clear();
     cout<<"Channel : "<<i<<endl;
     Fit_results my_fit_Results;
     
-    my_fit_Results=Fit_head("blind",deep_fixed_params,i);
+    my_fit_Results=Fit_head("blind",deep_fixed_params,input_tune,i);
     for(int hg=0;hg<my_fit_Results.n_POIs;hg++){
       POIs.push_back(my_fit_Results.Results[hg]);
     }
@@ -1037,6 +1047,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     FRCs.push_back(my_fit_Results.Overall_Fracs[1]); 
     FRCs.push_back(my_fit_Results.Overall_Fracs[2]); 
     FRCs.push_back(my_fit_Results.Overall_Fracs[3]);
+    AMPs.push_back(my_fit_Results.most_probable_amp[0]); 
+    AMPs.push_back(my_fit_Results.most_probable_amp[1]); 
     
     
     TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
@@ -1083,7 +1095,9 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     err_frac_Sig_0[i]  = FRCs[1];
     frac_SP_0[i]       = FRCs[2];
     err_frac_SP_0[i]   = FRCs[3];
-    
+
+    amp_Sig_0[i]     = AMPs[0];
+    err_amp_Sig_0[i] = AMPs[1];
   }
   
   
@@ -1107,7 +1121,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     TGraphErrors *FRAC_SIG = new TGraphErrors(16,x,frac_Sig_0,err_x,err_frac_Sig_0);FRAC_SIG->SetName("FRAC_SIG");FRAC_SIG->SetTitle("F_{sig}");
     TGraphErrors *FRAC_SP = new TGraphErrors(16,x,frac_SP_0,err_x,err_frac_SP_0);FRAC_SP->SetName("FRAC_SP");FRAC_SP->SetTitle("F_{SP}");
-    
+    TGraphErrors *AMP_SIG = new TGraphErrors(16,x,amp_Sig_0,err_x,err_amp_Sig_0);AMP_SIG->SetName("AMP_SIG");AMP_SIG->SetTitle("Amp_{Sig}");
+       
     TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{0} - fit pos.0");
     TGraphErrors *MEAN_L_B_1 = new TGraphErrors(16,x,mean_L_1_B,err_x,err_mean_L_1_B);MEAN_L_B_1->SetName("MEAN_L_B_1"); MEAN_L_B_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} T- fit pos.1");
     TGraphErrors *MEAN_L_A_0 = new TGraphErrors(16,x,mean_L_0_A,err_x,err_mean_L_0_A);MEAN_L_A_0->SetName("MEAN_L_A_0"); MEAN_L_A_0->SetTitle("T_{L}^{pos.0} - fit pos.0 #oplus 1");
@@ -1188,6 +1203,10 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     FRAC_SP->SetMarkerColor(kOrange-2);
     FRAC_SIG->SetMarkerStyle(20);
     FRAC_SP->SetMarkerStyle(20);
+    AMP_SIG->SetMarkerStyle(20);
+    AMP_SIG->SetMarkerSize(2.0);
+    AMP_SIG->SetMarkerColor(8);
+    
     REF_sigma_L->SetMarkerStyle(29);
     REF_sigma_L->SetMarkerColor(kOrange-2);
     REF_sigma_H->SetMarkerStyle(29);
@@ -1657,7 +1676,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   }
 
   TString out_path="fit_results";
-  TFile *f_data = new TFile(out_path+"/"+input_filename+"_FR.root","recreate");
+  TFile *f_data = new TFile(out_path+"/"+input_tune+"_FR.root","recreate");
   f_data->cd();
   
   MEAN_L_B_0->Write();
@@ -1665,6 +1684,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
   SIGMA_L_B_0->Write();
   SIGMA_H_B_0->Write();
   FRAC_SIG->Write();
+  AMP_SIG->Write();
   
   mg_MEANS_L_0->Write();
   mg_FRAC_0->Write();

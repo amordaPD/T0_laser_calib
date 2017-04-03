@@ -27,6 +27,7 @@ struct Fit_results{
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
   TH2 *h_correlation_0;
+  float SP_separation[4];
   
 };
 
@@ -35,8 +36,8 @@ struct Fit_results{
 
 
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString input_tune, int ch =0 ){
-  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
-  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
+  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
+  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -55,7 +56,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   bool fit_highest_peak=true;
   bool no_grease=true;
   bool fix_deltas=false;
-  bool add_SP_components=false;
+  bool add_SP_components=true;
   bool use_marginalize_method=false;
 
   
@@ -70,8 +71,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   POIs.clear();
   // S e t u p   m o d e l 
   // ---------------------
- 
-  double my_low_x=22.4;
+  
+  double my_low_x=21.5;//2.4;
   double my_up_x=24.;
   if(add_SP_components){my_up_x=my_low_x+13;}
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
@@ -696,9 +697,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   if(add_SP_components) {
     my_fit_results.Overall_Fracs[2]=Frac_SP_0.getVal();
     my_fit_results.Overall_Fracs[3]=Frac_SP_0.getError();
+    my_fit_results.SP_separation[0]=mean_L_SP_0.getVal()-T0;
+    my_fit_results.SP_separation[1]=mean_L_SP_0.getError()+T0_err;
+    my_fit_results.SP_separation[2]=mean_H_SP_0.getVal()-mean_L_SP_0.getVal();
+    my_fit_results.SP_separation[3]=mean_H_SP_0.getError()+mean_L_SP_0.getError();
   }else{
     my_fit_results.Overall_Fracs[2]=-9;
     my_fit_results.Overall_Fracs[3]=-9;
+    my_fit_results.SP_separation[0]=-9;
+    my_fit_results.SP_separation[1]=-9;
+    my_fit_results.SP_separation[2]=-9;
+    my_fit_results.SP_separation[3]=-9;
   }
   my_fit_results.n_POIs=POIs.size();
   my_fit_results.xframe2_amplitude_0=xframe2_0_amp;
@@ -765,6 +774,7 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   vector<float> POIs;
   vector<float> FRCs;
   vector<float> AMPs;
+  vector<float> SPSs;//Secondary peaks separations
   float mean_L_0_B[16];
   float err_mean_L_0_B[16];
   float Delta_H_0_B[16];
@@ -841,7 +851,12 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   float frac_SP_0[16];
   float err_frac_SP_0[16];
 
-  
+  float delta_LSP_T0[16];
+  float err_delta_LSP_T0[16];
+  float delta_HSP_LSP[16];
+  float err_delta_HSP_LSP[16];
+
+    
   float amp_Sig_0[16];
   float err_amp_Sig_0[16];
   
@@ -1037,6 +1052,7 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     POIs.clear();
     FRCs.clear();
     AMPs.clear();
+    SPSs.clear();
     cout<<"Channel : "<<i<<endl;
     Fit_results my_fit_Results;
     
@@ -1044,7 +1060,10 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     for(int hg=0;hg<my_fit_Results.n_POIs;hg++){
       POIs.push_back(my_fit_Results.Results[hg]);
     }
-    
+    SPSs.push_back(my_fit_Results.SP_separation[0]);
+    SPSs.push_back(my_fit_Results.SP_separation[1]);
+    SPSs.push_back(my_fit_Results.SP_separation[2]);
+    SPSs.push_back(my_fit_Results.SP_separation[3]);
     FRCs.push_back(my_fit_Results.Overall_Fracs[0]); 
     FRCs.push_back(my_fit_Results.Overall_Fracs[1]); 
     FRCs.push_back(my_fit_Results.Overall_Fracs[2]); 
@@ -1098,6 +1117,12 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     frac_SP_0[i]       = FRCs[2];
     err_frac_SP_0[i]   = FRCs[3];
 
+    delta_LSP_T0[i]         = SPSs[0];
+    err_delta_LSP_T0[i]     = SPSs[1];
+    delta_HSP_LSP[i]        = SPSs[2];
+    err_delta_HSP_LSP[i]    = SPSs[3];
+    
+
     amp_Sig_0[i]     = AMPs[0];
     err_amp_Sig_0[i] = AMPs[1];
   }
@@ -1124,7 +1149,12 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     TGraphErrors *FRAC_SIG = new TGraphErrors(16,x,frac_Sig_0,err_x,err_frac_Sig_0);FRAC_SIG->SetName("FRAC_SIG");FRAC_SIG->SetTitle("F_{sig}");
     TGraphErrors *FRAC_SP = new TGraphErrors(16,x,frac_SP_0,err_x,err_frac_SP_0);FRAC_SP->SetName("FRAC_SP");FRAC_SP->SetTitle("F_{SP}");
     TGraphErrors *AMP_SIG = new TGraphErrors(16,x,amp_Sig_0,err_x,err_amp_Sig_0);AMP_SIG->SetName("AMP_SIG");AMP_SIG->SetTitle("Amp_{Sig}");
-       
+    
+    TGraphErrors *DELTA_LSP_T0 = new TGraphErrors(16,x,delta_LSP_T0,err_x,err_delta_LSP_T0);   DELTA_LSP_T0->SetName("DELTA_LSP_T0");  DELTA_LSP_T0->SetTitle("T^{SP}_{L}-T_{0}");
+    TGraphErrors *DELTA_HSP_LSP = new TGraphErrors(16,x,delta_HSP_LSP,err_x,err_delta_HSP_LSP);DELTA_HSP_LSP->SetName("DELTA_HSP_LSP");DELTA_HSP_LSP->SetTitle("T^{SP}_{H}-T^{SP}_{L}");
+
+
+    
     TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{0} - fit pos.0");
     TGraphErrors *MEAN_L_B_1 = new TGraphErrors(16,x,mean_L_1_B,err_x,err_mean_L_1_B);MEAN_L_B_1->SetName("MEAN_L_B_1"); MEAN_L_B_1->SetTitle("#Delta T_{L} #equiv T_{L}^{pos.1}-T_{L}^{pos.0} T- fit pos.1");
     TGraphErrors *MEAN_L_A_0 = new TGraphErrors(16,x,mean_L_0_A,err_x,err_mean_L_0_A);MEAN_L_A_0->SetName("MEAN_L_A_0"); MEAN_L_A_0->SetTitle("T_{L}^{pos.0} - fit pos.0 #oplus 1");
@@ -1199,8 +1229,10 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
 
 
     
-    FRAC_SIG->SetMarkerColor(kOrange-2);FRAC_SIG->SetMarkerSize(2.0);
-    FRAC_SP->SetMarkerColor(kOrange-2);FRAC_SP->SetMarkerSize(2.0);
+    FRAC_SIG->SetMarkerColor(kOrange-2);
+    FRAC_SIG->SetMarkerSize(2.0);
+    FRAC_SP->SetMarkerColor(kOrange-2);
+    FRAC_SP->SetMarkerSize(2.0);
     FRAC_SIG->SetMarkerColor(4);
     FRAC_SP->SetMarkerColor(kOrange-2);
     FRAC_SIG->SetMarkerStyle(20);
@@ -1208,6 +1240,13 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     AMP_SIG->SetMarkerStyle(20);
     AMP_SIG->SetMarkerSize(2.0);
     AMP_SIG->SetMarkerColor(8);
+
+    DELTA_LSP_T0->SetMarkerColor(kOrange-2);
+    DELTA_LSP_T0->SetMarkerStyle(20);
+    DELTA_LSP_T0->SetMarkerSize(2);
+    DELTA_HSP_LSP->SetMarkerColor(kOrange-2);
+    DELTA_HSP_LSP->SetMarkerStyle(20);
+    DELTA_HSP_LSP->SetMarkerSize(2);
     
     REF_sigma_L->SetMarkerStyle(29);
     REF_sigma_L->SetMarkerColor(kOrange-2);
@@ -1687,6 +1726,8 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   SIGMA_H_B_0->Write();
   FRAC_SIG->Write();
   AMP_SIG->Write();
+  DELTA_LSP_T0->Write();
+  DELTA_HSP_LSP->Write();
   
   mg_MEANS_L_0->Write();
   mg_FRAC_0->Write();

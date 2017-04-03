@@ -5,6 +5,7 @@
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
 #endif
+//#include "RooHist.h"
 #include "RooRealVar.h"
 #include "RooDataSet.h"
 #include "RooGaussian.h"
@@ -34,7 +35,8 @@ struct Fit_results{
 
 
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString input_tune, int ch =0 ){
-  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
+  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
+  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -53,7 +55,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   bool fit_highest_peak=true;
   bool no_grease=true;
   bool fix_deltas=false;
-  bool add_SP_components=true;
+  bool add_SP_components=false;
   bool use_marginalize_method=false;
 
   
@@ -69,8 +71,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   // S e t u p   m o d e l 
   // ---------------------
  
-  double my_low_x=21.5;
-  double my_up_x=24.5;
+  double my_low_x=22.4;
+  double my_up_x=24.;
   if(add_SP_components){my_up_x=my_low_x+13;}
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;

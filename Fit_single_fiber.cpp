@@ -12,6 +12,7 @@
 #include "RooMinimizer.h"
 #include "TCanvas.h"
 #include "RooPlot.h"
+#include "RooHist.h"
 #include "RooMinuit.h"
 #include "TAxis.h"
 #include <TFile.h>
@@ -154,10 +155,11 @@ MC_INFO Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
       err_mean_delta.clear();
       int low_nF, up_nF;
       low_nF=2;
-      float thrs = 0.05;
+      float thrs_rel = 0.02;
+      float thrs_range = 0.06;
       for(int nF=3;nF<=7;nF++){
 	if(nF<7){
-	  if(TMath::Abs(deltas[nF]-deltas[nF-1])<thrs&&TMath::Abs(deltas[nF]-deltas[low_nF])<(thrs+0.03)){up_nF=nF;}
+	  if(TMath::Abs(deltas[nF]-deltas[nF-1])<thrs_rel&&TMath::Abs(deltas[nF]-deltas[low_nF])<thrs_range){up_nF=nF;}
 	  else{
 	    mean_delta.push_back(deltas[low_nF]+0.5*(deltas[up_nF]-deltas[low_nF]));
 	    err_mean_delta.push_back(0.5*(deltas[up_nF]-deltas[low_nF]));
@@ -273,6 +275,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   bool fix_deltas=false;
   bool add_SP_components=false;
   bool use_marginalize_method=false;
+  bool gaussian_constraints_delta = false;
+  fix_deltas=true;
   //add_third_signal=true;//if(!(ch==0||ch==4||ch==8||ch==12)){  add_third_signal=true;}
   //fix_deltas=true;
   
@@ -391,7 +395,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
 
    if(no_grease){
      starting_mean_L_0=22.8;
-     if(ch==13)  starting_mean_L_0=22.6;
+     if(ch==14)  starting_mean_L_0=22.6;
      /* if(ch==5)  starting_mean_L_0=22.6;
      if(ch==9||ch==1)  starting_mean_L_0=22.8;
      if(ch==12||ch==14) starting_mean_L_0=22.8;
@@ -406,7 +410,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
    //starting_delta_H_0=0.280;
    //starting_delta_T_0=0.1200;
    starting_delta_H_0=mc_info.T_separation[ch][0];
-   starting_delta_T_0=mc_info.T_separation[ch][1];
+   starting_delta_T_0=mc_info.T_separation[ch][1]-mc_info.T_separation[ch][0];
    starting_sigma_L_0=0.0810;
    starting_sigma_H_0=0.0810;
    starting_sigma_T_0=0.1000;
@@ -492,7 +496,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooGaussian DElta_H_0("DElta_H_0","gaussian L_0",Delta_H_0,RooConst(mc_info.T_separation[ch][0]),RooConst(mc_info.err_T_separation[ch][0])) ;
-  RooGaussian DElta_T_0("DElta_T_0","gaussian L_0",Delta_T_0,RooConst(mc_info.T_separation[ch][1]),RooConst(mc_info.err_T_separation[ch][1])) ;
+  RooGaussian DElta_T_0("DElta_T_0","gaussian L_0",Delta_T_0,RooConst(mc_info.T_separation[ch][1]-mc_info.T_separation[ch][0]),RooConst(mc_info.err_T_separation[ch][1])) ;
   RooFormulaVar mean_L_0("mean_L_0","mean_l_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
   
@@ -652,12 +656,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooArgList  fracList_0(Frac_sig_0);
   if(add_SP_components){pdfList_0.add(PDF_SP_0);fracList_0.add(Frac_SP_0); }
   pdfList_0.add(PDF_B_0);
-  //RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
-  //RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
-  RooAddPdf   Model_0("Model_0","Model_0",pdfList_0,fracList_0,kTRUE);
-  RooArgList ListCOnstraints(Model_0,DElta_H_0); if(add_third_signal==true){ListCOnstraints.add(DElta_T_0);}
-  RooProdPdf   model_0("model_0","model_0",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
-  RooProdPdf   model_0_b("model_0_b","model_0_b",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
+  if(gaussian_constraints_delta){
+    //RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
+    //RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
+    RooAddPdf   Model_0("Model_0","Model_0",pdfList_0,fracList_0,kTRUE);
+    RooArgList ListCOnstraints(Model_0,DElta_H_0); if(add_third_signal==true){ListCOnstraints.add(DElta_T_0);}
+    RooProdPdf   model_0("model_0","model_0",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
+    RooProdPdf   model_0_b("model_0_b","model_0_b",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
+  }else{
+    RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
+    RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
+  }
   
   
   
@@ -740,7 +749,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooArgList Ext_Constraints(DElta_H_0); if(add_third_signal){Ext_Constraints.add(DElta_T_0);}
   RooFitResult* fit_results_0;
   if(use_NLL){
-    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE),ExternalConstraints(Ext_Constraints)) ;
+    if(gaussian_constraints_delta) {RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE),ExternalConstraints(Ext_Constraints)) ;
+    }else{
+      RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE));
+    }
     RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
     RMN_0.setErrorLevel(-1);
     RMN_0.setVerbose(kFALSE);
@@ -770,7 +782,12 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   // Construct a histogram with the residuals of the data w.r.t. the curve
   RooHist* hresid_0 = xframe2_0->residHist() ;
   // Construct a histogram with the pulls of the data w.r.t the curve
-  RooHist* hpull_0 = xframe2_0->pullHist() ;
+  RooHist* hpull_0 = xframe2_0->pullHist() ;/*
+  cout<<" 'aridaje"<<endl;
+  xframe2_0->Print("V");
+  RooCurve* curve1 = (RooCurve*) xframe2_0->getObject(6);  // 6
+  RooHist* dataHist  = (RooHist*) xframe2_0->getHist("h_ds_0"); 
+  RooHist* hpull_0 =  dataHist->makePullHist(*curve1,true);*/
   // Create a new frame to draw the pull distribution and add the distribution to the frame
   RooPlot* xframe4_0 = x.frame(Title(Form("Pull Distribution fiber 0 - ch %d",ch))) ;
   xframe4_0->addPlotable(hpull_0,"P") ;

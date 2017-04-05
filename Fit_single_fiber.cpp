@@ -39,10 +39,16 @@ struct DT_pars{
 
 };
 
+struct MC_INFO{
+  int n_peaks[16];
+  float T_separation[16][5];
+  float err_T_separation[16][5];
+  
+};
 
 //TString input_filename ="runScan-T74-pos0_large_scale_out";
 
-DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
+MC_INFO Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
   double a0;
   double a1;
   int col;
@@ -114,7 +120,7 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
   h_md_14->SetLineColor(2);
   h_md_15->SetLineColor(2);
   
- 
+  MC_INFO mc_info;
   TCanvas *c_MC = new TCanvas("c_MC","c_MC");
   c_MC->Divide(4,4);
   
@@ -124,7 +130,7 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
   int n_peaks;
   
   int index_channel_pixel;
-
+  int channelID;
   TFile *f_MC_out = TFile::Open("MC_input_fit.root","RECREATE");
   TTree *t = new TTree("MC_inputs","MC_inputs");
   t->Branch("mean_delta",&mean_delta);
@@ -148,10 +154,10 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
       err_mean_delta.clear();
       int low_nF, up_nF;
       low_nF=2;
-      float thrs = 0.0375;
+      float thrs = 0.05;
       for(int nF=3;nF<=7;nF++){
 	if(nF<7){
-	  if(TMath::Abs(deltas[nF]-deltas[nF-1])<thrs&&TMath::Abs(deltas[nF]-deltas[low_nF])<(thrs)){up_nF=nF;}
+	  if(TMath::Abs(deltas[nF]-deltas[nF-1])<thrs&&TMath::Abs(deltas[nF]-deltas[low_nF])<(thrs+0.03)){up_nF=nF;}
 	  else{
 	    mean_delta.push_back(deltas[low_nF]+0.5*(deltas[up_nF]-deltas[low_nF]));
 	    err_mean_delta.push_back(0.5*(deltas[up_nF]-deltas[low_nF]));
@@ -164,6 +170,24 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
       }
       //for(int ll=0; ll<mean_delta.size();ll++){cout<<mean_delta[ll]<<endl;}
       //cout<<"%%%%%%%%%%%%%%%%%%"<<endl;
+
+      if(column==1&&row==1){channelID=0;}//1+0; }//ch=0
+      if(column==1&&row==2){channelID=1;}//1+4; }//ch=0
+      if(column==1&&row==3){channelID=2;}//1+8; }//ch=0
+      if(column==1&&row==4){channelID=3;}//1+12;}//ch=0
+      if(column==2&&row==1){channelID=4;}//1+1;}//ch=0
+      if(column==2&&row==2){channelID=5;}//1+5;}//ch=0
+      if(column==2&&row==3){channelID=6;}//1+9;}//ch=0
+      if(column==2&&row==4){channelID=7;}//1+13;}//ch=0
+      if(column==3&&row==1){channelID=8;}//1+2;}//ch=0
+      if(column==3&&row==2){channelID=9;}//1+6;}//ch=0
+      if(column==3&&row==3){channelID=10;}//1+10;}//ch=0
+      if(column==3&&row==4){channelID=11;}//1+14;}//ch=0
+      if(column==4&&row==1){channelID=12;}//1+3;}//ch=0
+      if(column==4&&row==2){channelID=13;}//1+7;}//ch=0
+      if(column==4&&row==3){channelID=14;}//1+11;}//ch=0
+      if(column==4&&row==4){channelID=15;}//1+15;}//ch=0
+      
       if(column==1&&row==1){index_channel_pixel=1+0;  for(int ll=1; ll<=7;ll++){h_0->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_0->Draw();}//ch=0
       if(column==1&&row==2){index_channel_pixel=1+4;  for(int ll=1; ll<=7;ll++){h_1->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_1->Draw();}//ch=0
       if(column==1&&row==3){index_channel_pixel=1+8;  for(int ll=1; ll<=7;ll++){h_2->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_2->Draw();}//ch=0
@@ -200,6 +224,11 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
       if(column==4&&row==4){index_channel_pixel=1+15; for(int ll=0; ll<mean_delta.size();ll++){h_md_15->Fill(mean_delta[ll]);}  c_MC->cd(index_channel_pixel);h_md_15->Draw("same");}//ch=0
 
       n_peaks=mean_delta.size()+1;
+      mc_info.n_peaks[channelID]=n_peaks;
+      for(int hh=0;hh<mean_delta.size();hh++){
+	mc_info.T_separation[channelID][hh]=mean_delta[hh];
+	mc_info.err_T_separation[channelID][hh]=err_mean_delta[hh];
+      }
       t->Fill();
       
     }
@@ -209,10 +238,18 @@ DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
   f_MC_out->Write();
   delete f_MC_out;
 
-  return parameters_DT;
+  // return parameters_DT;
+  return mc_info;
 }
   
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString input_tune, int ch =0 ){
+
+
+  MC_INFO mc_info =  Analyse_MC_inputs("draw","inFit.root");
+
+
+
+  
   //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
   //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
   TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_new_RR_out.root"); 
@@ -236,7 +273,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   bool fix_deltas=false;
   bool add_SP_components=false;
   bool use_marginalize_method=false;
-  add_third_signal=true;//if(!(ch==0||ch==4||ch==8||ch==12)){  add_third_signal=true;}
+  //add_third_signal=true;//if(!(ch==0||ch==4||ch==8||ch==12)){  add_third_signal=true;}
   //fix_deltas=true;
   
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
@@ -353,26 +390,29 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
    up_beta_0=1.0;
 
    if(no_grease){
-     starting_mean_L_0=22.7;
-     if(ch==5)  starting_mean_L_0=22.6;
+     starting_mean_L_0=22.8;
+     if(ch==13)  starting_mean_L_0=22.6;
+     /* if(ch==5)  starting_mean_L_0=22.6;
      if(ch==9||ch==1)  starting_mean_L_0=22.8;
-     if(ch==12||ch==14) starting_mean_L_0=22.5;
-     if(ch==8) starting_mean_L_0=23.0;
+     if(ch==12||ch==14) starting_mean_L_0=22.8;
+     if(ch==8) starting_mean_L_0=23.0;*/
      //if(ch==5||ch==8) starting_mean_L_0=23.0;
    }else{
      starting_mean_L_0=22.7;
      if(ch==14) starting_mean_L_0=22.5;
 
    }
- 
-   starting_delta_H_0=0.280;
-   starting_delta_T_0=0.1200;
+   if(mc_info.n_peaks[ch]>2){add_third_signal=true;}
+   //starting_delta_H_0=0.280;
+   //starting_delta_T_0=0.1200;
+   starting_delta_H_0=mc_info.T_separation[ch][0];
+   starting_delta_T_0=mc_info.T_separation[ch][1];
    starting_sigma_L_0=0.0810;
    starting_sigma_H_0=0.0810;
    starting_sigma_T_0=0.1000;
    starting_alpha_0=0.5;
    starting_beta_0=0.5;
-   
+   cout<<"ridaje     "<<starting_delta_H_0<<"    "<<starting_delta_T_0<<endl;
    //  low_mean_L_0=starting_mean_L_0-0.15;
    //   up_mean_L_0=starting_mean_L_0+0.15;
   low_mean_L_0=starting_mean_L_0-0.35;
@@ -380,8 +420,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   starting_mean_H_0=starting_mean_L_0+starting_delta_H_0;
    low_mean_H_0=low_mean_L_0+starting_delta_H_0;
    up_mean_H_0=up_mean_L_0+starting_delta_H_0;
-
-
+   
+   /*
    if(fix_deltas){
      if(ch==0) starting_delta_H_0=0.280;
      if(ch==1) starting_delta_H_0=0.261;
@@ -417,7 +457,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
      if(ch==14) starting_delta_T_0=0.301-0.221;
      if(ch==15) starting_delta_T_0=0.300-0.176;
    }
-
+   */
 
 
    starting_alpha_CB=-1.5;//-0.5;
@@ -442,10 +482,20 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
   */
   RooRealVar mean_H_0("mean_H_0","mean of L gaussian background pos 0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+  /*
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
+  RooGaussian DElta_H_0("DElta_H_0","gaussian L_0",Delta_H_0,RooConst(mc_info.T_separation[ch][0]),RooConst(mc_info.err_T_separation[ch][0])) ;
+  RooGaussian DElta_T_0("DElta_T_0","gaussian L_0",Delta_T_0,RooConst(mc_info.T_separation[ch][1]),RooConst(mc_info.err_T_separation[ch][1])) ;
+  RooFormulaVar mean_L_0("mean_L_0","mean_l_0","mean_H_0-DElta_H_0",RooArgList(mean_H_0,DElta_H_0));
+  RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+DElta_T_0",RooArgList(mean_H_0,DElta_T_0));*/
+  RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
+  RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
+  RooGaussian DElta_H_0("DElta_H_0","gaussian L_0",Delta_H_0,RooConst(mc_info.T_separation[ch][0]),RooConst(mc_info.err_T_separation[ch][0])) ;
+  RooGaussian DElta_T_0("DElta_T_0","gaussian L_0",Delta_T_0,RooConst(mc_info.T_separation[ch][1]),RooConst(mc_info.err_T_separation[ch][1])) ;
   RooFormulaVar mean_L_0("mean_L_0","mean_l_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+  
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
@@ -602,13 +652,16 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooArgList  fracList_0(Frac_sig_0);
   if(add_SP_components){pdfList_0.add(PDF_SP_0);fracList_0.add(Frac_SP_0); }
   pdfList_0.add(PDF_B_0);
-  RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
+  //RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
+  //RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
+  RooAddPdf   Model_0("Model_0","Model_0",pdfList_0,fracList_0,kTRUE);
+  RooArgList ListCOnstraints(Model_0,DElta_H_0); if(add_third_signal==true){ListCOnstraints.add(DElta_T_0);}
+  RooProdPdf   model_0("model_0","model_0",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
+  RooProdPdf   model_0_b("model_0_b","model_0_b",ListCOnstraints);//RooArgList(Model_0,DElta_H_0));
   
   
   
-  
-  
-  RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
+ 
   
   
   
@@ -684,10 +737,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   cout<<"STATUS MIGRAD EDM 0"<<endl;
   
   
-  
+  RooArgList Ext_Constraints(DElta_H_0); if(add_third_signal){Ext_Constraints.add(DElta_T_0);}
   RooFitResult* fit_results_0;
   if(use_NLL){
-    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE)) ;
+    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0,Extended(kFALSE),ExternalConstraints(Ext_Constraints)) ;
     RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
     RMN_0.setErrorLevel(-1);
     RMN_0.setVerbose(kFALSE);

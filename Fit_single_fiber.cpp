@@ -14,6 +14,7 @@
 #include "RooPlot.h"
 #include "RooMinuit.h"
 #include "TAxis.h"
+#include <TFile.h>
 #include <vector>
 
 using namespace RooFit ;
@@ -31,13 +32,102 @@ struct Fit_results{
   
 };
 
+struct DT_pars{
+
+  float Par_0[5][8];
+  float Par_1[5][8];
+
+};
+
+
 //TString input_filename ="runScan-T74-pos0_large_scale_out";
 
+DT_pars Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
+  double a0;
+  double a1;
+  int col;
+  int fn;
+  
+  TFile* f_input_MC = new TFile(input_file);
+  TTree* tree_MC = (TTree*)f_input_MC->Get("inMC");
+  tree_MC->SetBranchAddress("a0",&a0);
+  tree_MC->SetBranchAddress("a1",&a1);
+  tree_MC->SetBranchAddress("col",&col);
+  tree_MC->SetBranchAddress("fn",&fn);
+  DT_pars parameters_DT;
+  for(int n=0;n<7*4;n++){
+    tree_MC->GetEntry(n);
+    parameters_DT.Par_0[col][fn]=a0;
+    parameters_DT.Par_1[col][fn]=a1;
+  }
+
+  
+  
+  int index_channel_pixel;
+
+  double t_min=0.15;
+  double t_max=0.4;
+  TH1D *h_0  = new TH1D ("h_0","h_0",250,t_min,t_max);
+  TH1D *h_1  = new TH1D ("h_1","h_1",250,t_min,t_max);
+  TH1D *h_2  = new TH1D ("h_2","h_2",250,t_min,t_max);
+  TH1D *h_3  = new TH1D ("h_3","h_3",250,t_min,t_max);
+  TH1D *h_4  = new TH1D ("h_4","h_4",250,t_min,t_max);
+  TH1D *h_5  = new TH1D ("h_5","h_5",250,t_min,t_max);
+  TH1D *h_6  = new TH1D ("h_6","h_6",250,t_min,t_max);
+  TH1D *h_7  = new TH1D ("h_7","h_7",250,t_min,t_max);
+  TH1D *h_8  = new TH1D ("h_8","h_8",250,t_min,t_max);
+  TH1D *h_9  = new TH1D ("h_9","h_9",250,t_min,t_max);
+  TH1D *h_10 = new TH1D ("h_10","h_10",250,t_min,t_max);
+  TH1D *h_11 = new TH1D ("h_11","h_11",250,t_min,t_max);
+  TH1D *h_12 = new TH1D ("h_12","h_12",250,t_min,t_max);
+  TH1D *h_13 = new TH1D ("h_13","h_13",250,t_min,t_max);
+  TH1D *h_14 = new TH1D ("h_14","h_14",250,t_min,t_max);
+  TH1D *h_15 = new TH1D ("h_15","h_15",250,t_min,t_max);
+
+  
+  TCanvas *c_MC = new TCanvas("c_MC","c_MC");
+  c_MC->Divide(4,4);
+  
+  float deltas[8];
+  for(int column=1; column<=4;column++){
+    for(int row=1; row<=4;row++){
+      for(int nF=1;nF<=7;nF++){
+	deltas[nF]=(parameters_DT.Par_0[column][nF]+(row-0.5)*parameters_DT.Par_1[column][nF])-(parameters_DT.Par_0[column][1]+(row-0.5)*parameters_DT.Par_1[column][1]);
+      }
+
+      if(column==1&&row==1){index_channel_pixel=1+0;  for(int ll=1; ll<=7;ll++){h_0->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_0->Draw();}//ch=0
+      if(column==1&&row==2){index_channel_pixel=1+4;  for(int ll=1; ll<=7;ll++){h_1->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_1->Draw();}//ch=0
+      if(column==1&&row==3){index_channel_pixel=1+8;  for(int ll=1; ll<=7;ll++){h_2->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_2->Draw();}//ch=0
+      if(column==1&&row==4){index_channel_pixel=1+12; for(int ll=1; ll<=7;ll++){h_3->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_3->Draw();}//ch=0
+      if(column==2&&row==1){index_channel_pixel=1+1;  for(int ll=1; ll<=7;ll++){h_4->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_4->Draw();}//ch=0
+      if(column==2&&row==2){index_channel_pixel=1+5;  for(int ll=1; ll<=7;ll++){h_5->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_5->Draw();}//ch=0
+      if(column==2&&row==3){index_channel_pixel=1+9;  for(int ll=1; ll<=7;ll++){h_6->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_6->Draw();}//ch=0
+      if(column==2&&row==4){index_channel_pixel=1+13; for(int ll=1; ll<=7;ll++){h_7->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_7->Draw();}//ch=0
+      if(column==3&&row==1){index_channel_pixel=1+2;  for(int ll=1; ll<=7;ll++){h_8->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_8->Draw();}//ch=0
+      if(column==3&&row==2){index_channel_pixel=1+6;  for(int ll=1; ll<=7;ll++){h_9->Fill(deltas[ll]);}   c_MC->cd(index_channel_pixel);h_9->Draw();}//ch=0
+      if(column==3&&row==3){index_channel_pixel=1+10; for(int ll=1; ll<=7;ll++){h_10->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_10->Draw();}//ch=0
+      if(column==3&&row==4){index_channel_pixel=1+14; for(int ll=1; ll<=7;ll++){h_11->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_11->Draw();}//ch=0
+      if(column==4&&row==1){index_channel_pixel=1+3;  for(int ll=1; ll<=7;ll++){h_12->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_12->Draw();}//ch=0
+      if(column==4&&row==2){index_channel_pixel=1+7;  for(int ll=1; ll<=7;ll++){h_13->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_13->Draw();}//ch=0
+      if(column==4&&row==3){index_channel_pixel=1+11; for(int ll=1; ll<=7;ll++){h_14->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_14->Draw();}//ch=0
+      if(column==4&&row==4){index_channel_pixel=1+15; for(int ll=1; ll<=7;ll++){h_15->Fill(deltas[ll]);}  c_MC->cd(index_channel_pixel);h_15->Draw();}//ch=0
 
 
+
+      
+    }
+  }			
+
+
+
+
+  return parameters_DT;
+}
+  
 Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString input_tune, int ch =0 ){
-  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
+  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
   //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
+  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_new_RR_out.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -56,7 +146,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   bool fit_highest_peak=true;
   bool no_grease=true;
   bool fix_deltas=false;
-  bool add_SP_components=true;
+  bool add_SP_components=false;
   bool use_marginalize_method=false;
 
   
@@ -72,7 +162,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   // S e t u p   m o d e l 
   // ---------------------
   
-  double my_low_x=21.5;//2.4;
+  double my_low_x=22.;//2.4;
   double my_up_x=24.;
   if(add_SP_components){my_up_x=my_low_x+13;}
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
@@ -411,7 +501,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
-  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0));//,a1_0));//,a2_0));//
+  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0));//,a2_0));//
   
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   

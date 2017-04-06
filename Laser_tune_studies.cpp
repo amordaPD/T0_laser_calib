@@ -172,9 +172,9 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
-  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0));//,a2_0));//
+  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0,a2_0));//
   
-  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.65,1.0);
+  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.8, 0.65,1.0);
   RooRealVar  Frac_SP_0("Frac_SP_0","fraction of sig events", 0.9, 0.01,1.0);
   RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);
   RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);

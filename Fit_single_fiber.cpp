@@ -262,7 +262,7 @@ MC_INFO Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
       int low_nF, up_nF;
       up_nF=2;
       low_nF=2;
-      float thrs_rel = 0.02;
+      float thrs_rel = 0.025;
       float thrs_range = 0.06;
       for(int nF=3;nF<=7;nF++){
 	if(nF<7){
@@ -558,7 +558,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
 
    if(no_grease){
      starting_mean_L_0=22.8;
-     if(ch==14||ch==12)  starting_mean_L_0=22.6;
+     if(ch==14)  starting_mean_L_0=22.6;
+     if(ch==12)  starting_mean_L_0=22.8;
      /* if(ch==5)  starting_mean_L_0=22.6;
      if(ch==9||ch==1)  starting_mean_L_0=22.8;
      if(ch==12||ch==14) starting_mean_L_0=22.8;
@@ -573,7 +574,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
    //starting_delta_H_0=0.280;
    //starting_delta_T_0=0.1200;
    starting_delta_H_0=mc_info.T_separation[ch][0];
-   starting_delta_T_0=mc_info.T_separation[ch][1]-mc_info.T_separation[ch][0];
+   starting_delta_T_0=mc_info.T_separation[ch][1]-mc_info.T_separation[ch][0];if(ch==12){cout<<" 'nnamo : "<<mc_info.T_separation[ch][1]-mc_info.T_separation[ch][0]<<endl;}
    starting_sigma_L_0=0.0810;
    starting_sigma_H_0=0.0810;
    starting_sigma_T_0=0.1000;

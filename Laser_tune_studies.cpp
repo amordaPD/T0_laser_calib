@@ -78,11 +78,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   POIs.clear();
   // S e t u p   m o d e l 
   // ---------------------
-  
-  double my_low_x=13.9;//2.4;
-  double my_up_x=14.2;
-  RooRealVar x("time","Time [ns]",my_low_x,my_up_x) ;
-  RooRealVar amp("amplitude","Amplitude [ADC counts]",0,10000) ;
+ 
 
   ///////fixing starting values and boundaries for two positions
 
@@ -90,6 +86,15 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   
 
   TTree *tree = (TTree*)f_input_histogram->Get("times");
+  TH1D *h_t = new TH1D("h_t","h_t",200,13,20);
+  tree->Project("h_t","time");
+  double mean_hist = h_t->GetMean();
+  double  my_low_x=mean_hist-3;
+  double  my_up_x=mean_hist+8;
+  
+  RooRealVar x("time","Time [ns]",my_low_x,my_up_x) ;
+  RooRealVar amp("amplitude","Amplitude [ADC counts]",0,10000) ;
+  
   RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp),Import(*tree));//,Cut(Form("Amplitude>%d",amplitude_cut)));
   
 
@@ -121,7 +126,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   low_sigma_L_0=0.01;
   up_sigma_L_0=0.500;
   
-  starting_mean_L_0=13.725;
+  starting_mean_L_0=mean_hist-1;
   starting_sigma_L_0=0.0410;
   
   low_mean_L_0=starting_mean_L_0-0.35;
@@ -137,26 +142,43 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   low_n_CB=0;
   up_n_CB=20;
   
-  
   RooRealVar alpha_CB("alpha_CB","alpha parameter of CB",   starting_alpha_CB,low_alpha_CB,up_alpha_CB);
   RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
   RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
-  RooCBShape model_0("model_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
-  RooCBShape model_0_b("model_0_b","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  //RooCBShape model_0("model_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  //RooCBShape model_0_b("model_0_b","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+
+
+  double starting_mean_LL_SP_0;
+  double low_mean_LL_SP_0;
+  double up_mean_LL_SP_0;
+  double starting_sigma_LL_SP_0;
+  double low_sigma_LL_SP_0;
+  double up_sigma_LL_SP_0;
+  low_sigma_LL_SP_0=0.035;
+  up_sigma_LL_SP_0=1.700;
+  starting_sigma_LL_SP_0=0.30;
+  starting_mean_LL_SP_0=starting_mean_L_0+3;
+  low_mean_LL_SP_0=starting_mean_LL_SP_0-0.35;
+  up_mean_LL_SP_0=starting_mean_LL_SP_0+0.35;
+  RooRealVar mean_LL_SP_0("mean_LL_SP_0","mean of L gaussian background pos 0",starting_mean_LL_SP_0,low_mean_LL_SP_0,up_mean_LL_SP_0);
+  RooRealVar sigma_LL_SP_0("sigma_LL_SP_0","width of L gaussian background",starting_sigma_LL_SP_0,low_sigma_LL_SP_0,up_sigma_LL_SP_0);
+  RooGaussian PDF_LL_SP_0("PDF_LL_SP_0","gaussian LL_SP_0",x,mean_LL_SP_0,sigma_LL_SP_0);
+  
+ 
   
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0));//,a2_0));//
-  /*
-  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
-  RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0,PDF_B_0),RooArgList(Frac_sig_0),kTRUE);
-  RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0,PDF_B_0),RooArgList(Frac_sig_0),kTRUE);
   
-  
-  */
+  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.65,1.0);
+  RooRealVar  Frac_SP_0("Frac_SP_0","fraction of sig events", 0.9, 0.01,1.0);
+  RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);
+  RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);
+ 
   
  
   
@@ -328,13 +350,13 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
     */
   
   
-  TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
-  TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
-  TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
-  TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
-  TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
-  TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
-  TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
+  TF1 *line_0s = new TF1("line_0s","0",-1,50);line_0s->SetLineColor(8);
+  TF1 *line_1ps = new TF1("line_1ps","1",-1,50);line_1ps->SetLineColor(4);
+  TF1 *line_1ns = new TF1("line_1ns","-1",-1,50);line_1ns->SetLineColor(4);
+  TF1 *line_2ps = new TF1("line_2ps","2",-1,50);line_2ps->SetLineColor(kOrange-2);
+  TF1 *line_2ns = new TF1("line_2ns","-2",-1,50);line_2ns->SetLineColor(kOrange-2);
+  TF1 *line_3ps = new TF1("line_3ps","3",-1,50);line_3ps->SetLineColor(2);
+  TF1 *line_3ns = new TF1("line_3ns","-3",-1,50);line_3ns->SetLineColor(2);
   if(draw_results){  
     TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
     c_Fit->Divide(1,3) ;
@@ -524,13 +546,13 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   
     
     
-    TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
-    TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
-    TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
-    TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
-    TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
-    TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
-    TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
+    TF1 *line_0s = new TF1("line_0s","0",-1,50);line_0s->SetLineColor(8);
+    TF1 *line_1ps = new TF1("line_1ps","1",-1,50);line_1ps->SetLineColor(4);
+    TF1 *line_1ns = new TF1("line_1ns","-1",-1,50);line_1ns->SetLineColor(4);
+    TF1 *line_2ps = new TF1("line_2ps","2",-1,50);line_2ps->SetLineColor(kOrange-2);
+    TF1 *line_2ns = new TF1("line_2ns","-2",-1,50);line_2ns->SetLineColor(kOrange-2);
+    TF1 *line_3ps = new TF1("line_3ps","3",-1,50);line_3ps->SetLineColor(2);
+    TF1 *line_3ns = new TF1("line_3ns","-3",-1,50);line_3ns->SetLineColor(2);
     c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
     c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
     line_3ns->Draw("same");line_3ps->Draw("same");
@@ -554,7 +576,7 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     
     
     
-    TF1 *line = new TF1("line","0.100",-1,16);
+    TF1 *line = new TF1("line","0.100",-1,50);
     line->SetTitle("100 ps");
     // TLine *line = new TLine(0,100,16,100);
     line->SetLineColor(2);

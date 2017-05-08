@@ -23,10 +23,12 @@ vector<int> Fits_status;
 struct Fit_results{
   float Results[80];
   int n_POIs;
-  RooPlot* xframe2_amplitude_0;
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
   TH2 *h_correlation_0;
+  TH1D *h_amplitude;
+  TH1D *h_time;
+  TH2D *h_amptime;
   
 };
 
@@ -39,11 +41,43 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
 
 
 
-
+  int Tune=-9;
+  if(_tune=="T96")Tune=96;
+  if(_tune=="T94")Tune=94;
+  if(_tune=="T92")Tune=92;
+  if(_tune=="T90")Tune=90;
+  if(_tune=="T88")Tune=88;
+  if(_tune=="T86")Tune=86;
+  if(_tune=="T84")Tune=84;
+  if(_tune=="T82")Tune=82;
+  if(_tune=="T81")Tune=81;
+  if(_tune=="T80")Tune=80;
+  if(_tune=="T79")Tune=79;
+  if(_tune=="T78")Tune=78;
+  if(_tune=="T77")Tune=77;
+  if(_tune=="T76")Tune=76;
+  if(_tune=="T75")Tune=75;
+  if(_tune=="T74")Tune=74;
+  if(_tune=="T73")Tune=73;
+  if(_tune=="T72")Tune=72;
+  if(_tune=="T71")Tune=71;
+  if(_tune=="T70")Tune=70;
+  if(_tune=="T68")Tune=68;
+  if(_tune=="T66")Tune=66;
+  if(_tune=="T64")Tune=64;
+  if(_tune=="T62")Tune=62;
+  if(_tune=="T60")Tune=60;
+  if(_tune=="T58")Tune=58;
+  if(_tune=="T56")Tune=56;
+  if(_tune=="T54")Tune=54;
+  if(_tune=="T52")Tune=52;
+  if(_tune=="T50")Tune=50;
 
   
 
-  TFile *f_input_histogram = new TFile("raw_data/fbk/fbk-B31.8-"+_fiber+"-"+_tune+"-times.root"); 
+  
+
+  TFile *f_input_histogram = new TFile("raw_data/fbk/fbk-B31.8-"+_fiber+_tune+"-times.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -84,18 +118,83 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
 
 
   
-
+  double T_shift=-14.5;
+  double T_LOW = 13+T_shift;
+  double T_UP = 15+T_shift;
+  
+  
   TTree *tree = (TTree*)f_input_histogram->Get("times");
-  TH1D *h_t = new TH1D("h_t","h_t",200,13,20);
-  tree->Project("h_t","time");
-  double mean_hist = h_t->GetMean();
-  double  my_low_x=mean_hist-3;
-  double  my_up_x=mean_hist+8;
+  TH1D *h_t = new TH1D("h_t","h_t",200,T_LOW,T_UP);
+  tree->Project("h_t","time","amplitude<1000");
+  h_t->GetXaxis()->SetTitle("Time [ns]"); 
+  h_t->GetYaxis()->SetTitle("A.U.");/*
+  h_t->GetXaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(70);
+  h_t->GetXaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(70);*/
   
+  TH1D *h_a = new TH1D("h_a","h_a",250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
+  tree->Project("h_a","amplitude","time>10&&time<20");
+  tree->Project("h_a","amplitude","0>time");
+  h_a->GetXaxis()->SetTitle("Amplitude [ADC counts]");/*
+  h_a->GetXaxis()->SetLabelSize(0.05);h_a->GetXaxis()->SetLabelFont(70);
+  h_a->GetXaxis()->SetTitleSize(0.05);h_a->GetXaxis()->SetTitleFont(70);*/
+  h_a->GetYaxis()->SetTitle("A.U.");
+  TH2D *h_at = new TH2D("h_at","h_at",200,T_LOW,T_UP,250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
+  tree->Project("h_at","amplitude:time","time<0&&amplitude<1000");
+  h_at->GetXaxis()->SetTitle("Time [ns]");
+  h_at->GetYaxis()->SetTitle("Amplitude [ADC counts]");/*
+  h_at->GetXaxis()->SetLabelSize(0.05);h_at->GetXaxis()->SetLabelFont(70);
+  h_at->GetYaxis()->SetLabelSize(0.05);h_at->GetYaxis()->SetLabelFont(70);
+  h_at->GetXaxis()->SetTitleSize(0.05);h_at->GetXaxis()->SetTitleFont(70);
+  h_at->GetYaxis()->SetTitleSize(0.05);h_at->GetYaxis()->SetTitleFont(70);*/
+  TCanvas *c =  new TCanvas("c","c");
+  c->Divide(2,2);
+  c->cd(1);
+  h_a->Draw();
+  c->cd(2);
+  h_t->Draw();
+  c->cd(3);
+  h_at->Draw("colz");
+  int binmax = h_t->GetMaximumBin();
+  double mean_hist = h_t->GetXaxis()->GetBinCenter(binmax);
+  cout<<"pera : "<<mean_hist<<endl;
+  //double mean_hist = h_t->GetMean();
+  double range;
+  //if(Tune>=64){range=1*(0.061875*Tune-3.94);}else{range=0.1;}
+  range=0.5;
+  if(Tune<=90){range=0.4;}
+  if(Tune<=86){range=0.3;}
+  if(Tune<=78){range=0.2;}
+  if(Tune<=76){range=0.1;}
+  if(Tune<=72){range=0.05;}
+  if(Tune<=68){range=0.05;}
+  if(Tune<=62){range=0.05;}
+  double fiber_factor;
+  if(_fiber=="")fiber_factor=1;
+  if(_fiber=="mono-")fiber_factor=1;
+  if(_fiber==""){
+    range=0.08;
+    if(Tune<=68){
+      range=0.05;
+    }
+  }
+  
+  double  my_low_x=mean_hist-1.2*range*fiber_factor;
+  double  my_up_x=mean_hist+1.3*range*fiber_factor;
+  /*
+  if(T_shift<-10){
+    my_up_x=mean_hist-1.3*range+T_shift;
+    my_low_x=mean_hist+1.3*range+T_shift;
+  }
+  */
   RooRealVar x("time","Time [ns]",my_low_x,my_up_x) ;
-  RooRealVar amp("amplitude","Amplitude [ADC counts]",0,10000) ;
-  
-  RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp),Import(*tree));//,Cut(Form("Amplitude>%d",amplitude_cut)));
+  RooRealVar amp("amplitude","Amplitude [ADC counts]",0,1000) ;
+  int cut_amp;
+  if (tree->GetMaximum("amplitude")<700){
+    cut_amp=(int)tree->GetMaximum("amplitude");
+  }else{
+    cut_amp=(int)tree->GetMaximum("amplitude")-70;
+  }
+  RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp),Import(*tree),Cut(Form("amplitude<%d", cut_amp)));
   
 
 
@@ -123,10 +222,10 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   //  low_x_0=my_low_x; up_x_0=my_up_x;
   
   
-  low_sigma_L_0=0.01;
+  low_sigma_L_0=0.008;
   up_sigma_L_0=0.500;
   
-  starting_mean_L_0=mean_hist-1;
+  starting_mean_L_0=mean_hist;
   starting_sigma_L_0=0.0410;
   
   low_mean_L_0=starting_mean_L_0-0.35;
@@ -138,19 +237,39 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   
   low_alpha_CB=-5;
   up_alpha_CB=0.0;
-  
+  /*if(Tune<=76){
+    starting_alpha_CB=1.5;
+    low_alpha_CB=0;
+    up_alpha_CB=5.0;
+
+    }*/
   low_n_CB=0;
-  up_n_CB=20;
+  up_n_CB=2000;
   
   RooRealVar alpha_CB("alpha_CB","alpha parameter of CB",   starting_alpha_CB,low_alpha_CB,up_alpha_CB);
   RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
   RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
-  RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  //RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+  RooRealVar mean_L_1("mean_L_1","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
+  RooRealVar sigma_L_1("sigma_L_1","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
+  //RooCBShape PDF_L_1("PDF_L_1","gaussian L_0",x,mean_L_1,sigma_L_1,alpha_CB,n_CB) ;
+  RooGaussian PDF_L_1("PDF_L_1","gaussian L_1",x,mean_L_0,sigma_L_1) ;
   //RooCBShape model_0("model_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
   //RooCBShape model_0_b("model_0_b","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  RooGaussian model_0("model_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+  RooGaussian model_0_b("model_0_b","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+  //  RooLandau model_0("model_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+  //  RooLandau model_0_b("model_0_b","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+
+  //RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.5, 0.0,1.0);
+  //RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0,PDF_L_1),RooArgList(Frac_sig_0),kTRUE);
+  //RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0,PDF_L_1),RooArgList(Frac_sig_0),kTRUE);
 
 
+
+  
   double starting_mean_LL_SP_0;
   double low_mean_LL_SP_0;
   double up_mean_LL_SP_0;
@@ -173,12 +292,12 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,RooArgList(a0_0,a1_0,a2_0));//
-  
-  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.8, 0.65,1.0);
+  /*
+  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.99, 0.65,1.0);
   RooRealVar  Frac_SP_0("Frac_SP_0","fraction of sig events", 0.9, 0.01,1.0);
-  RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);
-  RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0,PDF_LL_SP_0,PDF_B_0),RooArgList(Frac_sig_0,Frac_SP_0),kTRUE);
- 
+  RooAddPdf   model_0("model_0","model_0",RooArgList(PDF_L_0),RooArgList(Frac_sig_0),kTRUE);
+  RooAddPdf   model_0_b("model_0_b","model_0_b",RooArgList(PDF_L_0),RooArgList(Frac_sig_0),kTRUE);
+  */
   
  
   
@@ -244,7 +363,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   ds_0.plotOn(xframe2_0);//,DataError(RooAbsData::SumW2)) ;
   TH2 *h_correlation_0 = fit_results_0->correlationHist(); h_correlation_0->SetTitle("correlation matrix");h_correlation_0->GetYaxis()->SetLabelSize(0.1); h_correlation_0->GetYaxis()->SetLabelFont(70); h_correlation_0->SetMarkerSize(2);
   model_0.plotOn(xframe2_0,Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
-  model_0.plotOn(xframe2_0,Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
+  model_0.plotOn(xframe2_0,Components("PDF_L_1"),LineStyle(kDashed),LineColor(2)) ;
   model_0.plotOn(xframe2_0) ;
   // Construct a histogram with the residuals of the data w.r.t. the curve
   RooHist* hresid_0 = xframe2_0->residHist() ;
@@ -258,7 +377,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   // Create a new frame to draw the pull distribution and add the distribution to the frame
   RooPlot* xframe4_0 = x.frame(Title(_fiber+_tune)) ;
   xframe4_0->addPlotable(hpull_0,"P") ;
-  
+  /*
   xframe2_0->GetXaxis()->SetLabelSize(0.05);
   xframe2_0->GetXaxis()->SetLabelFont(70);
   xframe2_0->GetXaxis()->SetTitleSize(0.05);
@@ -267,7 +386,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   xframe4_0->GetXaxis()->SetLabelFont(70);
   xframe4_0->GetXaxis()->SetTitleSize(0.05);
   xframe4_0->GetXaxis()->SetTitleFont(70);
-  
+  */
   
   
   RooPlot* xframe2_0_log = x.frame(Title(_fiber+_tune)) ;
@@ -277,11 +396,11 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   model_0.plotOn(xframe2_0_log) ;
   model_0.paramOn(xframe2_0_log);
   model_0.paramOn(xframe2_0);
-  xframe2_0_log->GetXaxis()->SetLabelSize(0.05);
+  /*  xframe2_0_log->GetXaxis()->SetLabelSize(0.05);
   xframe2_0_log->GetXaxis()->SetLabelFont(70);
   xframe2_0_log->GetXaxis()->SetTitleSize(0.05);
   xframe2_0_log->GetXaxis()->SetTitleFont(70);
-  
+  */
   Fits_status.push_back(fit_results_0->status());
   
   
@@ -350,13 +469,13 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
     */
   
   
-  TF1 *line_0s = new TF1("line_0s","0",-1,50);line_0s->SetLineColor(8);
-  TF1 *line_1ps = new TF1("line_1ps","1",-1,50);line_1ps->SetLineColor(4);
-  TF1 *line_1ns = new TF1("line_1ns","-1",-1,50);line_1ns->SetLineColor(4);
-  TF1 *line_2ps = new TF1("line_2ps","2",-1,50);line_2ps->SetLineColor(kOrange-2);
-  TF1 *line_2ns = new TF1("line_2ns","-2",-1,50);line_2ns->SetLineColor(kOrange-2);
-  TF1 *line_3ps = new TF1("line_3ps","3",-1,50);line_3ps->SetLineColor(2);
-  TF1 *line_3ns = new TF1("line_3ns","-3",-1,50);line_3ns->SetLineColor(2);
+  TF1 *line_0s = new TF1("line_0s","0",-10,50);line_0s->SetLineColor(8);
+  TF1 *line_1ps = new TF1("line_1ps","1",-10,50);line_1ps->SetLineColor(4);
+  TF1 *line_1ns = new TF1("line_1ns","-1",-10,50);line_1ns->SetLineColor(4);
+  TF1 *line_2ps = new TF1("line_2ps","2",-10,50);line_2ps->SetLineColor(kOrange-2);
+  TF1 *line_2ns = new TF1("line_2ns","-2",-10,50);line_2ns->SetLineColor(kOrange-2);
+  TF1 *line_3ps = new TF1("line_3ps","3",-10,50);line_3ps->SetLineColor(2);
+  TF1 *line_3ns = new TF1("line_3ns","-3",-10,50);line_3ns->SetLineColor(2);
   if(draw_results){  
     TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
     c_Fit->Divide(1,3) ;
@@ -386,6 +505,9 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   my_fit_results.xframe2_fit_0=xframe2_0;
   my_fit_results.xframe2_pull_0=xframe4_0;
   my_fit_results.h_correlation_0=h_correlation_0;
+  my_fit_results.h_time=h_t;
+  my_fit_results.h_amplitude=h_a;
+  my_fit_results.h_amptime=h_at;
   
   
   return my_fit_results;
@@ -401,50 +523,54 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_pulls = new TCanvas("c_pos0_AllChannels_pulls","c_pos0_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_corr = new TCanvas("c_pos0_AllChannels_corr","c_pos0_AllChannels_corr",0,0,1124,700);
-  TCanvas *c_pos0_AllChannels_amp = new TCanvas("c_pos0_AllChannels_amp","c_pos0_AllChannels_amp",0,0,1124,700);
+  TCanvas *c_pos0_AllChannels_time    = new TCanvas("c_pos0_AllChannels_time",   "c_pos0_AllChannels_time",     0,0,1124,700);
+  TCanvas *c_pos0_AllChannels_amp     = new TCanvas("c_pos0_AllChannels_amp",    "c_pos0_AllChannels_amp",      0,0,1124,700);
+  TCanvas *c_pos0_AllChannels_amptime = new TCanvas("c_pos0_AllChannels_amptime","c_pos0_AllChannels_amptime",  0,0,1124,700);
   
   
   
   vector<float> relative_weight_Frac_0; relative_weight_Frac_0.clear();
   c_pos0_AllChannels->Divide(6,5);
-  
   c_pos0_AllChannels_pulls->Divide(6,5);
   c_pos0_AllChannels_corr->Divide(6,5);
+  
   c_pos0_AllChannels_amp->Divide(6,5);
+  c_pos0_AllChannels_amptime->Divide(6,5);
+  c_pos0_AllChannels_time->Divide(6,5);
   
   
   
   TString _tunes[30];
-  _tunes[0]="T50";
-  _tunes[1]="T52";
-  _tunes[2]="T54";
-  _tunes[3]="T56";
-  _tunes[4]="T58";
-  _tunes[5]="T60";
-  _tunes[6]="T62";
-  _tunes[7]="T64";
-  _tunes[8]="T66";
-  _tunes[9]="T68";
-  _tunes[10]="T70";
-  _tunes[11]="T71";
-  _tunes[12]="T72";
-  _tunes[13]="T73";
-  _tunes[14]="T74";
-  _tunes[15]="T75";
-  _tunes[16]="T76";
-  _tunes[17]="T77";
-  _tunes[18]="T78";
-  _tunes[19]="T79";
-  _tunes[20]="T80";
-  _tunes[21]="T81";
-  _tunes[22]="T82";
-  _tunes[23]="T84";
-  _tunes[24]="T86";
-  _tunes[25]="T88";
-  _tunes[26]="T90";
-  _tunes[27]="T92";
-  _tunes[28]="T94";
-  _tunes[29]="T96";
+  _tunes[29]="T50";
+  _tunes[28]="T52";
+  _tunes[27]="T54";
+  _tunes[26]="T56";
+  _tunes[25]="T58";
+  _tunes[24]="T60";
+  _tunes[23]="T62";
+  _tunes[22]="T64";
+  _tunes[21]="T66";
+  _tunes[20]="T68";
+  _tunes[19]="T70";
+  _tunes[18]="T71";
+  _tunes[17]="T72";
+  _tunes[16]="T73";
+  _tunes[15]="T74";
+  _tunes[14]="T75";
+  _tunes[13]="T76";
+  _tunes[12]="T77";
+  _tunes[11]="T78";
+  _tunes[10]="T79";
+  _tunes[9]="T80";
+  _tunes[8]="T81";
+  _tunes[7]="T82";
+  _tunes[6]="T84";
+  _tunes[5]="T86";
+  _tunes[4]="T88";
+  _tunes[3]="T90";
+  _tunes[2]="T92";
+  _tunes[1]="T94";
+  _tunes[0]="T96";
   
   
   
@@ -468,7 +594,7 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   float x[30];
   float err_x[30];
 
-
+  /*
   x[0]=50;
   x[1]=52;
   x[2]=54;
@@ -499,7 +625,38 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
   x[27]=92;
   x[28]=94;
   x[29]=96;
-
+  */
+  x[29]=50;
+  x[28]=52;
+  x[27]=54;
+  x[26]=56;
+  x[25]=58;
+  x[24]=60;
+  x[23]=62;
+  x[22]=64;
+  x[21]=66;
+  x[20]=68;
+  x[19]=70;
+  x[18]=71;
+  x[17]=72;
+  x[16]=73;
+  x[15]=74;
+  x[14]=75;
+  x[13]=76;
+  x[12]=77;
+  x[11]=78;
+  x[10]=79;
+  x[9]=80;
+  x[8]=81;
+  x[7]=82;
+  x[6]=84;
+  x[5]=86;
+  x[4]=88;
+  x[3]=90;
+  x[2]=92;
+  x[1]=94;
+  x[0]=96;
+  
   err_x[0]=0;
   err_x[1]=0;
   err_x[2]=0;
@@ -539,36 +696,43 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     cout<<"Channel : "<<i<<endl;
     Fit_results my_fit_Results;
     
-    my_fit_Results=Fit_head("blind",deep_fixed_params,input_tune,i);
+    my_fit_Results=Fit_head("blind","",_tunes[i]);//mono-",_tunes[i]);
+    
     for(int hg=0;hg<my_fit_Results.n_POIs;hg++){
       POIs.push_back(my_fit_Results.Results[hg]);
     }
-  
+
+    
+    mean_L_0_B[i]      =POIs[0];
+    err_mean_L_0_B[i]  =POIs[1];
+    sigma_L_0_B[i]     =POIs[2];
+    err_sigma_L_0_B[i] =POIs[3];
     
     
-    TF1 *line_0s = new TF1("line_0s","0",-1,50);line_0s->SetLineColor(8);
-    TF1 *line_1ps = new TF1("line_1ps","1",-1,50);line_1ps->SetLineColor(4);
-    TF1 *line_1ns = new TF1("line_1ns","-1",-1,50);line_1ns->SetLineColor(4);
-    TF1 *line_2ps = new TF1("line_2ps","2",-1,50);line_2ps->SetLineColor(kOrange-2);
-    TF1 *line_2ns = new TF1("line_2ns","-2",-1,50);line_2ns->SetLineColor(kOrange-2);
-    TF1 *line_3ps = new TF1("line_3ps","3",-1,50);line_3ps->SetLineColor(2);
-    TF1 *line_3ns = new TF1("line_3ns","-3",-1,50);line_3ns->SetLineColor(2);
-    c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
-    c_pos0_AllChannels_pulls->cd(index_channel_pixel[i]); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
+    
+    TF1 *line_0s = new TF1("line_0s","0",-10,50);line_0s->SetLineColor(8);
+    TF1 *line_1ps = new TF1("line_1ps","1",-10,50);line_1ps->SetLineColor(4);
+    TF1 *line_1ns = new TF1("line_1ns","-1",-10,50);line_1ns->SetLineColor(4);
+    TF1 *line_2ps = new TF1("line_2ps","2",-10,50);line_2ps->SetLineColor(kOrange-2);
+    TF1 *line_2ns = new TF1("line_2ns","-2",-10,50);line_2ns->SetLineColor(kOrange-2);
+    TF1 *line_3ps = new TF1("line_3ps","3",-10,50);line_3ps->SetLineColor(2);
+    TF1 *line_3ns = new TF1("line_3ns","-3",-10,50);line_3ns->SetLineColor(2);
+    c_pos0_AllChannels->cd(i+1); my_fit_Results.xframe2_fit_0->Draw(); 
+    c_pos0_AllChannels_pulls->cd(i+1); gPad->SetGridy(); my_fit_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_fit_Results.xframe2_pull_0->Draw();
     line_3ns->Draw("same");line_3ps->Draw("same");
     line_2ns->Draw("same");line_2ps->Draw("same");
     line_1ns->Draw("same");line_1ps->Draw("same");
     line_0s->Draw("same");line_0s->Draw("same");
-    c_pos0_AllChannels_corr->cd(index_channel_pixel[i]);my_fit_Results.h_correlation_0->Draw("colz:text");
-    c_pos0_AllChannels_amp->cd(index_channel_pixel[i]);my_fit_Results.xframe2_amplitude_0->Draw();
+    c_pos0_AllChannels_corr->cd(i+1);my_fit_Results.h_correlation_0->Draw("colz:text");
+    //c_pos0_AllChannels_amp->cd(index_channel_pixel[i]);my_fit_Results.xframe2_amplitude_0->Draw();
+    //c_pos0_AllChannels_amptime->cd(i+1);my_fit_Results.h_amptime->Draw();
+    c_pos0_AllChannels_amp->cd(i+1);my_fit_Results.h_amplitude->Draw();
+    c_pos0_AllChannels_time->cd(i+1);my_fit_Results.h_time->Draw();
+    c_pos0_AllChannels_amptime->cd(i+1);my_fit_Results.h_amptime->Draw("colz");
+    //c_pos0_AllChannels_time->cd(i+1);my_fit_Results.h_time->Draw();
     
     
     
-    
-    mean_L_0_B[i]      =POIs[0];
-    err_mean_L_0_B[i]  =POIs[1];
-    sigma_L_0_B[i]     =POIs[6];
-    err_sigma_L_0_B[i] =POIs[7];
   }
   
   
@@ -582,10 +746,10 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     line->SetLineColor(2);
  
     
-    TGraphErrors *MEAN_L_B_0 = new TGraphErrors(16,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{0} - fit pos.0");
+    TGraphErrors *MEAN_L_B_0 = new TGraphErrors(30,x,mean_L_0_B,err_x,err_mean_L_0_B);MEAN_L_B_0->SetName("MEAN_L_B_0"); MEAN_L_B_0->SetTitle("T_{0} - fit pos.0");
    
     
-    TGraphErrors *SIGMA_L_B_0 = new TGraphErrors(16,x,sigma_L_0_B,err_x,err_sigma_L_0_B);SIGMA_L_B_0->SetName("SIGMA_L_B_0"); SIGMA_L_B_0->SetTitle("#delta t_{low} pos.0 - fit pos.0");
+    TGraphErrors *SIGMA_L_B_0 = new TGraphErrors(30,x,sigma_L_0_B,err_x,err_sigma_L_0_B);SIGMA_L_B_0->SetName("SIGMA_L_B_0"); SIGMA_L_B_0->SetTitle("#delta t_{low} pos.0 - fit pos.0");
 
     MEAN_L_B_0->SetMarkerStyle(20);
     MEAN_L_B_0->SetMarkerSize(2);
@@ -595,71 +759,75 @@ vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_
     SIGMA_L_B_0->SetMarkerColor(1);
     
     TMultiGraph *mg_MEANS_L_0 = new TMultiGraph();mg_MEANS_L_0->SetName("mg_MEANS_L_0");
-    mg_MEANS_L_0->SetTitle("T_{0} vs Channel - pos.0");
+    mg_MEANS_L_0->SetTitle("T_{0} vs Laser Tune");
     mg_MEANS_L_0->Add(MEAN_L_B_0);
   
     
     TCanvas *c_absolute_positions_01_b = new TCanvas("c_absolute_position_01_b","c_absolute_position_01_b",0,0,1124,700);
     mg_MEANS_L_0->Draw("AP");
-    mg_MEANS_L_0->GetXaxis()->SetTitle("Channel");
+    mg_MEANS_L_0->GetXaxis()->SetTitle("Laser tune");
     mg_MEANS_L_0->GetYaxis()->SetTitle("T_{0} [ns]");
-    mg_MEANS_L_0->GetYaxis()->SetRangeUser(22.75,23.2);
+    //mg_MEANS_L_0->GetYaxis()->SetRangeUser(10,30);//22.75,23.2);
     gPad->BuildLegend();
     gPad->Update();
     gPad->SetGridy();
   
     
-    TMultiGraph *mg_SIGMA_B_L = new TMultiGraph();mg_SIGMA_B_L->SetName("mg_SIGMA_B_L");
-    mg_SIGMA_B_L->SetTitle("Time resolution (#delta t) low time vs Channel");
-    mg_SIGMA_B_L->Add(REF_sigma_L);
-    mg_SIGMA_B_L->Add(SIGMA_L_B_0);
+    TMultiGraph *mg_SIGMA_L_0 = new TMultiGraph();mg_SIGMA_L_0->SetName("mg_SIGMA_L_0");
+    mg_SIGMA_L_0->SetTitle("Time resolution (#delta t) vs Laser Tune");
+    mg_SIGMA_L_0->Add(SIGMA_L_B_0);
     //mg_SIGMA_B_L->Add(SIGMA_L_A_0);
  
     
     TCanvas* c_Res_pos0 = new TCanvas("c_Res_pos0","c_Res_pos0",0,0,1124,700);
-    c_Res_pos0->cd();
     mg_SIGMA_L_0->Draw("AP");
-    line->Draw("same");
-    gPad->Update();
-    mg_SIGMA_L_0->GetXaxis()->SetTitle("Channel");
+    mg_SIGMA_L_0->GetXaxis()->SetTitle("Laser tune");
     mg_SIGMA_L_0->GetYaxis()->SetTitle("#delta t [ns]");
     gPad->Update();
+    gPad->SetGridy();
     gPad->BuildLegend();
 
     
-    c_pos0_AllChannels->Draw();    c_pos0_AllChannels_pulls->Draw();  c_pos0_AllChannels_corr->Draw(); 
+    //  c_pos0_AllChannels->Draw();    c_pos0_AllChannels_pulls->Draw();  c_pos0_AllChannels_corr->Draw(); 
   
   }
 
-  TString out_path="fit_results";
-  TFile *f_data = new TFile(out_path+"/"+input_tune+"_FR.root","recreate");
-  f_data->cd();
-  
-  MEAN_L_B_0->Write();
-  DELTA_H_B_0->Write();
-  SIGMA_L_B_0->Write();
-  SIGMA_H_B_0->Write();
-  FRAC_SIG->Write();
-  AMP_SIG->Write();
-  DELTA_LSP_T0->Write();
-  DELTA_HSP_LSP->Write();
-  
-  mg_MEANS_L_0->Write();
-  mg_FRAC_0->Write();
-  mg_SIGMA_L_0->Write();
-  mg_SIGMA_H_0->Write();
-  
-  c_absolute_positions_01_b->Write();
-  c_FRAC->Write();
-  c_Res_pos0->Write();
-  c_pos0_AllChannels->Write();
-  c_pos0_AllChannels_pulls->Write();
-  c_pos0_AllChannels_corr->Write();
-  c_pos0_AllChannels_amp->Write();
-  
-  f_data->cd();
-  f_data->Close();
-  
+
+
+  /*
+  //c_pos0_AllChannels->Draw();    c_pos0_AllChannels_pulls->Draw();  c_pos0_AllChannels_corr->Draw();
+  // c_pos0_AllChannels_time->Draw();    c_pos0_AllChannels_amptime->Draw("colz");  c_pos0_AllChannels_amp->Draw();
+  if(0){
+    TString out_path="fit_results";
+    TFile *f_data = new TFile(out_path+"/"+input_tune+"_FR.root","recreate");
+    f_data->cd();
+    
+    MEAN_L_B_0->Write();
+    DELTA_H_B_0->Write();
+    SIGMA_L_B_0->Write();
+    SIGMA_H_B_0->Write();
+    FRAC_SIG->Write();
+    AMP_SIG->Write();
+    DELTA_LSP_T0->Write();
+    DELTA_HSP_LSP->Write();
+    
+    mg_MEANS_L_0->Write();
+    mg_FRAC_0->Write();
+    mg_SIGMA_L_0->Write();
+    mg_SIGMA_H_0->Write();
+    
+    c_absolute_positions_01_b->Write();
+    c_FRAC->Write();
+    c_Res_pos0->Write();
+    c_pos0_AllChannels->Write();
+    c_pos0_AllChannels_pulls->Write();
+    c_pos0_AllChannels_corr->Write();
+    c_pos0_AllChannels_amp->Write();
+    
+    f_data->cd();
+    f_data->Close();
+  }
+  */
   return relative_weight_Frac_0;
 }
 

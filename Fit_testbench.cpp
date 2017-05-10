@@ -58,12 +58,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   const char * Algo_minim="minimize";//
   const char * Type_minim_pf="Minuit";//"Minuit2";//
   const char * Algo_minim_pf="minimize";//"scan";//
-  bool do_PixByPix_CBparams_fit = true;
-  bool fit_real_FiberCombs_data=true;
+  bool do_PixByPix_CBparams_fit = false;
   bool binned_fit = true; //recomended true if you don't want to wait 7 minutes for the fit output
   bool compute_FWHM = true;
   bool direct_parametrization =true;
   bool fit_for_first_peak=false;
+  int  fiber_position_calibration_peak=1;
+  bool fit_real_FiberCombs_data=true;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
   int amplitude_cut = -40;
   
@@ -93,8 +94,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
  
   // double my_low_x=8;
   //double my_up_x=11;
-  double my_low_x=22;
-  double my_up_x=25;
+  double my_low_x=22.2;//0;
+  double my_up_x=24;//3.65;
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
   RooRealVar CH("Channel","PMT Channel",0,16) ;
@@ -347,7 +348,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_beta_1=1.0;
 
   
-  starting_mean_L_1=8.7;
+  starting_mean_L_1=23.2;
   starting_delta_H_1=0.300;
   starting_delta_T_1=0.3;
   starting_sigma_L_1=0.080;
@@ -367,7 +368,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   if(ch==15){starting_mean_L_1=8.5;starting_delta_H_1=0.2;}
     
 
-
+  starting_mean_L_1=22.7;
+  if(ch==8)  starting_mean_L_1=23.1;
   starting_mean_H_1=starting_mean_L_1+starting_delta_H_1;
   
   low_mean_L_1=starting_mean_L_1-0.315;
@@ -447,18 +449,66 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     }
     
   }
+
+
+
+  /////////////PDF model
+
+  ///////////SEPARATION BETWEEN MAIN PEAKS/////////
+  float starting_delta_means_L(0.118);
+  float      low_delta_means_L(0.000);
+  float       up_delta_means_L(0.500);
+  if(ch==1||ch==2){starting_delta_means_L=0.1;}
+  RooRealVar delta_means_L("delta_means_L","delta_means_L",starting_delta_means_L,low_delta_means_L,up_delta_means_L);//0.118,0.0,0.5);
+
+
+
+
+
+
   
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
-  if(fit_for_first_peak){
-    RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
-    RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
-    RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
-  }else{
-    RooRealVar mean_H_0("mean_H_0","mean of H gaussian background pos 0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
-    RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
-    RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+  RooRealVar Delta_T_1("Delta_T_1","Delta T pos 1",starting_delta_T_1,low_delta_T_1,up_delta_T_1);
+  RooRealVar Delta_H_1("Delta_H_1","Delta H pos 1",starting_delta_H_1,low_delta_H_1,up_delta_H_1);
+  
+  
+  if(fiber_position_calibration_peak==0){
+    if(fit_for_first_peak){
+      RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
+      RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
+      RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+      RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_L_0+delta_means_L",RooArgList(mean_L_0,delta_means_L));
+      RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_L_1+Delta_H_1",RooArgList(mean_L_1,Delta_H_1));
+      RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
+    }else{
+      RooRealVar mean_H_0("mean_H_0","mean of H gaussian background pos 0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+      RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
+      RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+      RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_H_0+delta_means_L",RooArgList(mean_H_0,delta_means_L));
+      RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_H_1-Delta_H_1",RooArgList(mean_H_1,Delta_H_1));
+      RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
+    }
+    
+  }else if(fiber_position_calibration_peak==1){
+    if(fit_for_first_peak){
+      RooRealVar mean_L_1("mean_L_1","mean_L_1",starting_mean_L_1,low_mean_L_1,up_mean_L_1);
+      RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_L_1+Delta_H_1",RooArgList(mean_L_1,Delta_H_1));
+      RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
+      RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_L_1-delta_means_L",RooArgList(mean_L_1,delta_means_L));
+      RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
+      RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+    }else{
+      RooRealVar mean_H_1("mean_H_1","mean_H_1",starting_mean_H_1,low_mean_H_1,up_mean_H_1);
+      RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_H_1-Delta_H_1",RooArgList(mean_H_1,Delta_H_1));
+      RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
+      RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_H_1-delta_means_L",RooArgList(mean_H_1,delta_means_L));
+      RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
+      RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+    }
   }
+  
+
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   if(direct_parametrization){
     RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
@@ -468,6 +518,17 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     RooFormulaVar sigma_L_0("sigma_L_0","width of L gaussian background","sigma_L_0_SF*sigma_H_0",RooArgList(sigma_L_0_SF,sigma_H_0));
     RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   }
+
+  RooRealVar sigma_H_1("sigma_H_1","width of H gaussian background",starting_sigma_H_1,low_sigma_H_1,up_sigma_H_1);
+  if(direct_parametrization){
+    RooRealVar sigma_L_1("sigma_L_1","width of L gaussian background",starting_sigma_L_1,low_sigma_L_1,up_sigma_L_1);
+    RooRealVar sigma_T_1("sigma_T_1","width of T gaussian background",starting_sigma_T_1,low_sigma_T_1,up_sigma_T_1);
+  }else{
+    RooRealVar    sigma_L_1_SF("sigma_L_1_SF","width of L gaussian background",1.,0.5,5);
+    RooFormulaVar sigma_L_1("sigma_L_1","width of L gaussian background","sigma_L_1_SF*sigma_H_1",RooArgList(sigma_L_1_SF,sigma_H_1));
+    RooRealVar sigma_T_1("sigma_T_1","width of T gaussian background",starting_sigma_T_1,low_sigma_T_1,up_sigma_T_1);
+  }
+
   RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
   RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB,n_CB) ;
   RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB,n_CB) ;  
@@ -479,36 +540,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
   RooArgList  fracList_sig_0(alpha_0); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
   RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
-
-
-  float starting_delta_means_L(0.118);
-  float      low_delta_means_L(0.000);
-  float       up_delta_means_L(0.500);
-  if(ch==1||ch==2){starting_delta_means_L=0.1;}
-  RooRealVar delta_means_L("delta_means_L","delta_means_L",starting_delta_means_L,low_delta_means_L,up_delta_means_L);//0.118,0.0,0.5);
-
-
-
-  RooRealVar Delta_T_1("Delta_T_1","Delta T pos 1",starting_delta_T_1,low_delta_T_1,up_delta_T_1);
-  RooRealVar Delta_H_1("Delta_H_1","Delta H pos 1",starting_delta_H_1,low_delta_H_1,up_delta_H_1);
-  if(fit_for_first_peak){
-    RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_L_0+delta_means_L",RooArgList(mean_L_0,delta_means_L));
-    RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_L_1+Delta_H_1",RooArgList(mean_L_1,Delta_H_1));
-    RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
-  }else{
-    RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_H_0+delta_means_L",RooArgList(mean_H_0,delta_means_L));
-    RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_H_1-Delta_H_1",RooArgList(mean_H_1,Delta_H_1));
-    RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
-  }
-  RooRealVar sigma_H_1("sigma_H_1","width of H gaussian background",starting_sigma_H_1,low_sigma_H_1,up_sigma_H_1);
-  if(direct_parametrization){
-    RooRealVar sigma_L_1("sigma_L_1","width of L gaussian background",starting_sigma_L_1,low_sigma_L_1,up_sigma_L_1);
-    RooRealVar sigma_T_1("sigma_T_1","width of T gaussian background",starting_sigma_T_1,low_sigma_T_1,up_sigma_T_1);
-  }else{
-    RooRealVar    sigma_L_1_SF("sigma_L_1_SF","width of L gaussian background",1.,0.5,5);
-    RooFormulaVar sigma_L_1("sigma_L_1","width of L gaussian background","sigma_L_1_SF*sigma_H_1",RooArgList(sigma_L_1_SF,sigma_H_1));
-    RooRealVar sigma_T_1("sigma_T_1","width of T gaussian background",starting_sigma_T_1,low_sigma_T_1,up_sigma_T_1);
-  }
+  
   RooCBShape PDF_L_1("PDF_L_1","gaussian L_1",x,mean_L_1,sigma_L_1,alpha_CB,n_CB) ;
   RooCBShape PDF_H_1("PDF_H_1","gaussian H_1",x,mean_H_1,sigma_H_1,alpha_CB,n_CB) ; 
   RooCBShape PDF_T_1("PDF_T_1","gaussian T_1",x,mean_T_1,sigma_T_1,alpha_CB,n_CB) ;
@@ -520,8 +552,6 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   RooArgList  pdfList_sig_1(PDF_L_1,PDF_H_1);if(add_third_signal_pos1) {pdfList_sig_1.add(PDF_T_1);}//
   RooArgList  fracList_sig_1(alpha_1);if(add_third_signal_pos1) {fracList_sig_1.add(beta_1);}
   RooAddPdf   PDF_sig_1("PDF_sig_1","PDF_sig_1",pdfList_sig_1,fracList_sig_1,kTRUE);
-  //RooGenericPdf PDF_sig_1("PDF_sig_1","PDF_sig_1","alpha_1*PDF_L_1+(1-alpha_1)*PDF_H_1",RooArgList(x,alpha_1,PDF_L_1,PDF_H_1));
-  //RooGenericPdf PDF_sig_1("PDF_sig_1","PDF_sig_1","@0*@1+(1-@0)*@2",RooArgList(alpha_1,PDF_L_1,PDF_H_1));
   
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
@@ -709,13 +739,115 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   x.setRange("Fit_Range_1",low_x_1,up_x_1);
   
   
+
+  if(fiber_position_calibration_peak==1){
+    alpha_CB.setVal(starting_alpha_CB);
+    n_CB.setVal(starting_n_CB);
+    if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}//
+    
+    
+    if(do_prefit){
+      
+      cout<<"___________________________________"<<endl;
+      cout<<"                                   "<<endl;
+      cout<<"-----------------------------------"<<endl;
+      cout<<"***********************************"<<endl;
+      cout<<"-----------------------------------"<<endl;
+      cout<<"___________________________________"<<endl;
+      cout<<"STATUS MIGRAD EDM 1 0"<<endl;
+      
+      //Delta_H_1.setConstant(kTRUE);
+      if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
+      sigma_H_1.setConstant(kTRUE);
+      RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+      if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
+      sigma_H_1.setConstant(kFALSE);
+      //Delta_H_1.setConstant(kFALSE);
+      if(print_prefit_info) fit_results_1_b->Print("v");
+    }
+    
+    cout<<"___________________________________"<<endl;
+    cout<<"                                   "<<endl;
+    cout<<"-----------------------------------"<<endl;
+    cout<<"***********************************"<<endl;
+    cout<<"-----------------------------------"<<endl;
+    cout<<"___________________________________"<<endl;
+    cout<<"STATUS MIGRAD EDM 1"<<endl;
+    
+    
+    RooFitResult* fit_results_1;
+    if(use_NLL){
+      RooAbsReal* nll_model_1 = model_1.createNLL(ds_1_H,Extended(kFALSE)) ;
+      //RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
+      RooMinimizer RMN_1(*nll_model_1);
+      RMN_1.setErrorLevel(-1);
+      RMN_1.setVerbose(kFALSE);
+      RMN_1.setPrintEvalErrors(-1);
+      RMN_1.setPrintLevel(MN_output_print_level);
+      RMN_1.setStrategy(2);
+      RMN_1.minimize(Type_minim,Algo_minim);
+      fit_results_1=RMN_1.fit("hmrt") ;
+    }else{
+      fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
+    }
+    fit_results_1->Print("v");
+    
+    
+    
+    RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
+    ds_1.plotOn(xframe2_1);
+    TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetXaxis()->SetLabelSize(0.075); h_correlation_1->GetXaxis()->SetLabelFont(70); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
+    if(add_third_signal_pos1) model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1")) ;
+    // Construct a histogram with the residuals of the data w.r.t. the curve
+    RooHist* hresid_1 = xframe2_1->residHist() ;
+    // Construct a histogram with the pulls of the data w.r.t the curve
+    RooHist* hpull_1 = xframe2_1->pullHist() ;
+    // Create a new frame to draw the pull distribution and add the distribution to the frame
+    RooPlot* xframe4_1 = x.frame(Title(Form("Pull Distribution fiber 1 - ch %d",ch)));
+    xframe4_1->addPlotable(hpull_1,"P") ;
+    
+    
+    
+    xframe2_1->GetXaxis()->SetLabelSize(0.05);
+    xframe2_1->GetXaxis()->SetLabelFont(70);
+    xframe2_1->GetXaxis()->SetTitleSize(0.05);
+    xframe2_1->GetXaxis()->SetTitleFont(70);
+    xframe4_1->GetXaxis()->SetLabelSize(0.05);
+    xframe4_1->GetXaxis()->SetLabelFont(70);
+    xframe4_1->GetXaxis()->SetTitleSize(0.05);
+    xframe4_1->GetXaxis()->SetTitleFont(70);
+    
+    RooPlot* xframe2_1_log = x.frame(Title(Form("channel %d",ch))) ;
+    ds_1.plotOn(xframe2_1_log);//,DataError(RooAbsData::SumW2)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
+    if(add_third_signal_pos1)  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1")) ;
+    Fits_status.push_back(fit_results_1->status());
+    model_1.paramOn(xframe2_1_log);
+    model_1.paramOn(xframe2_1);
+    
+    xframe2_1_log->GetXaxis()->SetLabelSize(0.05);
+    xframe2_1_log->GetXaxis()->SetLabelFont(70);
+    xframe2_1_log->GetXaxis()->SetTitleSize(0.05);
+    xframe2_1_log->GetXaxis()->SetTitleFont(70);
+
+
+    if(fit_for_first_peak){mean_L_1.setConstant(kTRUE);}else{mean_H_1.setConstant(kTRUE);}    
+  }
+  
+  
   
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
   if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}//
-
-
-
   
   if(do_prefit){
     
@@ -807,12 +939,6 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   xframe2_0_log->GetXaxis()->SetTitleFont(70);
   
   Fits_status.push_back(fit_results_0->status());
-
-
-  
-  alpha_CB.setVal(starting_alpha_CB);
-  n_CB.setVal(starting_n_CB);
-  if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); }//alpha_CB.setConstant(kTRUE);}
   
   
   
@@ -838,8 +964,33 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   */
   
   
-  if(fit_for_first_peak){mean_L_0.setConstant(kTRUE);}else{mean_H_0.setConstant(kTRUE);}
-  if(do_prefit){
+  if(!(fiber_position_calibration_peak==1)){
+    
+  
+    alpha_CB.setVal(starting_alpha_CB);
+    n_CB.setVal(starting_n_CB);
+    if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE); }//alpha_CB.setConstant(kTRUE);}
+    if(fit_for_first_peak){mean_L_0.setConstant(kTRUE);}else{mean_H_0.setConstant(kTRUE);}
+
+    if(do_prefit){
+      
+      cout<<"___________________________________"<<endl;
+      cout<<"                                   "<<endl;
+      cout<<"-----------------------------------"<<endl;
+      cout<<"***********************************"<<endl;
+      cout<<"-----------------------------------"<<endl;
+      cout<<"___________________________________"<<endl;
+      cout<<"STATUS MIGRAD EDM 1 0"<<endl;
+      
+      //Delta_H_1.setConstant(kTRUE);
+      if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
+      sigma_H_1.setConstant(kTRUE);
+      RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+      if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
+      sigma_H_1.setConstant(kFALSE);
+      //Delta_H_1.setConstant(kFALSE);
+      if(print_prefit_info) fit_results_1_b->Print("v");
+    }
     
     cout<<"___________________________________"<<endl;
     cout<<"                                   "<<endl;
@@ -847,91 +998,78 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     cout<<"***********************************"<<endl;
     cout<<"-----------------------------------"<<endl;
     cout<<"___________________________________"<<endl;
-    cout<<"STATUS MIGRAD EDM 1 0"<<endl;
+    cout<<"STATUS MIGRAD EDM 1"<<endl;
     
-    //Delta_H_1.setConstant(kTRUE);
-    if(direct_parametrization){sigma_L_1.setConstant(kTRUE);}else{sigma_L_1_SF.setConstant(kTRUE);}
-    sigma_H_1.setConstant(kTRUE);
-    RooFitResult* fit_results_1_b = model_1_b.fitTo(ds_1_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
-    if(direct_parametrization){sigma_L_1.setConstant(kFALSE);}else{sigma_L_1_SF.setConstant(kFALSE);}
-    sigma_H_1.setConstant(kFALSE);
-    //Delta_H_1.setConstant(kFALSE);
-    if(print_prefit_info) fit_results_1_b->Print("v");
+    
+    RooFitResult* fit_results_1;
+    if(use_NLL){
+      RooAbsReal* nll_model_1 = model_1.createNLL(ds_1_H,Extended(kFALSE)) ;
+      //RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
+      RooMinimizer RMN_1(*nll_model_1);
+      RMN_1.setErrorLevel(-1);
+      RMN_1.setVerbose(kFALSE);
+      RMN_1.setPrintEvalErrors(-1);
+      RMN_1.setPrintLevel(MN_output_print_level);
+      RMN_1.setStrategy(2);
+      RMN_1.minimize(Type_minim,Algo_minim);
+      fit_results_1=RMN_1.fit("hmrt") ;
+    }else{
+      fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
+    }
+    fit_results_1->Print("v");
+    
+    
+    
+    RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
+    ds_1.plotOn(xframe2_1);
+    TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetXaxis()->SetLabelSize(0.075); h_correlation_1->GetXaxis()->SetLabelFont(70); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
+    if(add_third_signal_pos1) model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
+    model_1.plotOn(xframe2_1,Range("Fit_Range_1")) ;
+    // Construct a histogram with the residuals of the data w.r.t. the curve
+    RooHist* hresid_1 = xframe2_1->residHist() ;
+    // Construct a histogram with the pulls of the data w.r.t the curve
+    RooHist* hpull_1 = xframe2_1->pullHist() ;
+    // Create a new frame to draw the pull distribution and add the distribution to the frame
+    RooPlot* xframe4_1 = x.frame(Title(Form("Pull Distribution fiber 1 - ch %d",ch)));
+    xframe4_1->addPlotable(hpull_1,"P") ;
+    
+    
+    
+    xframe2_1->GetXaxis()->SetLabelSize(0.05);
+    xframe2_1->GetXaxis()->SetLabelFont(70);
+    xframe2_1->GetXaxis()->SetTitleSize(0.05);
+    xframe2_1->GetXaxis()->SetTitleFont(70);
+    xframe4_1->GetXaxis()->SetLabelSize(0.05);
+    xframe4_1->GetXaxis()->SetLabelFont(70);
+    xframe4_1->GetXaxis()->SetTitleSize(0.05);
+    xframe4_1->GetXaxis()->SetTitleFont(70);
+    
+    RooPlot* xframe2_1_log = x.frame(Title(Form("channel %d",ch))) ;
+    ds_1.plotOn(xframe2_1_log);//,DataError(RooAbsData::SumW2)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
+    if(add_third_signal_pos1)  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
+    model_1.plotOn(xframe2_1_log,Range("Fit_Range_1")) ;
+    Fits_status.push_back(fit_results_1->status());
+    model_1.paramOn(xframe2_1_log);
+    model_1.paramOn(xframe2_1);
+    
+    xframe2_1_log->GetXaxis()->SetLabelSize(0.05);
+    xframe2_1_log->GetXaxis()->SetLabelFont(70);
+    xframe2_1_log->GetXaxis()->SetTitleSize(0.05);
+    xframe2_1_log->GetXaxis()->SetTitleFont(70);
+    
+    
   }
   
-  cout<<"___________________________________"<<endl;
-  cout<<"                                   "<<endl;
-  cout<<"-----------------------------------"<<endl;
-  cout<<"***********************************"<<endl;
-  cout<<"-----------------------------------"<<endl;
-  cout<<"___________________________________"<<endl;
-  cout<<"STATUS MIGRAD EDM 1"<<endl;
   
   
-  RooFitResult* fit_results_1;
-  if(use_NLL){
-    RooAbsReal* nll_model_1 = model_1.createNLL(ds_1_H,Extended(kFALSE)) ;
-    //RooMinimizer RMN_1 = RooMinimizer(*nll_model_1);
-    RooMinimizer RMN_1(*nll_model_1);
-    RMN_1.setErrorLevel(-1);
-    RMN_1.setVerbose(kFALSE);
-    RMN_1.setPrintEvalErrors(-1);
-    RMN_1.setPrintLevel(MN_output_print_level);
-    RMN_1.setStrategy(2);
-    RMN_1.minimize(Type_minim,Algo_minim);
-    fit_results_1=RMN_1.fit("hmrt") ;
-  }else{
-    fit_results_1 = model_1.fitTo(ds_1,Save(),InitialHesse(true),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//,Minimizer(Type_minim,Algo_minim));
-  }
-  fit_results_1->Print("v");
-
-
-  
-  RooPlot* xframe2_1 = x.frame(Title(Form("pos. 1, channel %d",ch))) ;
-  ds_1.plotOn(xframe2_1);
-  TH2 *h_correlation_1 = fit_results_1->correlationHist(); h_correlation_1->SetTitle(Form("correlation matrix 1 ch %d",ch));h_correlation_1->GetYaxis()->SetLabelSize(0.1); h_correlation_1->GetXaxis()->SetLabelSize(0.075); h_correlation_1->GetXaxis()->SetLabelFont(70); h_correlation_1->GetYaxis()->SetLabelFont(70); h_correlation_1->SetMarkerSize(2);
-  model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
-  model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
-  if(add_third_signal_pos1) model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
-  model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
-  model_1.plotOn(xframe2_1,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
-  model_1.plotOn(xframe2_1,Range("Fit_Range_1")) ;
-  // Construct a histogram with the residuals of the data w.r.t. the curve
-  RooHist* hresid_1 = xframe2_1->residHist() ;
-  // Construct a histogram with the pulls of the data w.r.t the curve
-  RooHist* hpull_1 = xframe2_1->pullHist() ;
-  // Create a new frame to draw the pull distribution and add the distribution to the frame
-  RooPlot* xframe4_1 = x.frame(Title(Form("Pull Distribution fiber 1 - ch %d",ch)));
-  xframe4_1->addPlotable(hpull_1,"P") ;
-  
-  
-  
-  xframe2_1->GetXaxis()->SetLabelSize(0.05);
-  xframe2_1->GetXaxis()->SetLabelFont(70);
-  xframe2_1->GetXaxis()->SetTitleSize(0.05);
-  xframe2_1->GetXaxis()->SetTitleFont(70);
-  xframe4_1->GetXaxis()->SetLabelSize(0.05);
-  xframe4_1->GetXaxis()->SetLabelFont(70);
-  xframe4_1->GetXaxis()->SetTitleSize(0.05);
-  xframe4_1->GetXaxis()->SetTitleFont(70);
-  
-  RooPlot* xframe2_1_log = x.frame(Title(Form("channel %d",ch))) ;
-  ds_1.plotOn(xframe2_1_log);//,DataError(RooAbsData::SumW2)) ;
-  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_L_1"),LineStyle(kDashed),LineColor(8)) ;
-  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_H_1"),LineStyle(kDashed),LineColor(8)) ;
-   if(add_third_signal_pos1)  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_T_1"),LineStyle(kDashed),LineColor(8)) ;
-  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_sig_1"),LineStyle(kDashed),LineColor(5)) ;
-  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1"),Components("PDF_B_1"),LineStyle(kDashed),LineColor(2)) ;
-  model_1.plotOn(xframe2_1_log,Range("Fit_Range_1")) ;
-  Fits_status.push_back(fit_results_1->status());
-  model_1.paramOn(xframe2_1_log);
-  model_1.paramOn(xframe2_1);
-  
-  xframe2_1_log->GetXaxis()->SetLabelSize(0.05);
-  xframe2_1_log->GetXaxis()->SetLabelFont(70);
-  xframe2_1_log->GetXaxis()->SetTitleSize(0.05);
-  xframe2_1_log->GetXaxis()->SetTitleFont(70);
-
   double T_Res_L_0(-9); 
   double T_Res_H_0(-9);
   double T_Res_L_1(-9);
@@ -980,20 +1118,30 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     Res=sigma_H_1.getVal();
     T_Res_H_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
   }
-
-
-
-
+  
+  
+  
+  
   double T0(-9);
   double err_T0(-9);
   if(fit_for_first_peak){
-    T0=mean_L_0.getVal();
-    err_T0=mean_L_0.getError();
+    if(fiber_position_calibration_peak==0){
+      T0=mean_L_0.getVal();
+      err_T0=mean_L_0.getError();
+    }else{
+      T0=mean_L_1.getVal();
+      err_T0=mean_L_1.getError();
+    }
   }else{
-    T0=mean_H_0.getVal();
-    err_T0=mean_H_0.getError();
+    if(fiber_position_calibration_peak==0){
+      T0=mean_H_0.getVal();
+      err_T0=mean_H_0.getError();
+    }else{
+      T0=mean_H_1.getVal();
+      err_T0=mean_H_1.getError();
+    }
   }
-
+  
   ///////SINGLE FIBER FIT VALUES////////
   /*0   */   POIs.push_back(T0); 
   /*1   */   POIs.push_back(err_T0);
@@ -1109,9 +1257,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
       }
     }
   }
-
   
-
+  
+  
   if(simulate_CB_tail){
     // TH1 *h_input_histogram_1_cut = (TH1*)f_input_histogram->Get(channel_1);
     //RooDataHist *ds_1_toy_core=
@@ -1129,7 +1277,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     TCanvas *ggg = new TCanvas("ggg","ggg");
     xframe2_1_toy->Draw();
   }
-
+  
   //Frac_0.setVal((ds_0.sumEntries()*Frac_sig_0.getVal())/(ds_1.sumEntries()*Frac_sig_1.getVal()));
   //Frac_0.setConstant(kTRUE);
   bool flag_alpha_0=false;
@@ -1137,12 +1285,16 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   if(alpha_0.getVal()<0.1) {flag_alpha_0=true; }//alpha_0.setVal(0.0);alpha_0.setConstant(kTRUE);}
   if(alpha_1.getVal()<0.1) {flag_alpha_1=true; }//alpha_1.setVal(0.0);alpha_1.setConstant(kTRUE);}
-  
-  if(fit_for_first_peak){mean_L_0.setConstant(kFALSE);}else{mean_H_0.setConstant(kFALSE);}
+  if(fiber_position_calibration_peak==0){
+    if(fit_for_first_peak){mean_L_0.setConstant(kFALSE);}else{mean_H_0.setConstant(kFALSE);}
+  }else if(fiber_position_calibration_peak==1){
+    if(fit_for_first_peak){mean_L_1.setConstant(kFALSE);}else{mean_H_1.setConstant(kFALSE);}
+  }
   if(fix_params==0){ ///////everything is free
     Delta_H_0.setVal(starting_delta_H_0);
     Delta_H_1.setVal(starting_delta_H_1);
-    if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}
+    if(fiber_position_calibration_peak==0){ if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}}
+    if(fiber_position_calibration_peak==1){ if(fit_for_first_peak){mean_L_1.setVal(starting_mean_L_1);}else{mean_H_1.setVal(starting_mean_H_1);}}
     delta_means_L.setVal(starting_delta_means_L);
     //mean_L_1.setVal(starting_mean_L_1);
     alpha_0.setVal(starting_alpha_0);
@@ -1150,16 +1302,22 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   }else if(fix_params==1){///////fix only separation between peaks
     Delta_H_0.setConstant(kTRUE);//
     Delta_H_1.setConstant(kTRUE);//
+    Delta_T_0.setConstant(kTRUE);//
+    Delta_T_1.setConstant(kTRUE);//
     delta_means_L.setVal(starting_delta_means_L);
-    if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}
+    if(fiber_position_calibration_peak==0){ if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}}
+    if(fiber_position_calibration_peak==1){ if(fit_for_first_peak){mean_L_1.setVal(starting_mean_L_1);}else{mean_H_1.setVal(starting_mean_H_1);}}
     //mean_L_1.setVal(starting_mean_L_1);
     alpha_0.setVal(starting_alpha_0);
     alpha_1.setVal(starting_alpha_1);
   }else if(fix_params==2){///////fix separation between peaks+separation between first peak positions ****RECOMENDED****
     Delta_H_0.setConstant(kTRUE);//
     Delta_H_1.setConstant(kTRUE);//
+    Delta_T_0.setConstant(kTRUE);//
+    Delta_T_1.setConstant(kTRUE);//
     delta_means_L.setConstant(kTRUE);
-    if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}
+    if(fiber_position_calibration_peak==0){ if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}}
+    if(fiber_position_calibration_peak==1){ if(fit_for_first_peak){mean_L_1.setVal(starting_mean_L_1);}else{mean_H_1.setVal(starting_mean_H_1);}}
     //mean_L_1.setConstant(kTRUE);
     alpha_0.setVal(starting_alpha_0);
     alpha_1.setVal(starting_alpha_1);
@@ -1167,8 +1325,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     Delta_H_0.setConstant(kTRUE);//
     Delta_H_1.setConstant(kTRUE);//
     if(add_third_signal_pos1) Delta_T_1.setConstant(kTRUE);
-    if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}
     delta_means_L.setConstant(kTRUE);
+    if(fiber_position_calibration_peak==0){ if(fit_for_first_peak){mean_L_0.setVal(starting_mean_L_0);}else{mean_H_0.setVal(starting_mean_H_0);}}
+    if(fiber_position_calibration_peak==1){ if(fit_for_first_peak){mean_L_1.setVal(starting_mean_L_1);}else{mean_H_1.setVal(starting_mean_H_1);}}
     //mean_L_1.setConstant(kTRUE);
     alpha_0.setConstant(kTRUE);
     alpha_1.setConstant(kTRUE);if(add_third_signal_pos1) {beta_1.setConstant(kTRUE);}
@@ -1177,7 +1336,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   alpha_CB.setVal(starting_alpha_CB);
   n_CB.setVal(starting_n_CB);
   if(do_PixByPix_CBparams_fit){  n_CB.setConstant(kTRUE);}// alpha_CB.setConstant(kTRUE);}
-
+  
   if(direct_parametrization){sigma_L_0.setVal(starting_sigma_L_0);}else{sigma_L_0_SF.setVal(1.0);}
   sigma_H_0.setVal(starting_sigma_H_0);
   if(direct_parametrization){sigma_L_1.setVal(starting_sigma_L_1);}else{sigma_L_1_SF.setVal(1.0);}
@@ -1336,8 +1495,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   xframe2_log->GetXaxis()->SetLabelFont(70);
   xframe2_log->GetXaxis()->SetTitleSize(0.05);
   xframe2_log->GetXaxis()->SetTitleFont(70);
-
-
+  
+  
   
   
   TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
@@ -1376,10 +1535,10 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
     c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
     TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
-     xframe2_0->Draw() ;
+    xframe2_0->Draw() ;
     TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
-     xframe2_1->Draw() ;
-
+    xframe2_1->Draw() ;
+    
     c_Fit->cd();
     c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
     c_Fit->cd(6) ; gPad->SetLeftMargin(0.15) ; xframe2_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_log->Draw() ;
@@ -1392,9 +1551,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     c_Fit_zoom->cd();
     c_Fit_zoom->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
     TCanvas* c_Fit_01 = new TCanvas("c_Fit_01","c_Fit_01");
-     xframe2->Draw() ;
+    xframe2->Draw() ;
   }
-
+  
   if(direct_parametrization){
     T_Res_L_0=sigma_L_0.getVal();
     T_Res_L_1=sigma_L_1.getVal();
@@ -1435,13 +1594,27 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
     Res=sigma_H_1.getVal();
     T_Res_H_1=Res*0.5*(sqrt(2*log(2))+HW_CB);
   }
+
+
   if(fit_for_first_peak){
-    T0=mean_L_0.getVal();
-    err_T0=mean_L_0.getError();
+    if(fiber_position_calibration_peak==0){
+      T0=mean_L_0.getVal();
+      err_T0=mean_L_0.getError();
+    }else{
+      T0=mean_L_1.getVal();
+      err_T0=mean_L_1.getError();
+    }
   }else{
-    T0=mean_H_0.getVal();
-    err_T0=mean_H_0.getError();
+    if(fiber_position_calibration_peak==0){
+      T0=mean_H_0.getVal();
+      err_T0=mean_H_0.getError();
+    }else{
+      T0=mean_H_1.getVal();
+      err_T0=mean_H_1.getError();
+    }
   }
+  
+
   
   ///////BOTH FIBER FIT VALUES////////
   /*32   */   POIs.push_back(T0); 
@@ -1589,16 +1762,16 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
 vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_weight is the relative weight of the 1 to 0 pois, i.e. total dataset= pos.0 + rel_weight*pos.1 - in the real case rel_weight=1.0
   
   
-  TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_amp = new TCanvas("c_pos0_AllChannels_amp","c_pos0_AllChannels_amp",0,0,1124,700);
+  TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_pulls = new TCanvas("c_pos0_AllChannels_pulls","c_pos0_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_corr = new TCanvas("c_pos0_AllChannels_corr","c_pos0_AllChannels_corr",0,0,1124,700);
-  TCanvas *c_pos1_AllChannels = new TCanvas("c_pos1_AllChannels","c_pos1_AllChannels",0,0,1124,700);
   TCanvas *c_pos1_AllChannels_amp = new TCanvas("c_pos1_AllChannels_amp","c_pos1_AllChannels_amp",0,0,1124,700);
+  TCanvas *c_pos1_AllChannels = new TCanvas("c_pos1_AllChannels","c_pos1_AllChannels",0,0,1124,700);
   TCanvas *c_pos1_AllChannels_pulls = new TCanvas("c_pos1_AllChannels_pulls","c_pos1_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos1_AllChannels_corr = new TCanvas("c_pos1_AllChannels_corr","c_pos1_AllChannels_corr",0,0,1124,700);
-  TCanvas *c_pos01_AllChannels = new TCanvas("c_pos01_AllChannels","c_pos01_AllChannels",0,0,1124,700);
   TCanvas *c_pos01_AllChannels_amp = new TCanvas("c_pos01_AllChannels_amp","c_pos01_AllChannels_amp",0,0,1124,700);
+  TCanvas *c_pos01_AllChannels = new TCanvas("c_pos01_AllChannels","c_pos01_AllChannels",0,0,1124,700);
   TCanvas *c_pos01_AllChannels_pulls = new TCanvas("c_pos01_AllChannels_pulls","c_pos01_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos01_AllChannels_corr = new TCanvas("c_pos01_AllChannels_corr","c_pos01_AllChannels_corr",0,0,1124,700);
   
@@ -2106,7 +2279,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     TGraphErrors *REF_sigma_L = new TGraphErrors(16,x,ref_sigma_L,err_x,err_x);REF_sigma_L->SetTitle("#delta t_{low}^{ref} pos.0 - fit pos.0");
     TGraphErrors *REF_sigma_H = new TGraphErrors(16,x,ref_sigma_H,err_x,err_x);REF_sigma_H->SetTitle("#delta t_{high}^{ref} pos.0 - fit pos.0");
     TGraphErrors *REF_sigma_T = new TGraphErrors(16,x,ref_sigma_T,err_x,err_x);REF_sigma_T->SetTitle("#delta t_{third}^{ref} pos.0 - fit pos.0");
-
+    
     TGraphErrors *SIGMA_FRAC_L_0 = new TGraphErrors(16,frac_L_B_0,sigma_L_0_B,err_frac_L_B_0,err_sigma_L_0_B);SIGMA_FRAC_L_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
     TGraphErrors *SIGMA_FRAC_H_0 = new TGraphErrors(16,frac_L_B_0,sigma_H_0_B,err_frac_L_B_0,err_sigma_H_0_B);SIGMA_FRAC_H_0->SetTitle("#delta t [ns] vs f_{L} - pos.0");
     TGraphErrors *SIGMA_FRAC_L_1 = new TGraphErrors(16,frac_L_B_1,sigma_L_1_B,err_frac_L_B_1,err_sigma_L_1_B);SIGMA_FRAC_L_1->SetTitle("#delta t [ns] vs f_{L} - pos.1");
@@ -2123,8 +2296,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     SIGMA_FRAC_L_0_A->SetMarkerStyle(20);SIGMA_FRAC_L_0_A->SetMarkerColor(2);SIGMA_FRAC_L_0_A->SetMarkerSize(2.0);
     SIGMA_FRAC_H_1_A->SetMarkerStyle(20);SIGMA_FRAC_H_1_A->SetMarkerColor(2);SIGMA_FRAC_H_1_A->SetMarkerSize(2.0);
     SIGMA_FRAC_L_1_A->SetMarkerStyle(20);SIGMA_FRAC_L_1_A->SetMarkerColor(2);SIGMA_FRAC_L_1_A->SetMarkerSize(2.0);
-
-
+    
+    
     FRAC_0->SetMarkerStyle(20); FRAC_0->SetMarkerColor(4);
     DELTA_means_ref->SetMarkerStyle(29);
     DELTA_means_ref->SetMarkerColor(kOrange-2);DELTA_means_ref->SetMarkerSize(2.0);
@@ -2404,8 +2577,8 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     mg_FRAC_SIGMA_H_1->SetTitle("#delta t [ns] vs f_{L} - pos.1 - high time peak");
     mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1);
     mg_FRAC_SIGMA_H_1->Add(SIGMA_FRAC_H_1_A);
-
-
+    
+    
     TCanvas *c_frac_sig = new TCanvas("c_frac_sigma","c_frac_sigma",0,0,1124,700);
     c_frac_sig->Divide(2,2);
     c_frac_sig->cd(1);

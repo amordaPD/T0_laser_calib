@@ -129,16 +129,18 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   h_t->GetYaxis()->SetTitle("A.U.");
   h_t->GetXaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(112);
   h_t->GetXaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(112);
-  h_t->GetYaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(112);
-  h_t->GetYaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(112);
+  h_t->GetYaxis()->SetLabelSize(0.05);h_t->GetYaxis()->SetLabelFont(112);
+  h_t->GetYaxis()->SetTitleSize(0.05);h_t->GetYaxis()->SetTitleFont(112);
   
-  TH1D *h_a = new TH1D("h_a","h_a",250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
+  TH1D *h_a = new TH1D("h_a",_tune+" - max amplitude",250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
   tree->Project("h_a","amplitude","time>10&&time<20");
   tree->Project("h_a","amplitude","0>time");
-  h_a->GetXaxis()->SetTitle("Amplitude [ADC counts]");/*
-  h_a->GetXaxis()->SetLabelSize(0.05);h_a->GetXaxis()->SetLabelFont(70);
-  h_a->GetXaxis()->SetTitleSize(0.05);h_a->GetXaxis()->SetTitleFont(70);*/
+  h_a->GetXaxis()->SetTitle("Amplitude [ADC counts]");
   h_a->GetYaxis()->SetTitle("A.U.");
+  h_a->GetXaxis()->SetLabelSize(0.05);h_a->GetXaxis()->SetLabelFont(112);
+  h_a->GetXaxis()->SetTitleSize(0.05);h_a->GetXaxis()->SetTitleFont(112);
+  h_a->GetYaxis()->SetLabelSize(0.05);h_a->GetYaxis()->SetLabelFont(112);
+  h_a->GetYaxis()->SetTitleSize(0.05);h_a->GetYaxis()->SetTitleFont(112);
   TH2D *h_at = new TH2D("h_at","h_at",200,T_LOW,T_UP,250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
   tree->Project("h_at","amplitude:time","time<0&&amplitude<1000");
   h_at->GetXaxis()->SetTitle("Time [ns]");

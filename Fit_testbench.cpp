@@ -63,7 +63,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   bool compute_FWHM = true;
   bool direct_parametrization =true;
   bool fit_for_first_peak=false;
-  int  fiber_position_calibration_peak=1;
+  int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
   int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
   int amplitude_cut = -40;
@@ -326,7 +326,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    //////POS 1 ////////
    low_x_1=my_low_x; up_x_1=my_up_x;
   
-  low_delta_H_1=0.180;
+   low_delta_H_1=0.000;//0.180
    up_delta_H_1=0.5;
   
   low_delta_T_1=0.0;
@@ -350,7 +350,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   starting_mean_L_1=23.2;
   starting_delta_H_1=0.300;
-  starting_delta_T_1=0.3;
+  starting_delta_T_1=0.23;
   starting_sigma_L_1=0.080;
   starting_sigma_H_1=0.080;
   starting_sigma_T_1=0.120;
@@ -368,7 +368,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   if(ch==15){starting_mean_L_1=8.5;starting_delta_H_1=0.2;}
     
 
-  starting_mean_L_1=22.7;
+  starting_mean_L_1=23.2;
   if(ch==8)  starting_mean_L_1=23.1;
   starting_mean_H_1=starting_mean_L_1+starting_delta_H_1;
   
@@ -378,8 +378,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
    up_mean_H_1=starting_mean_H_1+0.315;
 
 
-  starting_alpha_CB=-0.5;
-  starting_n_CB=4;
+  starting_alpha_CB=-0.35;
+  starting_n_CB=6;
 
   low_alpha_CB=-5;
    up_alpha_CB=0.0;
@@ -475,14 +475,14 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   if(fiber_position_calibration_peak==0){
     if(fit_for_first_peak){
-      RooRealVar mean_L_0("mean_L_0","mean of L gaussian background pos 0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
+      RooRealVar mean_L_0("mean_L_0","mean_L_0",starting_mean_L_0,low_mean_L_0,up_mean_L_0);
       RooFormulaVar mean_H_0("mean_H_0","mean_H_0","mean_L_0+Delta_H_0",RooArgList(mean_L_0,Delta_H_0));
       RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
       RooFormulaVar mean_L_1("mean_L_1","mean_L_1","mean_L_0+delta_means_L",RooArgList(mean_L_0,delta_means_L));
       RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_L_1+Delta_H_1",RooArgList(mean_L_1,Delta_H_1));
       RooFormulaVar mean_T_1("mean_T_1","mean_T_1","mean_H_1+Delta_T_1",RooArgList(mean_H_1,Delta_T_1));
     }else{
-      RooRealVar mean_H_0("mean_H_0","mean of H gaussian background pos 0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+      RooRealVar mean_H_0("mean_H_0","mean_H_0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
       RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
       RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
       RooFormulaVar mean_H_1("mean_H_1","mean_H_1","mean_H_0+delta_means_L",RooArgList(mean_H_0,delta_means_L));
@@ -1499,13 +1499,13 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, int ch =0 ){
   
   
   
-  TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
-  TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
-  TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
-  TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
-  TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
-  TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
-  TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
+  TF1 *line_0s = new TF1("line_0s","0",-100,100);line_0s->SetLineColor(8);
+  TF1 *line_1ps = new TF1("line_1ps","1",-100,100);line_1ps->SetLineColor(4);
+  TF1 *line_1ns = new TF1("line_1ns","-1",-100,100);line_1ns->SetLineColor(4);
+  TF1 *line_2ps = new TF1("line_2ps","2",-100,100);line_2ps->SetLineColor(kOrange-2);
+  TF1 *line_2ns = new TF1("line_2ns","-2",-100,100);line_2ns->SetLineColor(kOrange-2);
+  TF1 *line_3ps = new TF1("line_3ps","3",-100,100);line_3ps->SetLineColor(2);
+  TF1 *line_3ns = new TF1("line_3ns","-3",-100,100);line_3ns->SetLineColor(2);
   if(draw_results){  
     TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
     c_Fit->Divide(3,4) ;
@@ -2093,13 +2093,13 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     //RESULTS.push_back(my_fit_Results);
     
     
-    TF1 *line_0s = new TF1("line_0s","0",-1,16);line_0s->SetLineColor(8);
-    TF1 *line_1ps = new TF1("line_1ps","1",-1,16);line_1ps->SetLineColor(4);
-    TF1 *line_1ns = new TF1("line_1ns","-1",-1,16);line_1ns->SetLineColor(4);
-    TF1 *line_2ps = new TF1("line_2ps","2",-1,16);line_2ps->SetLineColor(kOrange-2);
-    TF1 *line_2ns = new TF1("line_2ns","-2",-1,16);line_2ns->SetLineColor(kOrange-2);
-    TF1 *line_3ps = new TF1("line_3ps","3",-1,16);line_3ps->SetLineColor(2);
-    TF1 *line_3ns = new TF1("line_3ns","-3",-1,16);line_3ns->SetLineColor(2);
+    TF1 *line_0s = new TF1("line_0s","0",-100,100);line_0s->SetLineColor(8);
+    TF1 *line_1ps = new TF1("line_1ps","1",-100,100);line_1ps->SetLineColor(4);
+    TF1 *line_1ns = new TF1("line_1ns","-1",-100,100);line_1ns->SetLineColor(4);
+    TF1 *line_2ps = new TF1("line_2ps","2",-100,100);line_2ps->SetLineColor(kOrange-2);
+    TF1 *line_2ns = new TF1("line_2ns","-2",-100,100);line_2ns->SetLineColor(kOrange-2);
+    TF1 *line_3ps = new TF1("line_3ps","3",-100,100);line_3ps->SetLineColor(2);
+    TF1 *line_3ns = new TF1("line_3ns","-3",-100,100);line_3ns->SetLineColor(2);
     c_pos0_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_0->Draw(); 
     c_pos1_AllChannels->cd(index_channel_pixel[i]); my_fit_Results.xframe2_fit_1->Draw();
     c_pos0_AllChannels_amp->cd(index_channel_pixel[i]); my_fit_Results.xframe2_t_amp_0->Draw("colz"); 
@@ -2219,7 +2219,7 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
     
     
     // if (relative_weight_Frac_0.size()!=32){cout<<"Warning, problem with the size of relative_weight_Frac_0"<<endl; return relative_weight_Frac_0;}
-    TF1 *line = new TF1("line","0.100",-1,16);
+    TF1 *line = new TF1("line","0.100",-100,100);
     line->SetTitle("100 ps");
     // TLine *line = new TLine(0,100,16,100);
     line->SetLineColor(2);

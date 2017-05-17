@@ -403,7 +403,6 @@ MC_INFO Analyse_MC_inputs(TString _draw_results="draw", TString input_file){
   f_MC_out->Write();
   delete f_MC_out;
 
-  // return parameters_DT;
   return mc_info;
 }
   
@@ -415,9 +414,9 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
 
 
   
-  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
+  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_large_scale_out.root"); 
   //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_out.root"); 
-  TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_new_RR_out.root"); 
+  //TFile *f_input_histogram = new TFile("flat_ntuples/runScan-"+input_tune+"-pos0_new_RR_out.root"); 
   bool do_prefit=true;
   bool do_prefit_fullSpectrum = true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll
@@ -455,8 +454,8 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
   // S e t u p   m o d e l 
   // ---------------------
   
-  double my_low_x=22.2;//2.4;
-  double my_up_x=24.;
+  double my_low_x=22.2;//
+  double my_up_x=24;//24;
   if(add_SP_components){my_up_x=my_low_x+13;}
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooRealVar amp("Amplitude","Amplitude [ADC counts]",-200,0) ;
@@ -570,7 +569,7 @@ Fit_results Fit_head(string _draw_results="draw", int fix_params=2, TString inpu
      if(ch==14) starting_mean_L_0=22.5;
 
    }
-   if(mc_info.n_peaks[ch]>2){add_third_signal=true;}
+   if(mc_info.n_peaks[ch]>2){add_third_signal=false;}
    //starting_delta_H_0=0.280;
    //starting_delta_T_0=0.1200;
    starting_delta_H_0=mc_info.T_separation[ch][0];

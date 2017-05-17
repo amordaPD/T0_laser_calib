@@ -40,7 +40,6 @@ struct Fit_results{
 Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune  ){
 
 
-
   int Tune=-9;
   if(_tune=="T96")Tune=96;
   if(_tune=="T94")Tune=94;
@@ -120,16 +119,18 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   
   double T_shift=-14.5;
   double T_LOW = 13+T_shift;
-  double T_UP = 15+T_shift;
+  double T_UP = 14+T_shift;
   
   
   TTree *tree = (TTree*)f_input_histogram->Get("times");
-  TH1D *h_t = new TH1D("h_t","h_t",200,T_LOW,T_UP);
+  TH1D *h_t = new TH1D("h_t",_tune+" - detection time",200,T_LOW,T_UP);
   tree->Project("h_t","time","amplitude<1000");
   h_t->GetXaxis()->SetTitle("Time [ns]"); 
-  h_t->GetYaxis()->SetTitle("A.U.");/*
-  h_t->GetXaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(70);
-  h_t->GetXaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(70);*/
+  h_t->GetYaxis()->SetTitle("A.U.");
+  h_t->GetXaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(112);
+  h_t->GetXaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(112);
+  h_t->GetYaxis()->SetLabelSize(0.05);h_t->GetXaxis()->SetLabelFont(112);
+  h_t->GetYaxis()->SetTitleSize(0.05);h_t->GetXaxis()->SetTitleFont(112);
   
   TH1D *h_a = new TH1D("h_a","h_a",250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
   tree->Project("h_a","amplitude","time>10&&time<20");
@@ -194,6 +195,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   }else{
     cut_amp=(int)tree->GetMaximum("amplitude")-70;
   }
+  //  cut_amp=800;
   RooDataSet ds_0("ds_0","ds_0", RooArgSet(x,amp),Import(*tree),Cut(Form("amplitude<%d", cut_amp)));
   
 
@@ -517,9 +519,9 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
 
 
 
-vector<float> loop_channels(int deep_fixed_params,TString input_tune, bool plot_summaries){ //rel_weight is the relative weight of the 1 to 0 pois, i.e. total dataset= pos.0 + rel_weight*pos.1 - in the real case rel_weight=1.0
+vector<float> loop_channels(){ //rel_weight is the relative weight of the 1 to 0 pois, i.e. total dataset= pos.0 + rel_weight*pos.1 - in the real case rel_weight=1.0
   
-  
+  bool plot_summaries=true;
   TCanvas *c_pos0_AllChannels = new TCanvas("c_pos0_AllChannels","c_pos0_AllChannels",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_pulls = new TCanvas("c_pos0_AllChannels_pulls","c_pos0_AllChannels_pulls",0,0,1124,700);
   TCanvas *c_pos0_AllChannels_corr = new TCanvas("c_pos0_AllChannels_corr","c_pos0_AllChannels_corr",0,0,1124,700);

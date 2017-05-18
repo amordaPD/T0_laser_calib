@@ -123,7 +123,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   
   
   TTree *tree = (TTree*)f_input_histogram->Get("times");
-  TH1D *h_t = new TH1D("h_t",_tune+" - detection time",200,T_LOW,T_UP);
+  TH1D *h_t = new TH1D("h_t",Form("Detection Time - Tune %d",Tune),200,T_LOW,T_UP);
   tree->Project("h_t","time","amplitude<1000");
   h_t->GetXaxis()->SetTitle("Time [ns]"); 
   h_t->GetYaxis()->SetTitle("A.U.");
@@ -132,7 +132,7 @@ Fit_results Fit_head(string _draw_results="draw", TString _fiber, TString _tune 
   h_t->GetYaxis()->SetLabelSize(0.05);h_t->GetYaxis()->SetLabelFont(112);
   h_t->GetYaxis()->SetTitleSize(0.05);h_t->GetYaxis()->SetTitleFont(112);
   
-  TH1D *h_a = new TH1D("h_a",_tune+" - max amplitude",250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
+  TH1D *h_a = new TH1D("h_a",Form("Max amplitude - Tune %d",Tune),250,0,1000);//tree->GetMinimum("amplitude"),tree->GetMaximum("amplitude"));
   tree->Project("h_a","amplitude","time>10&&time<20");
   tree->Project("h_a","amplitude","0>time");
   h_a->GetXaxis()->SetTitle("Amplitude [ADC counts]");

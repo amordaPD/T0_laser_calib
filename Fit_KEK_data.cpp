@@ -48,12 +48,12 @@ struct MC_INFO{
   
 };
 
-void Fit_KEK_data(){
+void make_KEK_data_histos(int my_pixelID){
 
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
   TTree *t_input = (TTree*)file_input->Get("laser");
   TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
-  TCut cut = "-20<time&&time<0&&quality==1&&pixel==33";
+  TCut cut = Form("-20<time&&time<0&&quality==1&&pixel==%i",my_pixelID);
   t_input->Project("h_temp","time",cut);
   h_temp->Draw();
   Float_t max_bin = h_temp->GetMaximumBin();
@@ -61,7 +61,9 @@ void Fit_KEK_data(){
   Double_t max_pos = xaxis->GetBinCenter(max_bin);
   //cout<< max_pos <<endl;
   TH1D *h_time = new TH1D("h_time","Time [ns]",100,-1,0.5);
-  Float_t time_sc;
+  //t_input->Project("h_time",Form("time-%d",max_pos),cut);
+
+      Float_t time_sc;
   Int_t pixelID=-99;
   Int_t quality=-9;
   t_input->SetBranchAddress("time",&time_sc);
@@ -69,13 +71,47 @@ void Fit_KEK_data(){
   t_input->SetBranchAddress("quality",&quality);
 
   Int_t n_entries = t_input->GetEntries();
-  for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==33) {h_time->Fill(time_sc-max_pos);}} 
- 
-  h_time->Draw("E");
+  for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==my_pixelID) {h_time->Fill(time_sc-max_pos);}} 
+    
+  //h_time->Draw("E");
 
+
+  TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
+  TTree *tree_MC = (TTree*)file_input_MC->Get("tree_laser");
+  TCut cut_MC = Form("propTime<1&&pixelID==%i",my_pixelID);
+  
+  TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
+  tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
+  
+  Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
+  TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
+  Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
+  TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",100,-1,0.5);
+  tree_MC->Project("h_MC_tot",Form("propTime-%d",max_pos_MC),cut_MC);
+  
+
+  
+  TFile *f_data = new TFile("KEK_data_histos.root","recreate");
+  f_data->cd();
+  h_time->Write();
+  h_MC_tot->Write();
+  f_data->cd();
+  f_data->Close();
+  delete f_data;
+  delete h_time;
+}
+
+
+void Fit_KEK_data(){
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
+
+  TFile *f_input = new TFile("KEK_data_histos.root");
+  TH1D* h_time = f_input->Get("h_time");
+
+
+  
   TString _draw_results="draw";
 
   bool do_prefit=true;
@@ -94,12 +130,12 @@ void Fit_KEK_data(){
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
   int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=false;
   int amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
   bool do_simultaneous_fit=false;
   bool add_third_signal_pos0=false;
-  bool add_third_signal_pos1=false;
   
   bool simulate_CB_tail=false;
   
@@ -157,22 +193,33 @@ void Fit_KEK_data(){
   double       up_beta_0;
 
   
-  
-  double starting_alpha_CB;
-  double low_alpha_CB;
-  double up_alpha_CB;
-  double starting_n_CB;
-  double low_n_CB;
-  double up_n_CB;
-  
-  
+  double starting_alpha_CB_L;
+  double low_alpha_CB_L;
+  double up_alpha_CB_L;
+  double starting_n_CB_L;
+  double low_n_CB_L;
+  double up_n_CB_L;
+
+  double starting_alpha_CB_H;
+  double low_alpha_CB_H;
+  double up_alpha_CB_H;
+  double starting_n_CB_H;
+  double low_n_CB_H;
+  double up_n_CB_H;
+
+  double starting_alpha_CB_T;
+  double low_alpha_CB_T;
+  double up_alpha_CB_T;
+  double starting_n_CB_T;
+  double low_n_CB_T;
+  double up_n_CB_T;
   /////POS 0
    low_x_0=my_low_x; up_x_0=my_up_x;
   
   low_delta_H_0=0.180;
    up_delta_H_0=0.5;
   
-  low_delta_T_0=-0.2;
+  low_delta_T_0=0;
    up_delta_T_0=0.5;
   
   low_sigma_L_0=0.035;
@@ -193,7 +240,7 @@ void Fit_KEK_data(){
   
    starting_mean_L_0=22.6;
    starting_delta_H_0=0.180;
-   starting_delta_T_0=0.200;
+   starting_delta_T_0=0.040;
    starting_sigma_L_0=0.080;
    starting_sigma_H_0=0.080;
    starting_sigma_T_0=0.1000;
@@ -207,6 +254,42 @@ void Fit_KEK_data(){
    low_mean_H_0=starting_mean_H_0-0.315;
    up_mean_H_0=starting_mean_H_0+0.315;
 
+ 
+    starting_alpha_CB_L=-0.35;
+  starting_n_CB_L=6;
+
+  low_alpha_CB_L=-5;
+   up_alpha_CB_L=0.0;
+   
+  low_n_CB_L=0;
+   up_n_CB_L=20;
+
+
+  starting_alpha_CB_H=-0.35;
+  starting_n_CB_H=6;
+
+  low_alpha_CB_H=-5;
+   up_alpha_CB_H=0.0;
+   
+  low_n_CB_H=0;
+   up_n_CB_H=20;
+
+   starting_alpha_CB_T=-0.35;
+  starting_n_CB_T=6;
+
+  low_alpha_CB_T=-5;
+   up_alpha_CB_T=0.0;
+   
+  low_n_CB_T=0;
+   up_n_CB_T=20;
+
+   /* 
+  double starting_alpha_CB;
+  double low_alpha_CB;
+  double up_alpha_CB;
+  double starting_n_CB;
+  double low_n_CB;
+  double up_n_CB;
 
   starting_alpha_CB=-0.35;
   starting_n_CB=6;
@@ -216,16 +299,19 @@ void Fit_KEK_data(){
    
   low_n_CB=0;
    up_n_CB=10;
-
-  
   RooRealVar alpha_CB("alpha_CB","alpha parameter of CB",   starting_alpha_CB,low_alpha_CB,up_alpha_CB);
   RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
-
-
+   */
+  RooRealVar alpha_CB_L("alpha_CB_L","alpha parameter of CB",   starting_alpha_CB_L,low_alpha_CB_L,up_alpha_CB_L);
+  RooRealVar     n_CB_L("n_CB_L",    "exponential decay of CB ",starting_n_CB_L,low_n_CB_L,up_n_CB_L);
+  RooRealVar alpha_CB_H("alpha_CB_H","alpha parameter of CB",   starting_alpha_CB_H,low_alpha_CB_H,up_alpha_CB_H);
+  RooRealVar     n_CB_H("n_CB_H",    "exponential decay of CB ",starting_n_CB_H,low_n_CB_H,up_n_CB_H);
+  RooRealVar alpha_CB_T("alpha_CB_T","alpha parameter of CB",   starting_alpha_CB_T,low_alpha_CB_T,up_alpha_CB_T);
+  RooRealVar     n_CB_T("n_CB_T",    "exponential decay of CB ",starting_n_CB_T,low_n_CB_T,up_n_CB_T);
   
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
-  RooRealVar mean_H_0("mean_H_0","mean_H_0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+  RooRealVar mean_H_0("mean_H_0","mean_{H}^{0}",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
   RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
 
@@ -234,9 +320,9 @@ void Fit_KEK_data(){
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   
 
-  RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
-  RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB,n_CB) ;
-  RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB,n_CB) ;  
+  RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
+  RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
+  RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;  
   RooRealVar alpha_0("alpha_0","alpha_0",starting_alpha_0,low_alpha_0,up_alpha_0);
   RooRealVar beta_0("beta_0","beta_0",starting_beta_0,low_beta_0,up_beta_0);
   RooFormulaVar Frac_L_0("Frac_L_0","Frac_L_0","alpha_0",RooArgList(alpha_0));
@@ -256,8 +342,13 @@ void Fit_KEK_data(){
       coeffList_sig_0.add(a2_0);
     }
   }
-
-
+  if(!add_background_component){
+  a0_0.setConstant(kTRUE);
+  a1_0.setConstant(kTRUE);
+  a2_0.setConstant(kTRUE);
+  }
+  Delta_T_0.setConstant(kTRUE);
+  
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   RooArgList  pdfList_0(PDF_sig_0,PDF_B_0);
@@ -329,13 +420,13 @@ void Fit_KEK_data(){
   xframe4_0->addPlotable(hpull_0,"P") ;
   
   xframe2_0->GetXaxis()->SetLabelSize(0.05);
-  xframe2_0->GetXaxis()->SetLabelFont(70);
+  //xframe2_0->GetXaxis()->SetLabelFont(70);
   xframe2_0->GetXaxis()->SetTitleSize(0.05);
-  xframe2_0->GetXaxis()->SetTitleFont(70);
+  //xframe2_0->GetXaxis()->SetTitleFont(70);
   xframe4_0->GetXaxis()->SetLabelSize(0.05);
-  xframe4_0->GetXaxis()->SetLabelFont(70);
+  //xframe4_0->GetXaxis()->SetLabelFont(70);
   xframe4_0->GetXaxis()->SetTitleSize(0.05);
-  xframe4_0->GetXaxis()->SetTitleFont(70);
+  //xframe4_0->GetXaxis()->SetTitleFont(70);
   
   
   
@@ -350,9 +441,9 @@ void Fit_KEK_data(){
   model_0.paramOn(xframe2_0_log);
   model_0.paramOn(xframe2_0);
   xframe2_0_log->GetXaxis()->SetLabelSize(0.05);
-  xframe2_0_log->GetXaxis()->SetLabelFont(70);
+  //xframe2_0_log->GetXaxis()->SetLabelFont(70);
   xframe2_0_log->GetXaxis()->SetTitleSize(0.05);
-  xframe2_0_log->GetXaxis()->SetTitleFont(70);
+  //xframe2_0_log->GetXaxis()->SetTitleFont(70);
 
 
 
@@ -370,7 +461,7 @@ void Fit_KEK_data(){
   TF1 *line_3ns = new TF1("line_3ns","-3",-100,100);line_3ns->SetLineColor(2);
   if(draw_results){  
     TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
-    c_Fit->Divide(3,1) ;
+    c_Fit->Divide(2,2) ;
     gStyle->SetOptFit(0111); 
     c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
     c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_0_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_0_log->Draw() ;
@@ -379,31 +470,12 @@ void Fit_KEK_data(){
     line_2ns->Draw("same");line_2ps->Draw("same");
     line_1ns->Draw("same");line_1ps->Draw("same");
     line_0s->Draw("same");line_0s->Draw("same");
-
+    c_Fit->cd(4) ; h_correlation_0->Draw("colz:text");
     
-    TCanvas* c_Fit_zoom = new TCanvas("c_Fit_zoom","Fit results zoom",0,0,1124,700) ;
-    c_Fit_zoom->Divide(2,2) ;
-    gStyle->SetOptFit(0111); 
-    c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
-    c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
+  
     TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
     xframe2_0->Draw() ;
-    TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
-    xframe2_1->Draw() ;
-    
-    c_Fit->cd();
-    c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
-    c_Fit->cd(6) ; gPad->SetLeftMargin(0.15) ; xframe2_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_log->Draw() ;
-    c_Fit->cd(9) ; gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5);xframe4->Draw() ;
-    line_3ns->Draw("same");line_3ps->Draw("same");
-    line_2ns->Draw("same");line_2ps->Draw("same");
-    line_1ns->Draw("same");line_1ps->Draw("same");
-    line_0s->Draw("same");line_0s->Draw("same");
-    c_Fit->cd(12) ; gPad->SetLeftMargin(0.15) ; h_correlation->Draw("colz:text");
-    c_Fit_zoom->cd();
-    c_Fit_zoom->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
-    TCanvas* c_Fit_01 = new TCanvas("c_Fit_01","c_Fit_01");
-    xframe2->Draw() ;
+  
   }
 
 

@@ -55,15 +55,15 @@ void make_KEK_data_histos(int my_pixelID){
   TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
   TCut cut = Form("-20<time&&time<0&&quality==1&&pixel==%i",my_pixelID);
   t_input->Project("h_temp","time",cut);
-  h_temp->Draw();
+  //h_temp->Draw();
   Float_t max_bin = h_temp->GetMaximumBin();
   TAxis *xaxis = h_temp->GetXaxis(); 
   Double_t max_pos = xaxis->GetBinCenter(max_bin);
   //cout<< max_pos <<endl;
   TH1D *h_time = new TH1D("h_time","Time [ns]",100,-1,0.5);
-  //t_input->Project("h_time",Form("time-%d",max_pos),cut);
-
-      Float_t time_sc;
+  t_input->Project("h_time",Form("time-%f",max_pos),cut);
+  /*
+  Float_t time_sc;
   Int_t pixelID=-99;
   Int_t quality=-9;
   t_input->SetBranchAddress("time",&time_sc);
@@ -74,7 +74,7 @@ void make_KEK_data_histos(int my_pixelID){
   for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==my_pixelID) {h_time->Fill(time_sc-max_pos);}} 
     
   //h_time->Draw("E");
-
+  */
 
   TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
   TTree *tree_MC = (TTree*)file_input_MC->Get("tree_laser");
@@ -87,14 +87,62 @@ void make_KEK_data_histos(int my_pixelID){
   TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
   Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
   TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",100,-1,0.5);
-  tree_MC->Project("h_MC_tot",Form("propTime-%d",max_pos_MC),cut_MC);
+  tree_MC->Project("h_MC_tot",Form("propTime-%f",max_pos_MC),cut_MC);
+  TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",100,-1,0.5);
+  TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",100,-1,0.5);
+  TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",100,-1,0.5);
+  TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",100,-1,0.5);
+  TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",100,-1,0.5);
+  TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",100,-1,0.5);  
+  TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",100,-1,0.5);
+  TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",100,-1,0.5);  
+  TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",100,-1,0.5);
+  tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixelID==%i",my_pixelID));
+  tree_MC->Project("h_MC_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixelID==%i",my_pixelID));
+  h_MC_tot->SetLineColor(1);
+  h_MC_f1->SetLineColor(11);
+  h_MC_f2->SetLineColor(2);
+  h_MC_f3->SetLineColor(3);
+  h_MC_f4->SetLineColor(4);
+  h_MC_f5->SetLineColor(13);
+  h_MC_f6->SetLineColor(6);
+  h_MC_f7->SetLineColor(7);
+  h_MC_f8->SetLineColor(8);
+  h_MC_f9->SetLineColor(9);
+  h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f5->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f6->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+  h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   
-
+  
+  
   
   TFile *f_data = new TFile("KEK_data_histos.root","recreate");
   f_data->cd();
   h_time->Write();
   h_MC_tot->Write();
+  h_MC_f1->Write();
+  h_MC_f2->Write();
+  h_MC_f3->Write();
+  h_MC_f4->Write();
+  h_MC_f5->Write();
+  h_MC_f6->Write();
+  h_MC_f7->Write();
+  h_MC_f8->Write();
+  h_MC_f9->Write();
   f_data->cd();
   f_data->Close();
   delete f_data;

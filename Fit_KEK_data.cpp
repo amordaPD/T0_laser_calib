@@ -116,7 +116,6 @@ void make_KEK_data_histos(int my_pixelID){
   h_MC_f7->SetLineColor(7);
   h_MC_f8->SetLineColor(8);
   h_MC_f9->SetLineColor(9);
-  h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   h_MC_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   h_MC_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
@@ -126,7 +125,20 @@ void make_KEK_data_histos(int my_pixelID){
   h_MC_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
   h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-  
+  h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+
+  TCanvas *c = new TCanvas("c","c");
+  h_time->Draw("E");
+  h_MC_tot->Draw("same");
+  h_MC_f1->Draw("same");
+  h_MC_f2->Draw("same");
+  h_MC_f3->Draw("same");
+  h_MC_f4->Draw("same");
+  h_MC_f5->Draw("same");
+  h_MC_f6->Draw("same");
+  h_MC_f7->Draw("same");
+  h_MC_f8->Draw("same");
+  h_MC_f9->Draw("same");
   
   
   
@@ -143,6 +155,7 @@ void make_KEK_data_histos(int my_pixelID){
   h_MC_f7->Write();
   h_MC_f8->Write();
   h_MC_f9->Write();
+  c->Write();
   f_data->cd();
   f_data->Close();
   delete f_data;
@@ -158,6 +171,8 @@ void Fit_KEK_data(){
   TFile *f_input = new TFile("KEK_data_histos.root");
   TH1D* h_time = f_input->Get("h_time");
 
+  TCanvas *can0 = f_input->Get("c");
+  can0->Draw();
 
   
   TString _draw_results="draw";
@@ -287,14 +302,14 @@ void Fit_KEK_data(){
 
   
    starting_mean_L_0=22.6;
-   starting_delta_H_0=0.180;
+   starting_delta_H_0=0.3;
    starting_delta_T_0=0.040;
    starting_sigma_L_0=0.080;
    starting_sigma_H_0=0.080;
    starting_sigma_T_0=0.1000;
    
-   starting_alpha_0=0.5;
-   starting_beta_0=0.5;
+   starting_alpha_0=0.1;
+   starting_beta_0=0.9;
    
    starting_mean_H_0=0;//starting_mean_L_0+starting_delta_H_0;
    low_mean_L_0=starting_mean_L_0-0.315;
@@ -368,8 +383,10 @@ void Fit_KEK_data(){
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   
 
-  RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
-  RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
+  //RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
+  //RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
+  RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;//,alpha_CB_L,n_CB_L) ;
+  RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;//,alpha_CB_H,n_CB_H) ;
   RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;  
   RooRealVar alpha_0("alpha_0","alpha_0",starting_alpha_0,low_alpha_0,up_alpha_0);
   RooRealVar beta_0("beta_0","beta_0",starting_beta_0,low_beta_0,up_beta_0);
@@ -395,8 +412,8 @@ void Fit_KEK_data(){
   a1_0.setConstant(kTRUE);
   a2_0.setConstant(kTRUE);
   }
-  Delta_T_0.setConstant(kTRUE);
-  
+  //Delta_H_0.setConstant(kTRUE);
+  //Delta_T_0.setConstant(kTRUE);
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   RooArgList  pdfList_0(PDF_sig_0,PDF_B_0);

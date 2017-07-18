@@ -53,7 +53,7 @@ void Fit_KEK_data(){
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
   TTree *t_input = (TTree*)file_input->Get("laser");
   TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
-  TCut cut = "-20<time&&time<0&&quality==1&&pixel==1";
+  TCut cut = "-20<time&&time<0&&quality==1&&pixel==33";
   t_input->Project("h_temp","time",cut);
   h_temp->Draw();
   Float_t max_bin = h_temp->GetMaximumBin();
@@ -69,9 +69,356 @@ void Fit_KEK_data(){
   t_input->SetBranchAddress("quality",&quality);
 
   Int_t n_entries = t_input->GetEntries();
-  for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==1) {h_time->Fill(time_sc-max_pos);}} 
+  for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==33) {h_time->Fill(time_sc-max_pos);}} 
  
-  h_time->Draw();
-}
-    
+  h_time->Draw("E");
 
+  /////////////////////////////////////////////////////////////////
+  ////// HERE Starts the fit part /////////////////////////////////
+  /////////////////////////////////////////////////////////////////
+  TString _draw_results="draw";
+
+  bool do_prefit=true;
+  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll  ///true recomended
+  int MN_output_print_level=-1;
+  int MN_output_print_level_prefit;
+  bool print_prefit_info=false;
+  const char * Type_minim="Minuit";
+  const char * Algo_minim="minimize";//
+  const char * Type_minim_pf="Minuit";//"Minuit2";//
+  const char * Algo_minim_pf="minimize";//"scan";//
+  bool binned_fit = true; //recomended true if you don't want to wait 7 minutes for the fit output
+  bool compute_FWHM = true;
+  bool direct_parametrization =true;
+  bool fit_for_first_peak=false;
+  int  fiber_position_calibration_peak=0;
+  bool fit_real_FiberCombs_data=true;
+  int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  int amplitude_cut = -40;
+  
+  bool suppress_negligible_first_peak=false;
+  bool do_simultaneous_fit=false;
+  bool add_third_signal_pos0=false;
+  bool add_third_signal_pos1=false;
+  
+  bool simulate_CB_tail=false;
+  
+  
+  if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
+  bool draw_results;
+  if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
+
+
+  
+  double my_low_x=-1;
+  double my_up_x=0.5;
+  RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
+  RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_time)) ;
+  RooDataHist ds_0_H("ds_0_H","ds_0_H",RooArgSet(x),Import(*h_time)) ;
+  
+
+  double low_x_0;
+  double up_x_0;
+  double starting_mean_H_0;
+  double low_mean_H_0;
+  double up_mean_H_0;
+  double starting_mean_L_0;
+  double low_mean_L_0;
+  double up_mean_L_0;
+  double low_delta_H_0;
+  double up_delta_H_0;
+  double starting_delta_H_0;
+  double low_delta_T_0;
+  double up_delta_T_0;
+  double starting_delta_T_0;
+  double starting_sigma_T_0;
+  double low_sigma_T_0;
+  double up_sigma_T_0;
+  double starting_sigma_L_0;
+  double low_sigma_L_0;
+  double up_sigma_L_0;
+  double starting_sigma_H_0;
+  double low_sigma_H_0;
+  double up_sigma_H_0; 
+  double starting_Frac_H_0;
+  double      low_Frac_L_0;
+  double       up_Frac_L_0;
+  double starting_Frac_L_0;
+  double      low_Frac_H_0;
+  double       up_Frac_H_0;
+  double starting_Frac_T_0;
+  double      low_Frac_T_0;
+  double       up_Frac_T_0;
+  double starting_alpha_0;
+  double      low_alpha_0;
+  double       up_alpha_0;
+  double starting_beta_0;
+  double      low_beta_0;
+  double       up_beta_0;
+
+  
+  
+  double starting_alpha_CB;
+  double low_alpha_CB;
+  double up_alpha_CB;
+  double starting_n_CB;
+  double low_n_CB;
+  double up_n_CB;
+  
+  
+  /////POS 0
+   low_x_0=my_low_x; up_x_0=my_up_x;
+  
+  low_delta_H_0=0.180;
+   up_delta_H_0=0.5;
+  
+  low_delta_T_0=-0.2;
+   up_delta_T_0=0.5;
+  
+  low_sigma_L_0=0.035;
+   up_sigma_L_0=0.5200;
+  
+  low_sigma_H_0=0.045;
+   up_sigma_H_0=0.5150;
+  
+  low_sigma_T_0=0.050;
+   up_sigma_T_0=0.500;
+  
+  low_alpha_0=0.01;
+   up_alpha_0=0.8;
+  
+  low_beta_0=0.5;
+   up_beta_0=1.0;
+
+  
+   starting_mean_L_0=22.6;
+   starting_delta_H_0=0.180;
+   starting_delta_T_0=0.200;
+   starting_sigma_L_0=0.080;
+   starting_sigma_H_0=0.080;
+   starting_sigma_T_0=0.1000;
+   
+   starting_alpha_0=0.5;
+   starting_beta_0=0.5;
+   
+   starting_mean_H_0=0;//starting_mean_L_0+starting_delta_H_0;
+   low_mean_L_0=starting_mean_L_0-0.315;
+   up_mean_L_0=starting_mean_L_0+0.315;
+   low_mean_H_0=starting_mean_H_0-0.315;
+   up_mean_H_0=starting_mean_H_0+0.315;
+
+
+  starting_alpha_CB=-0.35;
+  starting_n_CB=6;
+
+  low_alpha_CB=-5;
+   up_alpha_CB=0.0;
+   
+  low_n_CB=0;
+   up_n_CB=10;
+
+  
+  RooRealVar alpha_CB("alpha_CB","alpha parameter of CB",   starting_alpha_CB,low_alpha_CB,up_alpha_CB);
+  RooRealVar     n_CB("n_CB",    "exponential decay of CB ",starting_n_CB,low_n_CB,up_n_CB);
+
+
+  
+  RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
+  RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
+  RooRealVar mean_H_0("mean_H_0","mean_H_0",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
+  RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
+  RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+
+  RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
+  RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
+  RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
+  
+
+  RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB,n_CB) ;
+  RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB,n_CB) ;
+  RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB,n_CB) ;  
+  RooRealVar alpha_0("alpha_0","alpha_0",starting_alpha_0,low_alpha_0,up_alpha_0);
+  RooRealVar beta_0("beta_0","beta_0",starting_beta_0,low_beta_0,up_beta_0);
+  RooFormulaVar Frac_L_0("Frac_L_0","Frac_L_0","alpha_0",RooArgList(alpha_0));
+  RooFormulaVar Frac_H_0("Frac_H_0","Frac_H_0","beta_0-alpha_0*beta_0",RooArgList(beta_0,alpha_0));
+  RooFormulaVar Frac_T_0("Frac_T_0","Frac_T_0","1-alpha_0-beta_0+alpha_0*beta_0",RooArgList(alpha_0,beta_0));
+  RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
+  RooArgList  fracList_sig_0(alpha_0); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
+  RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  
+  RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
+  RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
+  RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
+  RooArgList  coeffList_sig_0(a0_0);
+  if(bkg_Chebychev_polynomial_degree>=1){
+    coeffList_sig_0.add(a1_0);    
+    if(bkg_Chebychev_polynomial_degree>=2){
+      coeffList_sig_0.add(a2_0);
+    }
+  }
+
+
+  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
+  RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
+  RooArgList  pdfList_0(PDF_sig_0,PDF_B_0);
+  RooArgList  fracList_0(Frac_sig_0);
+  RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
+  RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
+
+  if(do_prefit){
+    
+    cout<<"___________________________________"<<endl;
+    cout<<"                                   "<<endl;
+    cout<<"-----------------------------------"<<endl;
+    cout<<"***********************************"<<endl;
+    cout<<"-----------------------------------"<<endl;
+    cout<<"___________________________________"<<endl;
+    cout<<"STATUS MIGRAD EDM 0 0"<<endl;
+    
+    //Delta_H_0.setConstant(kTRUE);
+    sigma_L_0.setConstant(kTRUE);
+    sigma_H_0.setConstant(kTRUE);
+    RooFitResult* fit_results_0_b = model_0_b.fitTo(ds_0_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Warnings(kFALSE),Verbose(kFALSE));//);
+    sigma_L_0.setConstant(kFALSE);
+    sigma_H_0.setConstant(kFALSE);
+    //Delta_H_0.setConstant(kFALSE);
+    if(print_prefit_info) fit_results_0_b->Print("v");
+  }
+  
+  cout<<"___________________________________"<<endl;
+  cout<<"                                   "<<endl;
+  cout<<"-----------------------------------"<<endl;
+  cout<<"***********************************"<<endl;
+  cout<<"-----------------------------------"<<endl;
+  cout<<"___________________________________"<<endl;
+  cout<<"STATUS MIGRAD EDM 0"<<endl;
+  
+  
+  
+  RooFitResult* fit_results_0;
+  if(use_NLL){
+    RooAbsReal* nll_model_0 = model_0.createNLL(ds_0_H,Extended(kFALSE)) ;
+    //RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
+    RooMinimizer RMN_0 (*nll_model_0);
+    RMN_0.setErrorLevel(-1);
+    RMN_0.setVerbose(kFALSE);
+    RMN_0.setPrintEvalErrors(-1);
+    RMN_0.setPrintLevel(MN_output_print_level);
+    RMN_0.setStrategy(2);
+    RMN_0.minimize(Type_minim,Algo_minim);
+    fit_results_0=RMN_0.fit("hmrt") ;
+  }else{fit_results_0 = model_0.fitTo(ds_0,Save(),Strategy(2),SumW2Error(kFALSE),InitialHesse(true),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
+  }
+  
+  fit_results_0->Print("v");
+  RooPlot* xframe2_0 = x.frame(Title("Fit")) ;
+  ds_0.plotOn(xframe2_0);//,DataError(RooAbsData::SumW2)) ;
+  TH2 *h_correlation_0 = fit_results_0->correlationHist(); h_correlation_0->SetTitle("correlation matrix ");h_correlation_0->GetYaxis()->SetLabelSize(0.1); h_correlation_0->GetYaxis()->SetLabelFont(70);h_correlation_0->GetXaxis()->SetLabelSize(0.075); h_correlation_0->GetXaxis()->SetLabelFont(70); h_correlation_0->SetMarkerSize(2);
+  model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
+  model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
+  if(add_third_signal_pos0) model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
+  model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_sig_0"),LineStyle(kDashed),LineColor(5)) ;
+  model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
+  model_0.plotOn(xframe2_0,Range("Fit_Range_0")) ;
+  // Construct a histogram with the residuals of the data w.r.t. the curve
+  RooHist* hresid_0 = xframe2_0->residHist() ;
+  // Construct a histogram with the pulls of the data w.r.t the curve
+  RooHist* hpull_0 = xframe2_0->pullHist() ;
+  // Create a new frame to draw the pull distribution and add the distribution to the frame
+  RooPlot* xframe4_0 = x.frame(Title("Pull Distribution ")) ;
+  xframe4_0->addPlotable(hpull_0,"P") ;
+  
+  xframe2_0->GetXaxis()->SetLabelSize(0.05);
+  xframe2_0->GetXaxis()->SetLabelFont(70);
+  xframe2_0->GetXaxis()->SetTitleSize(0.05);
+  xframe2_0->GetXaxis()->SetTitleFont(70);
+  xframe4_0->GetXaxis()->SetLabelSize(0.05);
+  xframe4_0->GetXaxis()->SetLabelFont(70);
+  xframe4_0->GetXaxis()->SetTitleSize(0.05);
+  xframe4_0->GetXaxis()->SetTitleFont(70);
+  
+  
+  
+  RooPlot* xframe2_0_log = x.frame(Title("Fit")) ;
+  ds_0.plotOn(xframe2_0_log);//,DataError(RooAbsData::SumW2)) ;
+  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_L_0"),LineStyle(kDashed),LineColor(1)) ;
+  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_H_0"),LineStyle(kDashed),LineColor(1)) ;
+  if(add_third_signal_pos0) model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_T_0"),LineStyle(kDashed),LineColor(1)) ;
+  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_sig_0"),LineStyle(kDashed),LineColor(5)) ;
+  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0"),Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
+  model_0.plotOn(xframe2_0_log,Range("Fit_Range_0")) ;
+  model_0.paramOn(xframe2_0_log);
+  model_0.paramOn(xframe2_0);
+  xframe2_0_log->GetXaxis()->SetLabelSize(0.05);
+  xframe2_0_log->GetXaxis()->SetLabelFont(70);
+  xframe2_0_log->GetXaxis()->SetTitleSize(0.05);
+  xframe2_0_log->GetXaxis()->SetTitleFont(70);
+
+
+
+
+
+
+
+  
+  TF1 *line_0s = new TF1("line_0s","0",-100,100);line_0s->SetLineColor(8);
+  TF1 *line_1ps = new TF1("line_1ps","1",-100,100);line_1ps->SetLineColor(4);
+  TF1 *line_1ns = new TF1("line_1ns","-1",-100,100);line_1ns->SetLineColor(4);
+  TF1 *line_2ps = new TF1("line_2ps","2",-100,100);line_2ps->SetLineColor(kOrange-2);
+  TF1 *line_2ns = new TF1("line_2ns","-2",-100,100);line_2ns->SetLineColor(kOrange-2);
+  TF1 *line_3ps = new TF1("line_3ps","3",-100,100);line_3ps->SetLineColor(2);
+  TF1 *line_3ns = new TF1("line_3ns","-3",-100,100);line_3ns->SetLineColor(2);
+  if(draw_results){  
+    TCanvas* c_Fit = new TCanvas("Fit results","Fit results",0,0,1124,700) ;
+    c_Fit->Divide(3,1) ;
+    gStyle->SetOptFit(0111); 
+    c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
+    c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_0_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_0_log->Draw() ;
+    c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe4_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4_0->GetYaxis()->SetRangeUser(-5,5); xframe4_0->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
+
+    
+    TCanvas* c_Fit_zoom = new TCanvas("c_Fit_zoom","Fit results zoom",0,0,1124,700) ;
+    c_Fit_zoom->Divide(2,2) ;
+    gStyle->SetOptFit(0111); 
+    c_Fit_zoom->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2_0->GetYaxis()->SetTitleOffset(1.6) ; xframe2_0->Draw() ;
+    c_Fit_zoom->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2_1->GetYaxis()->SetTitleOffset(1.6) ; xframe2_1->Draw() ;
+    TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
+    xframe2_0->Draw() ;
+    TCanvas* c_Fit_1 = new TCanvas("c_Fit_1","c_Fit_1");
+    xframe2_1->Draw() ;
+    
+    c_Fit->cd();
+    c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
+    c_Fit->cd(6) ; gPad->SetLeftMargin(0.15) ; xframe2_log->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2_log->Draw() ;
+    c_Fit->cd(9) ; gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5);xframe4->Draw() ;
+    line_3ns->Draw("same");line_3ps->Draw("same");
+    line_2ns->Draw("same");line_2ps->Draw("same");
+    line_1ns->Draw("same");line_1ps->Draw("same");
+    line_0s->Draw("same");line_0s->Draw("same");
+    c_Fit->cd(12) ; gPad->SetLeftMargin(0.15) ; h_correlation->Draw("colz:text");
+    c_Fit_zoom->cd();
+    c_Fit_zoom->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ;
+    TCanvas* c_Fit_01 = new TCanvas("c_Fit_01","c_Fit_01");
+    xframe2->Draw() ;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+}

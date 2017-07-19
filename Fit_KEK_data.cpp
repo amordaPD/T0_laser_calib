@@ -50,6 +50,7 @@ struct MC_INFO{
 
 void make_KEK_data_histos(int my_pixelID){
   Float_t upper_bound_hist=2;
+  Int_t n_bins = 200;
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
   TTree *t_input = (TTree*)file_input->Get("laser");
   TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
@@ -60,7 +61,7 @@ void make_KEK_data_histos(int my_pixelID){
   TAxis *xaxis = h_temp->GetXaxis(); 
   Double_t max_pos = xaxis->GetBinCenter(max_bin);
   //cout<< max_pos <<endl;
-  TH1D *h_time = new TH1D("h_time","Time [ns]",100,-1,upper_bound_hist);
+  TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1,upper_bound_hist);
   t_input->Project("h_time",Form("time-%f",max_pos),cut);
   /*
   Float_t time_sc;
@@ -86,17 +87,17 @@ void make_KEK_data_histos(int my_pixelID){
   Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
   TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
   Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
-  TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",100,-1,upper_bound_hist);
+  TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",n_bins,-1,upper_bound_hist);
   tree_MC->Project("h_MC_tot",Form("propTime-%f",max_pos_MC),cut_MC);
-  TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",100,-1,upper_bound_hist);
-  TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",100,-1,upper_bound_hist);
-  TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",100,-1,upper_bound_hist);
-  TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",100,-1,upper_bound_hist);
-  TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",100,-1,upper_bound_hist);
-  TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",100,-1,upper_bound_hist);  
-  TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",100,-1,upper_bound_hist);
-  TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",100,-1,upper_bound_hist);  
-  TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",100,-1,upper_bound_hist);
+  TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",n_bins,-1,upper_bound_hist);  
+  TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
+  TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
+  TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
   tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixelID==%i",my_pixelID));
   tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixelID==%i",my_pixelID));
   tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixelID==%i",my_pixelID));
@@ -174,15 +175,19 @@ void make_KEK_data_histos(int my_pixelID){
 }
 
 
-void Fit_KEK_data(bool CB_model){
+void Fit_KEK_data(bool CB_model, int column_number, int row_number){
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
 
-  TFile *f_input = new TFile("KEK_data_histos.root");
-  TH1D* h_time = f_input->Get("h_time");
+  TFile *f_input = new TFile(Form("KEK_data_histos_col_%i.root",column_number));
 
-  TCanvas *can0 = f_input->Get("c");
+  Int_t pixelID=column_number+64*(row_number-1);
+  
+  TH1D* h_time = f_input->Get(Form("histos_%i/h_time",pixelID));
+  TH1D* h_MC_tot = f_input->Get(Form("histos_%i/h_MC_tot",pixelID));
+
+  TCanvas *can0 = f_input->Get(Form("histos_%i/c",pixelID));
   can0->Draw();
 
 
@@ -204,8 +209,8 @@ void Fit_KEK_data(bool CB_model){
   bool fit_for_first_peak=false;
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
-  int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=true;
+  int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=false;
   int amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
@@ -223,9 +228,8 @@ void Fit_KEK_data(bool CB_model){
   
   double my_low_x=-1;
   double my_up_x=2;
-  TH1D* h_MC_tot = f_input->Get("h_MC_tot");
   TAxis *xaxis_MC = h_MC_tot->GetXaxis();
-  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*100-3);
+  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-3);
   Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
   Double_t max_first_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
   cout<<"ciao "<<max_first_pos_MC<<endl;
@@ -327,7 +331,7 @@ void Fit_KEK_data(bool CB_model){
    starting_sigma_H_0=0.080;
    starting_sigma_T_0=0.1000;
    
-   starting_alpha_0=0.1;
+   starting_alpha_0=0.25;
    starting_beta_0=0.9;
    
    starting_mean_H_0=0;//starting_mean_L_0+starting_delta_H_0;
@@ -402,7 +406,8 @@ void Fit_KEK_data(bool CB_model){
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   
   if(CB_model){
-    RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
+    RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;//,alpha_CB_L,n_CB_L) ;
+    //RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
     RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
   }else{
     RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;//,alpha_CB_L,n_CB_L) ;
@@ -581,4 +586,146 @@ void Fit_KEK_data(bool CB_model){
 
 
   
+}
+
+
+void make_KEK_data_histos_column(int my_column){
+
+  
+  TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
+  TTree *t_input = (TTree*)file_input->Get("laser");
+  TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
+  TTree *tree_MC = (TTree*)file_input_MC->Get("tree_laser");
+  TFile *f_data = new TFile(Form("KEK_data_histos_col_%i.root",my_column),"recreate");
+  
+  int my_pixelID=-9;
+  my_pixelID=my_column;
+  
+  for(int g=1; g<=8;g++){
+    cout<<"doing "<<g<<"th row"<<endl;
+    my_pixelID=my_column+64*(g-1);
+    Float_t upper_bound_hist=2;
+    Int_t n_bins = 200;
+    TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
+    TCut cut = Form("-20<time&&time<0&&quality==1&&pixel==%i",my_pixelID);
+    t_input->Project("h_temp","time",cut);
+    //h_temp->Draw();
+    Float_t max_bin = h_temp->GetMaximumBin();
+    TAxis *xaxis = h_temp->GetXaxis(); 
+    Double_t max_pos = xaxis->GetBinCenter(max_bin);
+    //cout<< max_pos <<endl;
+    TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1,upper_bound_hist);
+    t_input->Project("h_time",Form("time-%f",max_pos),cut);
+    /*
+      Float_t time_sc;
+      Int_t pixelID=-99;
+      Int_t quality=-9;
+      t_input->SetBranchAddress("time",&time_sc);
+      t_input->SetBranchAddress("pixel",&pixelID);
+      t_input->SetBranchAddress("quality",&quality);
+      
+      Int_t n_entries = t_input->GetEntries();
+      for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==my_pixelID) {h_time->Fill(time_sc-max_pos);}} 
+      
+      //h_time->Draw("E");
+      */
+    
+   
+    TCut cut_MC = Form("propTime<1&&pixelID==%i",my_pixelID);
+    
+    TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
+    tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
+    
+    Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
+    TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
+    Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
+    TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",n_bins,-1,upper_bound_hist);
+    tree_MC->Project("h_MC_tot",Form("propTime-%f",max_pos_MC),cut_MC);
+    TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",n_bins,-1,upper_bound_hist);  
+    TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
+    TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
+    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixelID==%i",my_pixelID));
+    h_MC_tot->SetLineColor(1);
+    h_MC_f1->SetLineColor(11);
+    h_MC_f2->SetLineColor(2);
+    h_MC_f3->SetLineColor(3);
+    h_MC_f4->SetLineColor(4);
+    h_MC_f5->SetLineColor(13);
+    h_MC_f6->SetLineColor(6);
+    h_MC_f7->SetLineColor(7);
+    h_MC_f8->SetLineColor(8);
+    h_MC_f9->SetLineColor(9);
+    h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f5->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f6->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    
+    TCanvas *c = new TCanvas("c","c");
+    h_time->Draw("E");
+    h_MC_tot->Draw("same");
+    h_MC_f1->Draw("same");
+    h_MC_f2->Draw("same");
+    h_MC_f3->Draw("same");
+    h_MC_f4->Draw("same");
+    h_MC_f5->Draw("same");
+    h_MC_f6->Draw("same");
+    h_MC_f7->Draw("same");
+    h_MC_f8->Draw("same");
+    h_MC_f9->Draw("same");
+    
+    
+    
+    f_data->cd();
+    f_data->mkdir(Form("histos_%i",my_pixelID));
+    f_data->cd(Form("histos_%i",my_pixelID));
+    h_time->Write();
+    h_MC_tot->Write();
+    h_MC_f1->Write();
+    h_MC_f2->Write();
+    h_MC_f3->Write();
+    h_MC_f4->Write();
+    h_MC_f5->Write();
+    h_MC_f6->Write();
+    h_MC_f7->Write();
+    h_MC_f8->Write();
+    h_MC_f9->Write();
+    c->Write();
+    f_data->cd();
+    delete h_temp;
+    delete h_time;
+    delete h_MC_tot;
+    delete h_MC_tot_temp;
+    delete h_MC_f1;
+    delete h_MC_f2;
+    delete h_MC_f3;
+    delete h_MC_f4;
+    delete h_MC_f5;
+    delete h_MC_f6;
+    delete h_MC_f7;
+    delete h_MC_f8;
+    delete h_MC_f9;
+    delete c;
+  }
+    f_data->Close();
+    delete f_data;
 }

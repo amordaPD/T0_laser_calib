@@ -175,7 +175,7 @@ void make_KEK_data_histos(int my_pixelID){
 }
 
 
-void Fit_KEK_data(bool CB_model, int column_number, int row_number){
+RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
@@ -185,6 +185,7 @@ void Fit_KEK_data(bool CB_model, int column_number, int row_number){
   Int_t pixelID=column_number+64*(row_number-1);
   
   TH1D* h_time = f_input->Get(Form("histos_%i/h_time",pixelID));
+ 
   TH1D* h_MC_tot = f_input->Get(Form("histos_%i/h_MC_tot",pixelID));
 
   TCanvas *can0 = f_input->Get(Form("histos_%i/c",pixelID));
@@ -229,7 +230,7 @@ void Fit_KEK_data(bool CB_model, int column_number, int row_number){
   double my_low_x=-1;
   double my_up_x=2;
   TAxis *xaxis_MC = h_MC_tot->GetXaxis();
-  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-3);
+  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-1);
   Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
   Double_t max_first_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
   cout<<"ciao "<<max_first_pos_MC<<endl;
@@ -568,6 +569,7 @@ void Fit_KEK_data(bool CB_model, int column_number, int row_number){
   
     TCanvas* c_Fit_0 = new TCanvas("c_Fit_0","c_Fit_0");
     xframe2_0->Draw() ;
+
   
   }
 
@@ -578,7 +580,7 @@ void Fit_KEK_data(bool CB_model, int column_number, int row_number){
 
 
 
-
+  return xframe2_0;
 
 
 
@@ -589,7 +591,7 @@ void Fit_KEK_data(bool CB_model, int column_number, int row_number){
 }
 
 
-void make_KEK_data_histos_column(int my_column){
+void  make_KEK_data_histos_column(int my_column){
 
   
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
@@ -728,4 +730,22 @@ void make_KEK_data_histos_column(int my_column){
   }
     f_data->Close();
     delete f_data;
+}
+
+
+void loop_fit_column(int column_number){
+
+  TCanvas *cc = new TCanvas("cc","cc");
+  cc->Divide(1,8);
+
+
+  for(int h=1;h<=8;h++){
+    
+    RooPlot* frame_temp=NULL;
+    frame_temp = Fit_KEK_data(true,column_number,h);
+    cc->cd(9-h);
+    frame_temp->Draw() ;
+    //delete frame_temp;
+  }
+  
 }

@@ -49,7 +49,7 @@ struct MC_INFO{
 };
 
 void make_KEK_data_histos(int my_pixelID){
-
+  Float_t upper_bound_hist=2;
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
   TTree *t_input = (TTree*)file_input->Get("laser");
   TH1D *h_temp = new TH1D("h_temp","h_temp",500,-50,0);
@@ -60,7 +60,7 @@ void make_KEK_data_histos(int my_pixelID){
   TAxis *xaxis = h_temp->GetXaxis(); 
   Double_t max_pos = xaxis->GetBinCenter(max_bin);
   //cout<< max_pos <<endl;
-  TH1D *h_time = new TH1D("h_time","Time [ns]",100,-1,0.5);
+  TH1D *h_time = new TH1D("h_time","Time [ns]",100,-1,upper_bound_hist);
   t_input->Project("h_time",Form("time-%f",max_pos),cut);
   /*
   Float_t time_sc;
@@ -86,17 +86,17 @@ void make_KEK_data_histos(int my_pixelID){
   Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
   TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
   Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
-  TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",100,-1,0.5);
+  TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",100,-1,upper_bound_hist);
   tree_MC->Project("h_MC_tot",Form("propTime-%f",max_pos_MC),cut_MC);
-  TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",100,-1,0.5);
-  TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",100,-1,0.5);
-  TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",100,-1,0.5);
-  TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",100,-1,0.5);
-  TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",100,-1,0.5);
-  TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",100,-1,0.5);  
-  TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",100,-1,0.5);
-  TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",100,-1,0.5);  
-  TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",100,-1,0.5);
+  TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",100,-1,upper_bound_hist);
+  TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",100,-1,upper_bound_hist);
+  TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",100,-1,upper_bound_hist);
+  TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",100,-1,upper_bound_hist);
+  TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",100,-1,upper_bound_hist);
+  TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",100,-1,upper_bound_hist);  
+  TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",100,-1,upper_bound_hist);
+  TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",100,-1,upper_bound_hist);  
+  TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",100,-1,upper_bound_hist);
   tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixelID==%i",my_pixelID));
   tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixelID==%i",my_pixelID));
   tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixelID==%i",my_pixelID));
@@ -160,10 +160,21 @@ void make_KEK_data_histos(int my_pixelID){
   f_data->Close();
   delete f_data;
   delete h_time;
+  delete h_MC_tot;
+  delete h_MC_f1;
+  delete h_MC_f2;
+  delete h_MC_f3;
+  delete h_MC_f4;
+  delete h_MC_f5;
+  delete h_MC_f6;
+  delete h_MC_f7;
+  delete h_MC_f8;
+  delete h_MC_f9;
+  delete c;
 }
 
 
-void Fit_KEK_data(){
+void Fit_KEK_data(bool CB_model){
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
@@ -173,6 +184,7 @@ void Fit_KEK_data(){
 
   TCanvas *can0 = f_input->Get("c");
   can0->Draw();
+
 
   
   TString _draw_results="draw";
@@ -192,8 +204,8 @@ void Fit_KEK_data(){
   bool fit_for_first_peak=false;
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
-  int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=false;
+  int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=true;
   int amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
@@ -210,7 +222,14 @@ void Fit_KEK_data(){
 
   
   double my_low_x=-1;
-  double my_up_x=0.5;
+  double my_up_x=2;
+  TH1D* h_MC_tot = f_input->Get("h_MC_tot");
+  TAxis *xaxis_MC = h_MC_tot->GetXaxis();
+  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*100-3);
+  Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
+  Double_t max_first_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
+  cout<<"ciao "<<max_first_pos_MC<<endl;
+  
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_time)) ;
   RooDataHist ds_0_H("ds_0_H","ds_0_H",RooArgSet(x),Import(*h_time)) ;
@@ -302,7 +321,7 @@ void Fit_KEK_data(){
 
   
    starting_mean_L_0=22.6;
-   starting_delta_H_0=0.3;
+   starting_delta_H_0=TMath::Abs(max_first_pos_MC);//0.3;
    starting_delta_T_0=0.040;
    starting_sigma_L_0=0.080;
    starting_sigma_H_0=0.080;
@@ -314,18 +333,18 @@ void Fit_KEK_data(){
    starting_mean_H_0=0;//starting_mean_L_0+starting_delta_H_0;
    low_mean_L_0=starting_mean_L_0-0.315;
    up_mean_L_0=starting_mean_L_0+0.315;
-   low_mean_H_0=starting_mean_H_0-0.315;
-   up_mean_H_0=starting_mean_H_0+0.315;
+   low_mean_H_0=starting_mean_H_0-0.05;//315;
+   up_mean_H_0=starting_mean_H_0+0.05;//0.315;
 
  
-    starting_alpha_CB_L=-0.35;
+   starting_alpha_CB_L=0.0;//-0.35;
   starting_n_CB_L=6;
 
   low_alpha_CB_L=-5;
-   up_alpha_CB_L=0.0;
+   up_alpha_CB_L=5;
    
   low_n_CB_L=0;
-   up_n_CB_L=20;
+   up_n_CB_L=200;
 
 
   starting_alpha_CB_H=-0.35;
@@ -335,7 +354,7 @@ void Fit_KEK_data(){
    up_alpha_CB_H=0.0;
    
   low_n_CB_H=0;
-   up_n_CB_H=20;
+   up_n_CB_H=200;
 
    starting_alpha_CB_T=-0.35;
   starting_n_CB_T=6;
@@ -382,11 +401,13 @@ void Fit_KEK_data(){
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
   
-
-  //RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
-  //RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
-  RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;//,alpha_CB_L,n_CB_L) ;
-  RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;//,alpha_CB_H,n_CB_H) ;
+  if(CB_model){
+    RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
+    RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
+  }else{
+    RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;//,alpha_CB_L,n_CB_L) ;
+    RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;//,alpha_CB_H,n_CB_H) ;
+  }
   RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;  
   RooRealVar alpha_0("alpha_0","alpha_0",starting_alpha_0,low_alpha_0,up_alpha_0);
   RooRealVar beta_0("beta_0","beta_0",starting_beta_0,low_beta_0,up_beta_0);
@@ -412,7 +433,7 @@ void Fit_KEK_data(){
   a1_0.setConstant(kTRUE);
   a2_0.setConstant(kTRUE);
   }
-  //Delta_H_0.setConstant(kTRUE);
+  Delta_H_0.setConstant(kTRUE);
   //Delta_T_0.setConstant(kTRUE);
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
@@ -476,6 +497,8 @@ void Fit_KEK_data(){
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_sig_0"),LineStyle(kDashed),LineColor(5)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0"),Components("PDF_B_0"),LineStyle(kDashed),LineColor(2)) ;
   model_0.plotOn(xframe2_0,Range("Fit_Range_0")) ;
+
+  
   // Construct a histogram with the residuals of the data w.r.t. the curve
   RooHist* hresid_0 = xframe2_0->residHist() ;
   // Construct a histogram with the pulls of the data w.r.t the curve

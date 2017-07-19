@@ -597,7 +597,10 @@ void  make_KEK_data_histos_column(int my_column){
   TFile *file_input = new TFile("run004881_TBC4855-4858_slot01_digits.root");
   TTree *t_input = (TTree*)file_input->Get("laser");
   TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
-  TTree *tree_MC = (TTree*)file_input_MC->Get("tree_laser");
+  TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
+  TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
+  TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
+  
   TFile *f_data = new TFile(Form("KEK_data_histos_col_%i.root",my_column),"recreate");
   
   int my_pixelID=-9;
@@ -633,7 +636,7 @@ void  make_KEK_data_histos_column(int my_column){
       */
     
    
-    TCut cut_MC = Form("propTime<1&&pixelID==%i",my_pixelID);
+    TCut cut_MC = Form("propTime<1&&pixel==%i",my_pixelID);
     
     TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
     tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
@@ -652,15 +655,15 @@ void  make_KEK_data_histos_column(int my_column){
     TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
     TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
-    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixelID==%i",my_pixelID));
-    tree_MC->Project("h_MC_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixelID==%i",my_pixelID));
+    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixel==%i",my_pixelID));
     h_MC_tot->SetLineColor(1);
     h_MC_f1->SetLineColor(11);
     h_MC_f2->SetLineColor(2);
@@ -681,6 +684,59 @@ void  make_KEK_data_histos_column(int my_column){
     h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+
+
+    //////////////////////MC with ring model //////////////////
+    TH1D *h_MC_ring_tot = new TH1D ("h_MC_ring_tot","h_MC_ring_tot",n_bins,-1,upper_bound_hist);
+    tree_MC_ring->Project("h_MC_ring_tot",Form("propTime-%f",max_pos_MC),cut_MC);
+    TH1D *h_MC_ring_f1 = new TH1D ("h_MC_ring_f1","h_MC_ring_f1",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f2 = new TH1D ("h_MC_ring_f2","h_MC_ring_f2",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f3 = new TH1D ("h_MC_ring_f3","h_MC_ring_f3",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f4 = new TH1D ("h_MC_ring_f4","h_MC_ring_f4",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f5 = new TH1D ("h_MC_ring_f5","h_MC_ring_f5",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f6 = new TH1D ("h_MC_ring_f6","h_MC_ring_f6",n_bins,-1,upper_bound_hist);  
+    TH1D *h_MC_ring_f7 = new TH1D ("h_MC_ring_f7","h_MC_ring_f7",n_bins,-1,upper_bound_hist);
+    TH1D *h_MC_ring_f8 = new TH1D ("h_MC_ring_f8","h_MC_ring_f8",n_bins,-1,upper_bound_hist);  
+    TH1D *h_MC_ring_f9 = new TH1D ("h_MC_ring_f9","h_MC_ring_f9",n_bins,-1,upper_bound_hist);
+    tree_MC_ring->Project("h_MC_ring_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixel==%i",my_pixelID));
+    h_MC_ring_tot->SetLineColor(1);
+    h_MC_ring_f1->SetLineColor(11);
+    h_MC_ring_f2->SetLineColor(2);
+    h_MC_ring_f3->SetLineColor(3);
+    h_MC_ring_f4->SetLineColor(4);
+    h_MC_ring_f5->SetLineColor(13);
+    h_MC_ring_f6->SetLineColor(6);
+    h_MC_ring_f7->SetLineColor(7);
+    h_MC_ring_f8->SetLineColor(8);
+    h_MC_ring_f9->SetLineColor(9);
+    h_MC_ring_tot->SetMarkerStyle(20);
+    h_MC_ring_f1->SetMarkerStyle(20);
+    h_MC_ring_f2->SetMarkerStyle(20);
+    h_MC_ring_f3->SetMarkerStyle(20);
+    h_MC_ring_f4->SetMarkerStyle(20);
+    h_MC_ring_f5->SetMarkerStyle(20);
+    h_MC_ring_f6->SetMarkerStyle(20);
+    h_MC_ring_f7->SetMarkerStyle(20);
+    h_MC_ring_f8->SetMarkerStyle(20);
+    h_MC_ring_f9->SetMarkerStyle(20);
+    h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f5->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f6->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     
     TCanvas *c = new TCanvas("c","c");
     h_time->Draw("E");
@@ -694,7 +750,18 @@ void  make_KEK_data_histos_column(int my_column){
     h_MC_f7->Draw("same");
     h_MC_f8->Draw("same");
     h_MC_f9->Draw("same");
-    
+    /*
+    h_MC_ring_tot->Draw("same");
+    h_MC_ring_f1->Draw("same");
+    h_MC_ring_f2->Draw("same");
+    h_MC_ring_f3->Draw("same");
+    h_MC_ring_f4->Draw("same");
+    h_MC_ring_f5->Draw("same");
+    h_MC_ring_f6->Draw("same");
+    h_MC_ring_f7->Draw("same");
+    h_MC_ring_f8->Draw("same");
+    h_MC_ring_f9->Draw("same");
+    */
     
     
     f_data->cd();
@@ -711,6 +778,16 @@ void  make_KEK_data_histos_column(int my_column){
     h_MC_f7->Write();
     h_MC_f8->Write();
     h_MC_f9->Write();
+    h_MC_ring_tot->Write();
+    h_MC_ring_f1->Write();
+    h_MC_ring_f2->Write();
+    h_MC_ring_f3->Write();
+    h_MC_ring_f4->Write();
+    h_MC_ring_f5->Write();
+    h_MC_ring_f6->Write();
+    h_MC_ring_f7->Write();
+    h_MC_ring_f8->Write();
+    h_MC_ring_f9->Write();
     c->Write();
     f_data->cd();
     delete h_temp;
@@ -726,6 +803,16 @@ void  make_KEK_data_histos_column(int my_column){
     delete h_MC_f7;
     delete h_MC_f8;
     delete h_MC_f9;
+    delete h_MC_ring_tot;
+    delete h_MC_ring_f1;
+    delete h_MC_ring_f2;
+    delete h_MC_ring_f3;
+    delete h_MC_ring_f4;
+    delete h_MC_ring_f5;
+    delete h_MC_ring_f6;
+    delete h_MC_ring_f7;
+    delete h_MC_ring_f8;
+    delete h_MC_ring_f9;
     delete c;
   }
     f_data->Close();

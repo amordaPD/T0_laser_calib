@@ -210,8 +210,8 @@ RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
   bool fit_for_first_peak=false;
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
-  int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=false;
+  int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=true;
   int amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
@@ -727,16 +727,16 @@ void  make_KEK_data_histos_column(int my_column){
     h_MC_ring_f7->SetMarkerStyle(20);
     h_MC_ring_f8->SetMarkerStyle(20);
     h_MC_ring_f9->SetMarkerStyle(20);
-    h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f5->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f6->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f2->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f3->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f4->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f5->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f6->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f7->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     
     TCanvas *c = new TCanvas("c","c");
     h_time->Draw("E");

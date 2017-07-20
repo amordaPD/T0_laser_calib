@@ -21,15 +21,19 @@
 using namespace RooFit ;
 vector<int> Fits_status;
 struct Fit_results{
-  float Results[80];
-  float Overall_Fracs[4];
-  int n_POIs;
-  float most_probable_amp[2];
-  RooPlot* xframe2_amplitude_0;
+  //float Results[80];
+  float T_Res_H[2];
+  float T_Res_L[2];
+  float frac_L_0[2];
+  
+  //float Overall_Fracs[4];
+  //int n_POIs;
+  //float most_probable_amp[2];
+  //RooPlot* xframe2_amplitude_0;
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_pull_0;
   TH2 *h_correlation_0;
-  float SP_separation[4];
+  //float SP_separation[4];
   
 };
 
@@ -175,11 +179,12 @@ void make_KEK_data_histos(int my_pixelID){
 }
 
 
-RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
+Fit_results Fit_KEK_data(bool CB_model, int column_number, int row_number){
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
-
+  Fit_results Results;
+  
   TFile *f_input = new TFile(Form("KEK_data_histos_col_%i.root",column_number));
 
   Int_t pixelID=column_number+64*(row_number-1);
@@ -210,8 +215,8 @@ RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
   bool fit_for_first_peak=false;
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
-  int bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=true;
+  int bkg_Chebychev_polynomial_degree=0;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=false;
   int amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
@@ -426,7 +431,7 @@ RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
   
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
-  RooRealVar a2_0("a2_0", "", 0.0015, -20, 20);
+  RooRealVar a2_0("a2_0", "", 0.00, -20, 20);
   RooArgList  coeffList_sig_0(a0_0);
   if(bkg_Chebychev_polynomial_degree>=1){
     coeffList_sig_0.add(a1_0);    
@@ -574,13 +579,18 @@ RooPlot* Fit_KEK_data(bool CB_model, int column_number, int row_number){
   }
 
 
+  Results.xframe2_fit_0=xframe2_0;
+  Results.T_Res_H[0]=sigma_H_0.getVal();
+  Results.T_Res_H[1]=sigma_H_0.getError();
+  Results.T_Res_L[0]=sigma_L_0.getVal();
+  Results.T_Res_L[1]=sigma_L_0.getError();
+  Results.frac_L_0[0]=alpha_0.getVal();
+  Results.frac_L_0[1]=alpha_0.getError();
 
 
 
 
-
-
-  return xframe2_0;
+  return Results;
 
 
 
@@ -824,15 +834,79 @@ void loop_fit_column(int column_number){
 
   TCanvas *cc = new TCanvas("cc","cc");
   cc->Divide(1,8);
-
-
+  float x[8];
+  float err_x[8];
+  float sigma_H_0[8];
+  float err_sigma_H_0[8];
+  float sigma_L_0[8];
+  float err_sigma_L_0[8];
+  float frac_L[8];
+  float err_frac_L[8];
+  
   for(int h=1;h<=8;h++){
     
-    RooPlot* frame_temp=NULL;
-    frame_temp = Fit_KEK_data(true,column_number,h);
+    x[h-1]=h; err_x[h-1]=0;
+    Fit_results my_Results;
+    my_Results = Fit_KEK_data(true,column_number,h);
     cc->cd(9-h);
-    frame_temp->Draw() ;
+    my_Results.xframe2_fit_0->Draw() ;
+    sigma_H_0[h-1]=my_Results.T_Res_H[0];
+    sigma_L_0[h-1]=my_Results.T_Res_L[0];
+    err_sigma_H_0[h-1]=my_Results.T_Res_H[1];
+    err_sigma_L_0[h-1]=my_Results.T_Res_L[1];
+    frac_L[h-1]=my_Results.frac_L_0[0];
+    err_frac_L[h-1]=my_Results.frac_L_0[1];
+    
     //delete frame_temp;
   }
+
+
+    TF1 *line = new TF1("line","0.100",-100,100);
+    line->SetTitle("100 ps");
+
+    TGraphErrors *SIGMA_H_0 = new TGraphErrors(8,x,sigma_H_0,err_x,err_sigma_H_0);SIGMA_H_0->SetTitle("#delta t_{L}");
+    TGraphErrors *SIGMA_L_0 = new TGraphErrors(8,x,sigma_L_0,err_x,err_sigma_L_0);SIGMA_L_0->SetTitle("#delta t_{H}");
+
+    SIGMA_L_0->SetMarkerStyle(20);
+    SIGMA_H_0->SetMarkerStyle(20);
+    SIGMA_L_0->SetMarkerSize(2);
+    SIGMA_H_0->SetMarkerSize(2);
+    SIGMA_L_0->SetMarkerColor(2);
+    SIGMA_H_0->SetMarkerColor(4);
+        
+    TMultiGraph *mg_SIGMA_0 = new TMultiGraph();
+    mg_SIGMA_0->SetTitle("Time- resolution (#delta t) low time vs Channel");
+    mg_SIGMA_0->Add(SIGMA_L_0);
+    mg_SIGMA_0->Add(SIGMA_H_0);
+    
+    TCanvas* c_Res_pos0 = new TCanvas("c_Res_pos0","c_Res_pos0",0,0,1124,700);
+    mg_SIGMA_0->Draw("AP");
+    line->Draw("same");
+    gPad->Update();
+    mg_SIGMA_0->GetXaxis()->SetTitle("row");
+    mg_SIGMA_0->GetYaxis()->SetTitle("#delta t [ns]");
+    gPad->Update();
+    gPad->BuildLegend();
+
+    TGraphErrors *FRAC_L_0 = new TGraphErrors(8,x,frac_L,err_x,err_frac_L); FRAC_L_0->SetTitle("f_{L}");
+
+    FRAC_L_0->SetMarkerStyle(20);
+    FRAC_L_0->SetMarkerSize(2);
+    FRAC_L_0->SetMarkerColor(2);
   
+        
+    TMultiGraph *mg_FRAC_0 = new TMultiGraph();
+    mg_FRAC_0->SetTitle("Time- resolution (#delta t) low time vs Channel");
+    mg_FRAC_0->Add(FRAC_L_0);
+   
+    
+    TCanvas* c_frac_pos0 = new TCanvas("c_frac_pos0","c_frac_pos0",0,0,1124,700);
+    mg_FRAC_0->Draw("AP");
+    line->Draw("same");
+    gPad->Update();
+    mg_FRAC_0->GetXaxis()->SetTitle("row");
+    mg_FRAC_0->GetYaxis()->SetTitle("f_{L}");
+    gPad->Update();
+    gPad->BuildLegend();
+
 }

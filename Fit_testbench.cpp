@@ -43,6 +43,7 @@ struct Fit_results_basic{
   float T_Res_H[2];
   float T_Res_L[2];
   float frac_L_0[2];
+  float delta_H_0[2];
   
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_fit_0_log;
@@ -64,23 +65,40 @@ TFile *f_input_histogram_full_ds = new TFile("./flat_ntuples/run100317-4-T77-nuo
 
 
 
-void  make_PD_data_histos_column(int my_column){
+void  make_data_histos_column(TString file_name, int my_slot, int my_column){
 
+  //TString file_name="quartz-2pmt-waves-T77_out";
+  //if(my_slot>0) file_name="run3730_f00000-f00049_allch-7nsWidth_digits_col1-4";
+  TString tree_input="times"; //For PD  data
+  if(my_slot>0) tree_input="laser"; //For KEK data
   
-  TFile *file_input = new TFile("quartz-2pmt-waves-1fiber-T78_ch_0_out.root");
-  TTree *t_input = (TTree*)file_input->Get("times");
+  TFile *file_input = new TFile(file_name+".root");
+  cout<<"input file opened : "<<file_name+".root"<<endl;
+  TTree *t_input = (TTree*)file_input->Get(tree_input);
+
+  TString data_origin="PD_";
+  if(my_slot>0) data_origin="KEK_";
+  TString slotID = "";
+  if(my_slot>0) slotID=Form("_slot_%i",my_slot);
+  TString columnID =Form("col_%i",my_column);
+  
+  TFile *f_data = new TFile(data_origin+file_name+slotID+"_data_histos_"+columnID+".root","recreate");
+  cout<<"output file created : "<<data_origin+file_name+slotID+"_data_histos_"+columnID+".root"<<endl;
+
   TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
   TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
   TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
   TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
   TH1D *h_yields = new TH1D("h_yields","event yields",8,0,9);
-  
-  TFile *f_data = new TFile(Form("PD_data_histos_col_%i.root",my_column),"recreate");
+
+
   
   int my_pixelID=-9;
   my_pixelID=my_column;
   int my_pixelID_data=-9;
-
+  float upper_time;
+  float lower_time;
+  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=-7; lower_time=-20;}
   int index_pmt=0;
   for(int g=1; g<=8;g++){
     if(g>4)index_pmt=1;
@@ -90,17 +108,20 @@ void  make_PD_data_histos_column(int my_column){
     
     Float_t upper_bound_hist=2;
     Int_t n_bins = 200;
-    TH1D *h_temp = new TH1D("h_temp","h_temp",1000,0,100);
-    TCut cut = Form("77<times&&times<90&&channel==%i",my_pixelID_data);
-    t_input->Project("h_temp","times",cut);
+    TH1D *h_temp = new TH1D("h_temp","h_temp",1000,lower_time,upper_time);
+    TCut cut ;
+    if(my_slot<=0) cut = Form("50<time&&time<90&&channel==%i",my_pixelID_data); //For PD
+    if(my_slot>0) cut = Form("-17<time&&time<-7&&slot==%i&&column==%i&&row==%i",my_slot,my_column,g); //For KEK
+    
+    t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
     //h_temp->Draw();
     Float_t max_bin = h_temp->GetMaximumBin();
     TAxis *xaxis = h_temp->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
     //cout<< max_pos <<endl;
-    TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1,upper_bound_hist);
-    t_input->Project("h_time",Form("times-%f",max_pos),cut);
+    TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1.5,upper_bound_hist);
+    t_input->Project("h_time",Form("time-%f",max_pos),cut);
     /*
       Float_t time_sc;
       Int_t pixelID=-99;
@@ -299,15 +320,15 @@ void  make_PD_data_histos_column(int my_column){
   }
   f_data->cd();
   h_yields->Write();
-    f_data->Close();
-    delete f_data;
+  f_data->Close();
+  delete f_data;
 }
 
 
 
 
-void make_pmt_plots(){
-  // to run gROOT->ProcessLine(".L Fit_testbench.cpp"); make_PD_data_histos_column(1); make_PD_data_histos_column(2); make_PD_data_histos_column(3);make_PD_data_histos_column(4); make_pmt_plots();
+void make_pmt_plots(TString input_filebasename){
+  // to run gROOT->ProcessLine(".L Fit_testbench.cpp"); make_data_histos_column("PD_quartz-2pmt-waves-1fiber-T78_ch_0_out",-99,1); make_data_histos_column("PD_quartz-2pmt-waves-1fiber-T78_ch_0_out",-99,2); make_data_histos_column("PD_quartz-2pmt-waves-1fiber-T78_ch_0_out",-99,3);make_data_histos_column("PD_quartz-2pmt-waves-1fiber-T78_ch_0_out",-99,4); make_pmt_plots("PD_quartz-2pmt-waves-1fiber-T78_ch_0_out_data_histos");
 
 
   
@@ -320,9 +341,12 @@ void make_pmt_plots(){
 
   TH1D* h[5][9];
   TH2D *h_yield_map = new TH2D("h_yield_map","event yield maps",4,0,5,8,0,9);
-  
+
+  TString input_filename="";
   for(int i=1;i<=4;i++){
-    TFile *f = new TFile(Form("PD_data_histos_col_%i.root",i));
+    TString input_column = Form("_col_%i",i);
+    input_filename=input_filebasename+"_data_histos"+input_column;
+    TFile *f = new TFile(input_filename+".root");
     int pmt_index=1;
     int pmt_row=-1;
     TH1D *h_yields = (TH1D*)f->Get("h_yields");
@@ -345,7 +369,7 @@ void make_pmt_plots(){
     delete h_yields;
   }
   TCanvas *c_map = new TCanvas();
-  h_yield_map->Draw("colz");
+  h_yield_map->Draw("lego");
 }
 
 
@@ -3189,16 +3213,22 @@ vector<float> loop_channels(int deep_fixed_params,bool plot_summaries){ //rel_we
 
 
 
-Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_number){
+Fit_results_basic basic_fit_data(TString input_basefilename, int fit_model, int column_number, int row_number){
+
+  //gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_PD_column(1); > ee.log
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
   Fit_results_basic Results;
   
   gROOT->ProcessLine(".x myRooPdfs/RooExpGauss.cxx+") ;
-  
-  TFile *f_input = new TFile(Form("PD_data_histos_col_%i_T77.root",column_number));
 
+  TString input_filename="";
+  TString input_column=Form("_col_%i",column_number);
+  input_filename=input_basefilename+"_data_histos"+input_column;
+  TFile *f_input = new TFile(input_filename+".root"); //FOR PD data
+ 
+  //TFile *f_input = new TFile(Form("KEK_data_histos_slot_8_col_%i_00049_allchs.root",column_number));
   Int_t pixelID=column_number+64*(row_number-1);
   
   TH1D* h_time = f_input->Get(Form("histos_%i_%i/h_time",column_number,row_number));
@@ -3230,7 +3260,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
   int  bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=true;
+  bool add_background_component=false;
   int  amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;
@@ -3246,8 +3276,8 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
 
 
   
-  double my_low_x=-1;
-  double my_up_x=2;
+  double my_low_x=-0.5;//1;
+  double my_up_x=0.8;//1;//2 default
   TAxis *xaxis_MC = h_MC_tot->GetXaxis();
   xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-1);
   Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
@@ -3346,13 +3376,13 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   
    starting_delta_H_0=0.3;
    starting_delta_T_0=0.040;
-   starting_sigma_L_0=0.100;
-   starting_sigma_H_0=0.100;
-   starting_sigma_T_0=0.100;
+   starting_sigma_L_0=0.08100;
+   starting_sigma_H_0=0.08100;
+   starting_sigma_T_0=0.08100;
 
 
    
-   starting_alpha_0=0.25;
+   starting_alpha_0=0.125;
    starting_beta_0=0.9;
    
    starting_mean_H_0=0;//starting_mean_L_0+starting_delta_H_0;
@@ -3369,7 +3399,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   starting_n_CB_L=6;
 
   low_alpha_CB_L=-5;
-   up_alpha_CB_L=-0.50;
+   up_alpha_CB_L=-0.050;
    
   low_n_CB_L=0;
    up_n_CB_L=200;
@@ -3379,7 +3409,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   starting_n_CB_H=6;
 
   low_alpha_CB_H=-5;
-   up_alpha_CB_H=-0.50;
+   up_alpha_CB_H=-0.050;
    
   low_n_CB_H=0;
    up_n_CB_H=200;
@@ -3425,7 +3455,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
     RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
     RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;
   }else if(fit_model==2){
-    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L) ;
+    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_H) ;
     RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H) ;
     RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T) ;
   }else if(fit_model==3){
@@ -3478,6 +3508,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
   RooArgList  fracList_sig_0(alpha_0); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
   RooAddPdf   PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
   RooRealVar a2_0("a2_0", "", 0.00, -20, 20);
@@ -3506,6 +3537,14 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
   RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
 
+
+  if(row_number<=3){
+    cout<<"the two peaks are too close (Delta_H<0.15): repeating the fit with only one signal "<<endl; 
+    Delta_H_0.setVal(0.00);
+    alpha_0.setVal(0.00);
+    alpha_0.setConstant(kTRUE);
+  }
+  
   if(do_prefit){
     
     cout<<"___________________________________"<<endl;
@@ -3550,6 +3589,31 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
     fit_results_0=RMN_0.fit("hmrt") ;
   }else{fit_results_0 = model_0.fitTo(ds_0,Save(),Strategy(2),SumW2Error(kFALSE),InitialHesse(true),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
   }
+
+  /*
+    if(row_number<=3){
+    cout<<"the two peaks are too close (Delta_H<0.15): repeating the fit with only one signal "<<endl; 
+    Delta_H_0.setVal(0.00);
+    alpha_0.setVal(0.00);
+    alpha_0.setConstant(kTRUE);
+
+    if(use_NLL){
+      RooAbsReal* nll_model_0 = model_0.createNLL(ds_0_H,Extended(kFALSE)) ;
+      //RooMinimizer RMN_0 = RooMinimizer(*nll_model_0);
+      RooMinimizer RMN_0 (*nll_model_0);
+      RMN_0.setErrorLevel(-1);
+      RMN_0.setVerbose(kFALSE);
+      RMN_0.setPrintEvalErrors(-1);
+      RMN_0.setPrintLevel(MN_output_print_level);
+      RMN_0.setStrategy(2);
+      RMN_0.minimize(Type_minim,Algo_minim);
+      fit_results_0=RMN_0.fit("hmrt") ;
+    }else{fit_results_0 = model_0.fitTo(ds_0,Save(),Strategy(2),SumW2Error(kFALSE),InitialHesse(true),PrintLevel(MN_output_print_level),PrintEvalErrors(-1),Warnings(kFALSE));//,InitialHesse(true));//,Hesse(kFALSE));//,Extended(kFALSE),Verbose(kFALSE));//Minimizer(Type_minim,Algo_minim),);
+    }
+    
+    
+  }
+  */
   
   fit_results_0->Print("v");
   RooPlot* xframe2_0 = x.frame(Title("Fit")) ;
@@ -3648,6 +3712,8 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
   Results.T_Res_L[1]=sigma_L_0.getError();
   Results.frac_L_0[0]=alpha_0.getVal();
   Results.frac_L_0[1]=alpha_0.getError();
+  Results.delta_H_0[0]=Delta_H_0.getVal();
+  Results.delta_H_0[1]=Delta_H_0.getError();
 
 
 
@@ -3662,7 +3728,7 @@ Fit_results_basic basic_fit_PD_data(int fit_model, int column_number, int row_nu
 }
 
 
-void loop_fit_PD_column(int column_number){
+void loop_fit_column(TString input_basefilename, int column_number){
 
   TCanvas *cc = new TCanvas("cc","cc",0,0,1124,500);
   cc->Divide(8,3);
@@ -3674,6 +3740,8 @@ void loop_fit_PD_column(int column_number){
   float err_sigma_L_0[8];
   float frac_L[8];
   float err_frac_L[8];
+  float delta_H[8];
+  float err_delta_H[8];
   TF1 *line_0s = new TF1("line_0s","0",-100,100);line_0s->SetLineColor(8);
   TF1 *line_1ps = new TF1("line_1ps","1",-100,100);line_1ps->SetLineColor(4);
   TF1 *line_1ns = new TF1("line_1ns","-1",-100,100);line_1ns->SetLineColor(4);
@@ -3681,13 +3749,16 @@ void loop_fit_PD_column(int column_number){
   TF1 *line_2ns = new TF1("line_2ns","-2",-100,100);line_2ns->SetLineColor(kOrange-2);
   TF1 *line_3ps = new TF1("line_3ps","3",-100,100);line_3ps->SetLineColor(2);
   TF1 *line_3ns = new TF1("line_3ns","-3",-100,100);line_3ns->SetLineColor(2);
-  
-  TFile *f_result = new TFile(Form("PD_data_fit_results_col_%i.root",column_number),"recreate");
+
+  TString output_filename="";
+  TString out_column=Form("_col_%i.root",column_number);
+  output_filename=input_basefilename+"_fit_results"+out_column;
+  TFile *f_result = new TFile(output_filename,"recreate");
   for(int h=1;h<=8;h++){
     
     x[h-1]=h; err_x[h-1]=0;
     Fit_results_basic my_Results;                        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    my_Results = basic_fit_PD_data(2,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    my_Results = basic_fit_data(input_basefilename,2,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     cc->cd(h);
     my_Results.xframe2_fit_0->Draw() ;
     cc->cd(8+h);gPad->SetLeftMargin(0.15) ; my_Results.xframe2_pull_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); my_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_Results.xframe2_pull_0->Draw() ;
@@ -3703,6 +3774,8 @@ void loop_fit_PD_column(int column_number){
     err_sigma_L_0[h-1]=my_Results.T_Res_L[1];
     frac_L[h-1]=my_Results.frac_L_0[0];
     err_frac_L[h-1]=my_Results.frac_L_0[1];
+    delta_H[h-1]=my_Results.delta_H_0[0];
+    err_delta_H[h-1]=my_Results.delta_H_0[1];
     //cc_MC->cd(); my_Results.h_MC_nominal_lens->SetLineColor(h);my_Results.h_MC_nominal_lens->DrawNormalized("same");
     //cc_MC_ring->cd(); my_Results.h_MC_ring_lens->SetLineColor(h);my_Results.h_MC_ring_lens->DrawNormalized("same");
     
@@ -3768,9 +3841,22 @@ void loop_fit_PD_column(int column_number){
   
         
     TMultiGraph *mg_FRAC_0 = new TMultiGraph();
-    mg_FRAC_0->SetTitle("Time- resolution (#delta t) low time vs Channel");
+    mg_FRAC_0->SetTitle("fraction of low time peak (f_{L}) vs Channel");
     mg_FRAC_0->Add(FRAC_L_0);
    
+
+
+
+    TGraphErrors *DELTA_H_0 = new TGraphErrors(8,x,delta_H,err_x,err_delta_H); DELTA_H_0->SetTitle("#Delta_{H}");
+
+    DELTA_H_0->SetMarkerStyle(20);
+    DELTA_H_0->SetMarkerSize(2);
+    DELTA_H_0->SetMarkerColor(4);
+  
+    TMultiGraph *mg_DELTA_0 = new TMultiGraph();
+    mg_DELTA_0->SetTitle("Time separation between main peaks (#Delta_{H}) vs Channel");
+    mg_DELTA_0->Add(DELTA_H_0);
+
     
     TCanvas* c_frac_pos0 = new TCanvas("c_frac_pos0","c_frac_pos0",0,0,1124,700);
     mg_FRAC_0->Draw("AP");
@@ -3780,9 +3866,21 @@ void loop_fit_PD_column(int column_number){
     gPad->Update();
     gPad->BuildLegend();
 
+
+
+    TCanvas* c_delta_pos0 = new TCanvas("c_delta_pos0","c_delta_pos0",0,0,1124,700);
+    mg_DELTA_0->Draw("AP");
+    gPad->Update();
+    mg_DELTA_0->GetXaxis()->SetTitle("row");
+    mg_DELTA_0->GetYaxis()->SetTitle("#Delta_{H}");
+    gPad->Update();
+    gPad->BuildLegend();
+    
+
     f_result->cd();
     cc->Write();
     c_frac_pos0->Write();
+    c_delta_pos0->Write();
     c_Res_pos0->Write();
     mg_SIGMA_0->Write();
     mg_FRAC_0->Write();

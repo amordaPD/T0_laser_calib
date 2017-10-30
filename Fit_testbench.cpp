@@ -4,8 +4,6 @@ gROOT->ProcessLine(".L Fit_testbench.cpp");
 TString TUNES[2];
 TUNES[0]="75";
 TUNES[1]="50";
-
-
 int COLUMN[4];
 COLUMN[0]=1;
 COLUMN[1]=2;
@@ -1075,15 +1073,12 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
    /*
     TCanvas* c_Fit_0 = new TCanvas(Form("c_Fit_0_col%i_row%i",column_number,row_number),Form("c_Fit_0_col%i_row%i",column_number,row_number));
     xframe2_0->Draw() ;
-
-
     TFile *f_out = new TFile("file_output.root","update");
     f_out->cd();
     c_Fit_0->Write();
     f_out->Close();
     delete f_out;
     
-
     */
   
   }
@@ -1141,7 +1136,6 @@ void loop_fit_column(TString input_basepath, TString input_basefilename, TString
   /*
 To Run:
 gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
-
    */
 
 
@@ -1370,7 +1364,6 @@ void loop_fit_row(TString input_basepath, TString input_basefilename, TString ou
   /*
 To Run:
 gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
-
    */
 
   
@@ -1605,8 +1598,6 @@ gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
 
 
 /*
-
-
 TGraphErrors *tge_res_1 = (TGraphErrors*)_file0->Get("tge_Res_T_H")
 TGraphErrors *tge_res_2 = (TGraphErrors*)_file1->Get("tge_Res_T_H")
 TGraphErrors *tge_res_3 = (TGraphErrors*)_file2->Get("tge_Res_T_H")
@@ -1631,11 +1622,6 @@ tmg->Add(tge_res_4)
 tmg->Draw("AP")
 gPad->BuildLegend()
 gPad->Update()
-
-
-
-
-
 TGraphErrors *tge_T0_1 = (TGraphErrors*)_file0->Get("tge_T0")
 TGraphErrors *tge_T0_2 = (TGraphErrors*)_file1->Get("tge_T0")
 TGraphErrors *tge_T0_3 = (TGraphErrors*)_file2->Get("tge_T0")
@@ -1660,11 +1646,6 @@ tmg->Add(tge_T0_4)
 tmg->Draw("AP")
 gPad->BuildLegend()
 gPad->Update()
-
-
-
-
-
 TGraphErrors *tge_1 = (TGraphErrors*)_file0->Get("tge_Res_T_H")
 TGraphErrors *tge_2 = (TGraphErrors*)_file1->Get("tge_Res_T_H")
 TGraphErrors *tge_3 = (TGraphErrors*)_file2->Get("tge_Res_T_H")
@@ -1864,5 +1845,3 @@ void make_plots_Tune(TString row){
 
   
 }
-
-

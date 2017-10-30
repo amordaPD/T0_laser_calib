@@ -6,7 +6,7 @@ using namespace std;
 #include <TH1F.h>
 #include <TCanvas.h>
 
-void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xmax=30, TString input_path,TString rfile){
+void make_flat_ntuple(int pos,  double amplitude_cut=10, int n_bins=200, float xmin=10., float xmax=30, TString extra_spec_out="",TString input_path,TString rfile){
   TString out_path="flat_ntuples/";
   double Amplitude (99);
   double Time (-999);
@@ -14,7 +14,7 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
   int Channel (-9);
   int NTimes (-9);
   
-  TFile *f_data = new TFile(out_path+rfile+"_out.root","recreate");
+  TFile *f_data = new TFile(out_path+rfile+extra_spec_out+"_out.root","recreate");
   TTree *tree_input = new TTree("tree_input","tree_input");
   tree_input->Branch("Amplitude",&Amplitude,"Amplitude/D");
   tree_input->Branch("Time",&Time,"Time/D");
@@ -42,44 +42,61 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
   tree->SetBranchAddress("times", &(times[0][0]));
   tree->SetBranchAddress("amplitudes", &(amplitudes[0][0]));
 
-  TH1F* htimes_0 = new TH1F(Form("fiber0-%d-0",pos), Form("fiber0-%d-0",pos), 200, xmin, xmax);
-  TH1F* htimes_1 = new TH1F(Form("fiber0-%d-1",pos), Form("fiber0-%d-1",pos), 200, xmin, xmax);
-  TH1F* htimes_2 = new TH1F(Form("fiber0-%d-2",pos), Form("fiber0-%d-2",pos), 200, xmin, xmax);
-  TH1F* htimes_3 = new TH1F(Form("fiber0-%d-3",pos), Form("fiber0-%d-3",pos), 200, xmin, xmax);
-  TH1F* htimes_4 = new TH1F(Form("fiber0-%d-4",pos), Form("fiber0-%d-4",pos), 200, xmin, xmax);
-  TH1F* htimes_5 = new TH1F(Form("fiber0-%d-5",pos), Form("fiber0-%d-5",pos), 200, xmin, xmax);
-  TH1F* htimes_6 = new TH1F(Form("fiber0-%d-6",pos), Form("fiber0-%d-6",pos), 200, xmin, xmax);
-  TH1F* htimes_7 = new TH1F(Form("fiber0-%d-7",pos), Form("fiber0-%d-7",pos), 200, xmin, xmax);
-  TH1F* htimes_8 = new TH1F(Form("fiber0-%d-8",pos), Form("fiber0-%d-8",pos), 200, xmin, xmax);
-  TH1F* htimes_9 = new TH1F(Form("fiber0-%d-9",pos), Form("fiber0-%d-9",pos), 200, xmin, xmax);
-  TH1F* htimes_10 = new TH1F(Form("fiber0-%d-10",pos), Form("fiber0-%d-10",pos), 200, xmin, xmax);
-  TH1F* htimes_11 = new TH1F(Form("fiber0-%d-11",pos), Form("fiber0-%d-11",pos), 200, xmin, xmax);
-  TH1F* htimes_12 = new TH1F(Form("fiber0-%d-12",pos), Form("fiber0-%d-12",pos), 200, xmin, xmax);
-  TH1F* htimes_13 = new TH1F(Form("fiber0-%d-13",pos), Form("fiber0-%d-13",pos), 200, xmin, xmax);
-  TH1F* htimes_14 = new TH1F(Form("fiber0-%d-14",pos), Form("fiber0-%d-14",pos), 200, xmin, xmax);
-  TH1F* htimes_15 = new TH1F(Form("fiber0-%d-15",pos), Form("fiber0-%d-15",pos), 200, xmin, xmax);
+  TH1F* htimes_0 = new TH1F(Form("fiber0-%d-0",pos), Form("fiber0-%d-0",pos), n_bins, xmin, xmax);
+  TH1F* htimes_1 = new TH1F(Form("fiber0-%d-1",pos), Form("fiber0-%d-1",pos), n_bins, xmin, xmax);
+  TH1F* htimes_2 = new TH1F(Form("fiber0-%d-2",pos), Form("fiber0-%d-2",pos), n_bins, xmin, xmax);
+  TH1F* htimes_3 = new TH1F(Form("fiber0-%d-3",pos), Form("fiber0-%d-3",pos), n_bins, xmin, xmax);
+  TH1F* htimes_4 = new TH1F(Form("fiber0-%d-4",pos), Form("fiber0-%d-4",pos), n_bins, xmin, xmax);
+  TH1F* htimes_5 = new TH1F(Form("fiber0-%d-5",pos), Form("fiber0-%d-5",pos), n_bins, xmin, xmax);
+  TH1F* htimes_6 = new TH1F(Form("fiber0-%d-6",pos), Form("fiber0-%d-6",pos), n_bins, xmin, xmax);
+  TH1F* htimes_7 = new TH1F(Form("fiber0-%d-7",pos), Form("fiber0-%d-7",pos), n_bins, xmin, xmax);
+  TH1F* htimes_8 = new TH1F(Form("fiber0-%d-8",pos), Form("fiber0-%d-8",pos), n_bins, xmin, xmax);
+  TH1F* htimes_9 = new TH1F(Form("fiber0-%d-9",pos), Form("fiber0-%d-9",pos), n_bins, xmin, xmax);
+  TH1F* htimes_10 = new TH1F(Form("fiber0-%d-10",pos), Form("fiber0-%d-10",pos), n_bins, xmin, xmax);
+  TH1F* htimes_11 = new TH1F(Form("fiber0-%d-11",pos), Form("fiber0-%d-11",pos), n_bins, xmin, xmax);
+  TH1F* htimes_12 = new TH1F(Form("fiber0-%d-12",pos), Form("fiber0-%d-12",pos), n_bins, xmin, xmax);
+  TH1F* htimes_13 = new TH1F(Form("fiber0-%d-13",pos), Form("fiber0-%d-13",pos), n_bins, xmin, xmax);
+  TH1F* htimes_14 = new TH1F(Form("fiber0-%d-14",pos), Form("fiber0-%d-14",pos), n_bins, xmin, xmax);
+  TH1F* htimes_15 = new TH1F(Form("fiber0-%d-15",pos), Form("fiber0-%d-15",pos), n_bins, xmin, xmax);
+
+  TH2F* htimesamp_0 = new TH2F(Form("fibertA0-%d-0",pos), Form("fibertA0-%d-0",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_1 = new TH2F(Form("fibertA0-%d-1",pos), Form("fibertA0-%d-1",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_2 = new TH2F(Form("fibertA0-%d-2",pos), Form("fibertA0-%d-2",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_3 = new TH2F(Form("fibertA0-%d-3",pos), Form("fibertA0-%d-3",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_4 = new TH2F(Form("fibertA0-%d-4",pos), Form("fibertA0-%d-4",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_5 = new TH2F(Form("fibertA0-%d-5",pos), Form("fibertA0-%d-5",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_6 = new TH2F(Form("fibertA0-%d-6",pos), Form("fibertA0-%d-6",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_7 = new TH2F(Form("fibertA0-%d-7",pos), Form("fibertA0-%d-7",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_8 = new TH2F(Form("fibertA0-%d-8",pos), Form("fibertA0-%d-8",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_9 = new TH2F(Form("fibertA0-%d-9",pos), Form("fibertA0-%d-9",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_10 = new TH2F(Form("fibertA0-%d-10",pos), Form("fibertA0-%d-10",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_11 = new TH2F(Form("fibertA0-%d-11",pos), Form("fibertA0-%d-11",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_12 = new TH2F(Form("fibertA0-%d-12",pos), Form("fibertA0-%d-12",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_13 = new TH2F(Form("fibertA0-%d-13",pos), Form("fibertA0-%d-13",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_14 = new TH2F(Form("fibertA0-%d-14",pos), Form("fibertA0-%d-14",pos), n_bins, xmin, xmax,200,-200,0);
+  TH2F* htimesamp_15 = new TH2F(Form("fibertA0-%d-15",pos), Form("fibertA0-%d-15",pos), n_bins, xmin, xmax,200,-200,0);
 
   for (int k=0; k<tree->GetEntries(); ++k) {
     tree->GetEntry(k);
     for (int l=0; l<nchannels; ++l) {
       for (int j=0; j<ntimes[l]; ++j) {
 	if(amplitudes[l][j]<-amplitude_cut){
-	  if(channels[l]==0) htimes_0->Fill(times[l][j]);
-	  if(channels[l]==1) htimes_1->Fill(times[l][j]);
-	  if(channels[l]==2) htimes_2->Fill(times[l][j]);
-	  if(channels[l]==3) htimes_3->Fill(times[l][j]);
-	  if(channels[l]==4) htimes_4->Fill(times[l][j]);
-	  if(channels[l]==5) htimes_5->Fill(times[l][j]);
-	  if(channels[l]==6) htimes_6->Fill(times[l][j]);
-	  if(channels[l]==7) htimes_7->Fill(times[l][j]);
-	  if(channels[l]==8) htimes_8->Fill(times[l][j]);
-	  if(channels[l]==9) htimes_9->Fill(times[l][j]);
-	  if(channels[l]==10) htimes_10->Fill(times[l][j]);
-	  if(channels[l]==11) htimes_11->Fill(times[l][j]);
-	  if(channels[l]==12) htimes_12->Fill(times[l][j]);
-	  if(channels[l]==13) htimes_13->Fill(times[l][j]);
-	  if(channels[l]==14) htimes_14->Fill(times[l][j]);
-	  if(channels[l]==15) htimes_15->Fill(times[l][j]);
+	  if(channels[l]==0)  {htimes_0->Fill(times[l][j]); htimesamp_0->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==1)  {htimes_1->Fill(times[l][j]); htimesamp_1->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==2)  {htimes_2->Fill(times[l][j]); htimesamp_2->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==3)  {htimes_3->Fill(times[l][j]); htimesamp_3->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==4)  {htimes_4->Fill(times[l][j]); htimesamp_4->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==5)  {htimes_5->Fill(times[l][j]); htimesamp_5->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==6)  {htimes_6->Fill(times[l][j]); htimesamp_6->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==7)  {htimes_7->Fill(times[l][j]); htimesamp_7->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==8)  {htimes_8->Fill(times[l][j]); htimesamp_8->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==9)  {htimes_9->Fill(times[l][j]); htimesamp_9->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==10) {htimes_10->Fill(times[l][j]);htimesamp_10->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==11) {htimes_11->Fill(times[l][j]);htimesamp_11->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==12) {htimes_12->Fill(times[l][j]);htimesamp_12->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==13) {htimes_13->Fill(times[l][j]);htimesamp_13->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==14) {htimes_14->Fill(times[l][j]);htimesamp_14->Fill(times[l][j],amplitudes[l][j]);}
+	  if(channels[l]==15) {htimes_15->Fill(times[l][j]);htimesamp_15->Fill(times[l][j],amplitudes[l][j]);}
 	}
 	Amplitude=amplitudes[l][j];
 	Time=times[l][j];
@@ -110,6 +127,22 @@ void make_flat_ntuple(int pos, double amplitude_cut=10, float xmin=10., float xm
   htimes_13->Write();
   htimes_14->Write();
   htimes_15->Write();
+  htimesamp_0->Write();
+  htimesamp_1->Write();
+  htimesamp_2->Write();
+  htimesamp_3->Write();
+  htimesamp_4->Write();
+  htimesamp_5->Write();
+  htimesamp_6->Write();
+  htimesamp_7->Write();
+  htimesamp_8->Write();
+  htimesamp_9->Write();
+  htimesamp_10->Write();
+  htimesamp_11->Write();
+  htimesamp_12->Write();
+  htimesamp_13->Write();
+  htimesamp_14->Write();
+  htimesamp_15->Write();
   f_data->Close();
   delete f_data;
 
@@ -137,7 +170,7 @@ TH1F* plottimes(const char* rfile, int ch, int pos, double amplitude_cut=10, flo
   tree->SetBranchAddress("times", &(times[0][0]));
   tree->SetBranchAddress("amplitudes", &(amplitudes[0][0]));
 
-  TH1F* htimes = new TH1F(Form("fiber0-%d-%d",pos,ch), Form("fiber0-%d-%d",pos,ch), 200, xmin, xmax);
+  TH1F* htimes = new TH1F(Form("fiber0-%d-%d",pos,ch), Form("fiber0-%d-%d",pos,ch), n_bins, xmin, xmax);
 
   for (int k=0; k<tree->GetEntries(); ++k) {
     tree->GetEntry(k);
@@ -174,7 +207,7 @@ TH1F* plotamp(const char* rfile, int ch, int pos, double amplitude_cut=10, float
   tree->SetBranchAddress("times", &(times[0][0]));
   tree->SetBranchAddress("amplitudes", &(amplitudes[0][0]));
 
-  TH1F* htimes = new TH1F(Form("amp-fiber0-%d-%d",pos,ch), Form("amp-fiber0-%d-%d",pos,ch), 200, xmin, xmax);
+  TH1F* htimes = new TH1F(Form("amp-fiber0-%d-%d",pos,ch), Form("amp-fiber0-%d-%d",pos,ch), n_bins, xmin, xmax);
 
   for (int k=0; k<tree->GetEntries(); ++k) {
     tree->GetEntry(k);

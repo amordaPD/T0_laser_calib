@@ -1,17 +1,4 @@
 ////////TIME CALIBRATION CODE///////****
-/*to run:
-gROOT->ProcessLine(".L Fit_testbench.cpp");
-TString TUNES[2];
-TUNES[0]="75";
-TUNES[1]="50";
-int COLUMN[4];
-COLUMN[0]=1;
-COLUMN[1]=2;
-COLUMN[2]=3;
-COLUMN[3]=4;
-for(int i=0;i<5;i++){for(int j=0;j<4;j++){make_data_histos_column("quarzo-att6-2f-f1-thr--15-T"+TUNES[i]+"-F2000_DAQ_flat",-1,COLUMN[j]);}}
-*/
-
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
 #endif

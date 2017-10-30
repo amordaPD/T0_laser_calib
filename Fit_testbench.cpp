@@ -1,6 +1,3 @@
-//******* TEST GIT COMMIT
-
-
 
 ////////TIME CALIBRATION CODE///////****
 #ifndef __CINT__

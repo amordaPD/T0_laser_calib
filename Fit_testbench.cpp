@@ -1,7 +1,9 @@
-
+////////////////////////////////////////////////
+//////// this is the development code //////////
 ////////////////////////////////////////////////
 ////////////// Author: A. Mordà ////////////////
 ////////////////////////////////////////////////
+
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
 #endif
@@ -205,13 +207,24 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     
     t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
-    //h_temp->Draw();
     Float_t max_bin = h_temp->GetMaximumBin();
     TAxis *xaxis = h_temp->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
-    //cout<< max_pos <<endl;
     TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1.5,upper_bound_hist);
     t_input->Project("h_time",Form("time-%f",max_pos),cut);
+    float mean_tmp = h_time->GetMean();
+    /*
+    if(mean_tmp>0&&my_row>4){
+      h_time->Reset();
+      TH1D *h_tmp_1 = new TH1D("h_tmp_1","Time [ns]",n_bins,0,upper_bound_hist);
+      t_input->Project("h_tmp_1",Form("time-%f-%f",max_pos,mean_tmp),cut);
+      Float_t max_bin_1 = h_tmp_1->GetMaximumBin();
+      TAxis *xaxis_1 = h_tmp_1->GetXaxis(); 
+      Double_t max_pos_1 = xaxis_1->GetBinCenter(max_bin_1);
+      t_input->Project("h_time",Form("time-%f",max_pos_1),cut);
+      delete h_tmp_1;
+    }
+    */
     TH1D *h_amp = new TH1D("h_amp","Max Amplitude [ADC counts]",n_bins,0,300);
     t_input->Project("h_amp","amp",cut);
     /*
@@ -442,7 +455,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TString f_prefix = "PD_";
   if(data_origin=="KEK"){f_prefix = "KEK_";}
   TString input_filename=f_prefix+input_filebasename;
-  input_filename=input_path+input_filename+"_data_histos";
+  input_filename=input_path+input_filename+"_data_histos_test";
   TFile *f = new TFile(input_filename+".root");
   
   for(int i=1;i<=4;i++){

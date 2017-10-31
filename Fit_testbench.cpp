@@ -163,7 +163,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
   
   TString columnID =Form("col_%i",my_column);
 
-  TString of=output_path+data_origin+file_name+slotID+"_data_histos_test.root"; //*******TO BE removed '_test'
+  TString of=output_path+data_origin+file_name+slotID+"_data_histos.root"; 
   TFile *f_data = new TFile(of,out_file_status);
   cout<<"output file created (updating) : "<<of<<endl;
 
@@ -455,7 +455,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TString f_prefix = "PD_";
   if(data_origin=="KEK"){f_prefix = "KEK_";}
   TString input_filename=f_prefix+input_filebasename;
-  input_filename=input_path+input_filename+"_data_histos_test";
+  input_filename=input_path+input_filename+"_data_histos";
   TFile *f = new TFile(input_filename+".root");
   
   for(int i=1;i<=4;i++){

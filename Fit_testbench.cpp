@@ -525,19 +525,19 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   TString input_filename="";
   TString input_column=Form("_col_%i",column_number);
-  input_filename=input_basepath+input_basefilename+"_data_histos"+input_column;
+  input_filename=input_basepath+"PD_"+input_basefilename+"_data_histos_test";
   TFile *f_input = new TFile(input_filename+".root"); //FOR PD data
  
   //TFile *f_input = new TFile(Form("KEK_data_histos_slot_8_col_%i_00049_allchs.root",column_number));
   Int_t pixelID=column_number+64*(row_number-1);
   
-  TH1D* h_time = f_input->Get(Form("histos_%i_%i/h_time",column_number,row_number));
+  TH1D* h_time = f_input->Get(Form("column_%i/histos_%i_%i/h_time",column_number,column_number,row_number));
  
-  TH1D* h_MC_tot = f_input->Get(Form("histos_%i_%i/h_MC_tot",column_number,row_number));
+  TH1D* h_MC_tot = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_tot",column_number,column_number,row_number));
 
-  TH1D* h_MC_tot_ring = f_input->Get(Form("histos_%i_%i/h_MC_ring_tot",column_number,row_number));
+  TH1D* h_MC_tot_ring = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",column_number,column_number,row_number));
  
-  TCanvas *can0 = f_input->Get(Form("histos_%i_%i/c",column_number,row_number));
+  TCanvas *can0 = f_input->Get(Form("column_%i/histos_%i_%i/c",column_number,column_number,row_number));
   can0->Draw();
 
 

@@ -232,6 +232,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
 
     //// THIS IS THE AMPLITUDE HISTOGRAM
     TString variable_amp="";
+    Float_t up_limit_amp =-9999;
     if(my_slot<0){variable_amp="amp"; up_limit_amp =300;}else{variable_amp="valuepeak"; up_limit_amp =2000; }
     TH1D *h_amp = new TH1D("h_amp","Max Amplitude [ADC counts]",n_bins,0,300);
     t_input->Project("h_amp",variable_amp,cut);

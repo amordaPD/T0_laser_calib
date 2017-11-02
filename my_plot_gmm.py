@@ -79,7 +79,7 @@ def plot_1D_results(X, Y_,var,index_one_ph,title):
 
 
 
-run_number = str(sys.argv[1])
+#run_number = str(sys.argv[1])
     
 # Number of samples per componentRead input data
 print("reading input data")
@@ -88,20 +88,20 @@ listtime = []
 listamps = []
 #with open('times_vs_amps.txt', 'r') as f:
 #with open('D:\Padova\TOP\Time_calibration_codes\dati\stabilita-thr--20-T50-F2000-1.txt', 'r') as f:
-with open('dati\long_run_T50.txt', 'r') as f:
+with open('D:\Padova\TOP\Time_calibration_codes\dati\long_run_T50.txt', 'r') as f:
     content = f.readlines()
     content = content[3:-2]
     for x in content:
         row = x.split("*")
-        if(float(row[2])<8 and float(row[2])>6.5):
-            listtime.append(float(row[2]))
-            listamps.append(float(row[3]))
-            listtemp.append(float(row[4]))
+        if(float(row[3])<52.0 and float(row[3])>51.4):
+            listtime.append(float(row[3]))
+            listamps.append(float(row[4]))
+            listtemp.append(float(row[5]))
 print("input data read")
 #print(listtime)
-print("producing scatter matrix")
-inputs = {'amplitude': listamps, ' time ' :  listtime }
-df_inputs = pd.DataFrame(data=inputs)
+#print("producing scatter matrix")
+#inputs = {'amplitude': listamps, ' time ' :  listtime }
+#df_inputs = pd.DataFrame(data=inputs)
 #scatter_matrix(df_inputs, alpha=0.2, figsize=(6, 6), diagonal='kde')
 #plt.show()
 
@@ -109,7 +109,26 @@ df_inputs = pd.DataFrame(data=inputs)
 
 print("initializing input matrix")
 X=np.column_stack((listamps,listtime))
+print(X)
 print("input matrix initialized")
+'''
+print("--------------")
+XY=np.column_stack((listamps,listtime,listtemp))
+print(XY)
+'''
+print("--------------")
+XX=np.column_stack((X,listtemp))
+print(XX)
+
+'''
+questa definizione in due steps (prima X) e poi (XX) dell'insieme di dati è resa necessaria dal fatto che 
+l'algoritmo utilizza tutte le variabili dell'insieme multivariato (X per internderci)
+che gli do come input. Pertanto se io voglio tenere delle variabili spettatrici, 
+devo dapprima definire l'insieme multivariato degli input dell'algoritmo, e quindi appendere
+a questo la variabile spettatrice.
+
+'''
+
 
 
 
@@ -222,18 +241,18 @@ for j in range(0,ncomps):
 
 
 
-if(sys.argv[2]==True):
+if(sys.argv[1]==True):
     print("now plotting results")
     plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixture')
     plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,
              'Bayesian Gaussian Mixture with a Dirichlet process prior')
     plt.show()
 
-if(sys.argv[2]==True):
+if(sys.argv[1]==True):
     plot_1D_results(X, dpgmm.predict(X),0,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
     plt.show()
 
-if(sys.argv[2]==True):
+if(sys.argv[1]==True):
     plot_1D_results(X, dpgmm.predict(X),1,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
     plt.show()
 
@@ -246,14 +265,18 @@ for iterator in range(0,ncomps):
         output.write(str(it)+' '+str(iterator)+ '\n')
 output.close()
 '''
-
-output = open("long_run_T50_out.txt", "w")
+'''
+output = open("dati\long_run_T50_out.txt", "w")
 for iterator in range(0,ncomps):
     for it in X[dpgmm.predict(X) == iterator]:
         output.write(str(it[0])+' '+str(it[1])+' '+str(iterator)+ '\n')
 output.close()
-
-
+'''
+output = open("dati\long_run_T50_out.txt", "w")
+for iterator in range(0,ncomps):
+    for it in XX[dpgmm.predict(X) == iterator]:
+        output.write(str(it[0])+' '+str(it[1])+' '+str(it[2])+' '+str(iterator)+ '\n')
+output.close()
 
 
 

@@ -494,11 +494,8 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
       if(g<=4){
 	pmt_down->cd(canvasID);
 	h[i][g]->Draw();
-	cout<<"test 1"<<endl;
 	h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
-	cout<<"test 2"<<endl;
 	h_MC[i][g]->Draw("same");
-	cout<<"test 3"<<endl;
 	pmts->cd(16+canvasID);
 	h[i][g]->Draw();
 	pmts_amp->cd(16+canvasID);
@@ -513,14 +510,12 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
 	pmts_amp->cd(canvasID);
 	h_amp[i][g]->Draw("same");
       }
-      cout<<"test 4"<<endl;
       h_yield_map->SetBinContent(i,g,h_yields->GetBinContent(g));
     }
     delete h_yields;
   }
   TCanvas *c_map = new TCanvas("pmts_occupancy_"+input_filebasename,"pmts_occupancy_"+input_filebasename);
   h_yield_map->DrawNormalized("colz");
-  cout<<"test 5"<<endl;
   if(save){
     TFile *f_out = new TFile(input_path+input_filebasename+"pmt_plots.root","recreate");
     f_out->cd();
@@ -533,7 +528,6 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
     f_out->Close();
     delete f_out;
   }
-  cout<<"test 6"<<endl;;
   delete h_yield_map;
 }
 

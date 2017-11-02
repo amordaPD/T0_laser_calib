@@ -41,7 +41,7 @@ def plot_results(X, Y_, means, covariances, index, title):
         """
     plt.xlim(30., 300)
     #plt.ylim(57, 59)
-    plt.ylim(6.5, 8)
+    plt.ylim(51,52)
     plt.xlabel('amplitude')
     plt.ylabel('time [ns]')
     plt.legend(loc='best')
@@ -59,7 +59,7 @@ def plot_1D_results(X, Y_,var,index_one_ph,title):
                 continue
             plt.hist(X[Y_ == i, 0],label=(' %i category' % i), range=range_var, bins=200,alpha=0.3)
     if var==1 :
-        range_var=(6.5, 8)#(57,59)
+        range_var=(51, 52)#(57,59)
         variable="time [ns]"
         n, bins, patches = plt.hist(X[Y_ == index_one_ph, 1],label=(' %i category' % index_one_ph), range=range_var, bins=200,alpha=0.3,normed=1)
         (mu, sigma) = norm.fit(X[Y_ == index_one_ph, var])
@@ -93,7 +93,7 @@ with open('D:\Padova\TOP\Time_calibration_codes\dati\long_run_T50.txt', 'r') as 
     content = content[3:-2]
     for x in content:
         row = x.split("*")
-        if(float(row[3])<52.0 and float(row[3])>51.4):
+        if(51 < float(row[3]) and float(row[3])<52.0 and 20 < float(row[4]) and float(row[4]) < 200 ):
             listtime.append(float(row[3]))
             listamps.append(float(row[4]))
             listtemp.append(float(row[5]))
@@ -121,7 +121,7 @@ XX=np.column_stack((X,listtemp))
 print(XX)
 
 '''
-questa definizione in due steps (prima X) e poi (XX) dell'insieme di dati è resa necessaria dal fatto che 
+questa definizione in due steps (prima X) e poi (XX) dell'insieme di dati e' resa necessaria dal fatto che 
 l'algoritmo utilizza tutte le variabili dell'insieme multivariato (X per internderci)
 che gli do come input. Pertanto se io voglio tenere delle variabili spettatrici, 
 devo dapprima definire l'insieme multivariato degli input dell'algoritmo, e quindi appendere
@@ -206,7 +206,7 @@ plt.show()
 
 
 # Fit a Gaussian mixture with EM using five components
-ncomps=9
+ncomps=6
 
 print("doing the fit with simple Gaussian Mixture")
 gmm = mixture.GaussianMixture(n_components=ncomps, covariance_type='full').fit(X)
@@ -239,23 +239,18 @@ for j in range(0,ncomps):
 
 
 
-
-
-if(sys.argv[1]==True):
-    print("now plotting results")
-    plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixture')
-    plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,
+print("now plotting results")
+plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixture')
+plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,
              'Bayesian Gaussian Mixture with a Dirichlet process prior')
-    plt.show()
+plt.show()
+'''
+plot_1D_results(X, dpgmm.predict(X),0,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
+plt.show()
 
-if(sys.argv[1]==True):
-    plot_1D_results(X, dpgmm.predict(X),0,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
-    plt.show()
-
-if(sys.argv[1]==True):
-    plot_1D_results(X, dpgmm.predict(X),1,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
-    plt.show()
-
+plot_1D_results(X, dpgmm.predict(X),1,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
+plt.show()
+'''
 '''
 output = open("file.txt", "w")
 for iterator in range(0,ncomps):
@@ -271,6 +266,7 @@ for iterator in range(0,ncomps):
     for it in X[dpgmm.predict(X) == iterator]:
         output.write(str(it[0])+' '+str(it[1])+' '+str(iterator)+ '\n')
 output.close()
+
 '''
 output = open("dati\long_run_T50_out.txt", "w")
 for iterator in range(0,ncomps):

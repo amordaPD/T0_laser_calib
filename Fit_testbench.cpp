@@ -149,7 +149,9 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     out_file_status="recreate";
   }
 
-
+  int pmt_block=0;
+  my_column=my_column+pmt_block;
+  
 
   /////// INITIALIZING INPUT FILE
   TString inp_f;
@@ -253,7 +255,62 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
   delete f_data;
 }
 
+void  make_KEK_data_histos_column(TString input_path, TString file_name, TString output_path){
 
+  if (input_path=="") input_path="Dati_PD/2.flat_input/";
+  if (output_path=="") output_path="Dati_PD/3.column_data/";
+  
+  TFile *f_input = new TFile(input_path+file_name+".root");
+  TTree *t_input = (TTree*)f_input->Get("laser");
+  TFile *f_output = new TFile(output_path+file_name+"_out.root","recreate");
+  TH1D* h[16][64][8];
+  
+  float time=0;
+  int column=-9;
+  int row=-9;
+  int slot=-9;
+  int quality=-9;
+
+  for(int j=0;j<16;j++){
+    for(int jj=0;jj<64;jj++){
+      for(int jjj=0;jjj<8;jjj++){
+	
+	h[j][jj][jjj] = new TH1D(Form("slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,70,80);
+      }
+    }
+  }
+  cout<<"initialized histograms"<<endl;
+  t_input->SetBranchAddress("time",&time);
+  t_input->SetBranchAddress("column",&column);
+  t_input->SetBranchAddress("row",&row);
+  t_input->SetBranchAddress("slot",&slot);
+  t_input->SetBranchAddress("quality",&quality);
+
+  int nentries=t_input->GetEntries();
+  for (int i=0;i<nentries;i++){
+    t_input->GetEntry(i);
+    //cout<<slot<<"  "<<row<<"  "<<column<<endl;
+    if(quality!=1) continue;
+    h[slot-1][column-1][row-1]->Fill(time);
+  }
+  cout<<"filled histograms"<<endl;
+  f_output->cd();
+  for(int j=0;j<16;j++){
+    for(int jj=0;jj<16;jj++){
+      for(int jjj=0;jjj<16;jjj++){
+	h[j][jj][jjj]->Write();
+      }
+    }
+  }
+  f_output->Write();
+  f_output->Close();
+
+
+
+
+
+  
+}
 
 void  make_MC_histos_column(TString output_path, int my_column){
   if (output_path=="") output_path="Dati_PD/3.column_data/";

@@ -1,4 +1,5 @@
 ////////Code to study SiPM behavior
+////////Author A. Mordà
 
 
 #include "TH1F.h"

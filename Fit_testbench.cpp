@@ -197,7 +197,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
  
     TCut cut ;
     if(my_slot<=0) cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
-    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i",lower_time,upper_time,my_column+49,my_row); //For KEK
+    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i&&slot==%i",lower_time,upper_time,my_column,my_row,my_slot); //For KEK
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
@@ -457,7 +457,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TString f_prefix = "PD_";
   if(data_origin=="KEK"){f_prefix = "KEK_";}
   TString input_filename=f_prefix+input_filebasename;
-  input_filename=input_path+input_filename+"_data_histos";
+  input_filename=input_path+input_filename+"_slot_15_data_histos";
   TFile *f = new TFile(input_filename+".root");
   ////// READ MC INPUTS
   TFile *f_MC = new TFile(input_path+"MC_inputs.root");

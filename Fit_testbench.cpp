@@ -470,8 +470,10 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
     TH1D *h_yields = (TH1D*)f->Get(Form("column_%i/h_yields",i));
     for(int g=1; g<=8;g++){
       if(g<=4){pmt_row=g;} else{pmt_row=g-4;}
+      int row_id_mc=-99;
+      if(data_origin=="PD"){row_id_mc=9-g;}else {row_id_mc=g;}
       h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g));
-      h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",i,i,9-g));
+      h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",i,i,row_id_mc));
       h_amp[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_amp",i,i,g));
       int canvasID=i+4*(4-pmt_row);
       if(g<=4){

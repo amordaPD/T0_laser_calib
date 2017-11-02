@@ -152,7 +152,8 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
 
 
   /////// INITIALIZING INPUT FILE
-  TString inp_f =input_path+file_name+"_DAQ_flat.root";
+  TString inp_f;
+  if(my_slot<0){ inp_f =input_path+file_name+"_DAQ_flat.root";} else {inp_f =input_path+file_name+".root";}
   TFile *file_input = new TFile(inp_f);
   cout<<"input file opened : "<<inp_f<<endl;
   TString tree_input="times"; //For PD  data
@@ -172,10 +173,12 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
   f_data->mkdir(Form("column_%i",my_column));
   f_data->cd(Form("column_%i",my_column));
 
+
+  TH1D *h_yields = new TH1D("h_yields","event yields",8,0,9);
   
   float upper_time;
   float lower_time;
-  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=-10; lower_time=-16;}
+  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=82; lower_time=64;}
   
   int my_pixelID_data=-9; ////////For PD data
   
@@ -314,17 +317,6 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_f7->SetLineColor(7);
     h_MC_f8->SetLineColor(8);
     h_MC_f9->SetLineColor(9);
-    /*h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f5->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f6->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f7->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    */
 
     //////////////////////MC with ring model //////////////////
     TH1D *h_MC_ring_tot = new TH1D ("h_MC_ring_tot","h_MC_ring_tot",n_bins,-1,upper_bound_hist);
@@ -367,17 +359,6 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_ring_f7->SetMarkerStyle(20);
     h_MC_ring_f8->SetMarkerStyle(20);
     h_MC_ring_f9->SetMarkerStyle(20);
-    /*h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f2->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f3->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f4->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f5->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f6->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f7->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    */
     
     TCanvas *c = new TCanvas("c","c");
     h_MC_tot->Draw("same");

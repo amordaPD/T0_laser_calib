@@ -197,7 +197,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
  
     TCut cut ;
     if(my_slot<=0) cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
-    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i&&slot==%i",lower_time,upper_time,my_column,my_row,my_slot); //For KEK
+    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i&&slot==%i",lower_time,upper_time,my_column,g,my_slot); //For KEK
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO

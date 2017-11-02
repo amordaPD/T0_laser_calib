@@ -148,51 +148,41 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     cout<<"ERROR: incorrect kind of output file: recreate or update, output file is being recreated from scretch"<<endl;
     out_file_status="recreate";
   }
-  
-  //TString file_name="quartz-2pmt-waves-T77_out";
-  //if(my_slot>0) file_name="run3730_f00000-f00049_allch-7nsWidth_digits_col1-4";
-  TString tree_input="times"; //For PD  data
-  if(my_slot>0) tree_input="laser"; //For KEK data
-  
+
+
+
+  /////// INITIALIZING INPUT FILE
   TString inp_f =input_path+file_name+"_DAQ_flat.root";
   TFile *file_input = new TFile(inp_f);
   cout<<"input file opened : "<<inp_f<<endl;
+  TString tree_input="times"; //For PD  data
+  if(my_slot>0) tree_input="laser"; //For KEK data
   TTree *t_input = (TTree*)file_input->Get(tree_input);
 
+  /////// INITIALIZING OUTPUT FILE FOR DATA
   TString data_origin="PD_";
   if(my_slot>0) data_origin="KEK_";
   TString slotID = "";
   if(my_slot>0) slotID=Form("_slot_%i",my_slot);
-  
   TString columnID =Form("col_%i",my_column);
-
   TString of=output_path+data_origin+file_name+slotID+"_data_histos.root"; 
   TFile *f_data = new TFile(of,out_file_status);
   cout<<"output file created (updating) : "<<of<<endl;
-
   f_data->cd();
   f_data->mkdir(Form("column_%i",my_column));
   f_data->cd(Form("column_%i",my_column));
 
-
-
   
-  TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
-  TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
-  TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
-  TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
-  TH1D *h_yields = new TH1D("h_yields","event yields",8,0,9);
-
-
+  float upper_time;
+  float lower_time;
+  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=-10; lower_time=-16;}
+  
+  int my_pixelID_data=-9; ////////For PD data
   
   int my_pixelID=-9;
   my_pixelID=my_column;
-  int my_pixelID_data=-9;
-  float upper_time;
-  float lower_time;
   int KEK_PMT=13;
   int my_row=-9;
-  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=-10; lower_time=-16;}
   int index_pmt=0;
   for(int g=1; g<=8;g++){
     if(g>4)index_pmt=1;
@@ -201,22 +191,30 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     if(g<=4){my_row=g;}else{my_row=g-4;}
     my_pixelID_data=(my_column)*4+20*index_pmt-g;///////actualy the readout channel for PD testbench system data
     
-    Float_t upper_bound_hist=2;
-    Int_t n_bins = 200;
-    TH1D *h_temp = new TH1D("h_temp","h_temp",1000,lower_time,upper_time);
+ 
     TCut cut ;
     if(my_slot<=0) cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
-    if(my_slot>0) cut = Form("%f<time&&time<%f&&pmt==13&&column==%i&&row==%i",lower_time,upper_time,my_column+49,my_row); //For KEK
-    
+    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i",lower_time,upper_time,my_column+49,my_row); //For KEK
+
+
+    /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
+    TH1D *h_temp = new TH1D("h_temp","h_temp",1000,lower_time,upper_time);
     t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
     Float_t max_bin = h_temp->GetMaximumBin();
     TAxis *xaxis = h_temp->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
+
+
+    //////// THIS IS THE HISTOGRAM THAT WILL BE FITTED
+    Float_t upper_bound_hist=2;
+    Int_t n_bins = 200;
     TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1.5,upper_bound_hist);
     t_input->Project("h_time",Form("time-%f",max_pos),cut);
-    float mean_tmp = h_time->GetMean();
+    
+    
     /*
+    float mean_tmp = h_time->GetMean();
     if(mean_tmp>0&&my_row>4){
       h_time->Reset();
       TH1D *h_tmp_1 = new TH1D("h_tmp_1","Time [ns]",n_bins,0,upper_bound_hist);
@@ -228,27 +226,58 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
       delete h_tmp_1;
     }
     */
+
+    //// THIS IS THE AMPLITUDE HISTOGRAM
     TH1D *h_amp = new TH1D("h_amp","Max Amplitude [ADC counts]",n_bins,0,300);
     t_input->Project("h_amp","amp",cut);
-    /*
-      Float_t time_sc;
-      Int_t pixelID=-99;
-      Int_t quality=-9;
-      t_input->SetBranchAddress("time",&time_sc);
-      t_input->SetBranchAddress("pixel",&pixelID);
-      t_input->SetBranchAddress("quality",&quality);
-      
-      Int_t n_entries = t_input->GetEntries();
-      for(int i=0; i<n_entries; i++){t_input->GetEntry(i); if(-20<time_sc&&time_sc<0&&quality==1&&pixelID==my_pixelID) {h_time->Fill(time_sc-max_pos);}} 
-      
-      //h_time->Draw("E");
-      */
-    
    
-    TCut cut_MC = Form("propTime<1&&pixel==%i",my_pixelID);
+    f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
+    f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));
+    h_amp->Write();
+    h_time->Write();
+    f_data->cd();
+    delete h_temp;
+    delete h_time;
+    delete h_amp;
+  }
+  f_data->cd(Form("column_%i",my_column));
+  h_yields->Write();
+  f_data->cd();
+  f_data->Close();
+  delete f_data;
+}
+
+
+
+void  make_MC_histos_column(TString output_path, int my_column){
+  if (output_path=="") output_path="Dati_PD/3.column_data/";
+
+
+
+
+  ///////INITIALIZING MC FILES
+  TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
+  TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
+  TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
+  TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
+  
+  /////INITIALIZING output file
+  TFile *f_data = new TFile(output_path+"MC_inputs.root","update");
+  
+  int my_pixelID=-9;
+  my_pixelID=my_column;
+  int my_row=-9;
+  for(int g=1; g<=8;g++){
     
+    my_pixelID=my_column+(g-1)*64;
+   
+    //TCut cut_MC = Form("propTime<1&&column==%i&&row==%i",my_column,g);
+    TCut cut_MC = Form("propTime<1&&pixel==%i",my_pixelID);
     TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
     tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
+
+    int n_bins=200; ///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
+    Float_t upper_bound_hist=2;///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
     
     Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
     TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
@@ -264,7 +293,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
     TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
-    /*    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
+    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
     tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
     tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
     tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
@@ -293,7 +322,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-    */
+   
 
     //////////////////////MC with ring model //////////////////
     TH1D *h_MC_ring_tot = new TH1D ("h_MC_ring_tot","h_MC_ring_tot",n_bins,-1,upper_bound_hist);
@@ -307,7 +336,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     TH1D *h_MC_ring_f7 = new TH1D ("h_MC_ring_f7","h_MC_ring_f7",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_ring_f8 = new TH1D ("h_MC_ring_f8","h_MC_ring_f8",n_bins,-1,upper_bound_hist);  
     TH1D *h_MC_ring_f9 = new TH1D ("h_MC_ring_f9","h_MC_ring_f9",n_bins,-1,upper_bound_hist);
-    /*    tree_MC_ring->Project("h_MC_ring_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
+    tree_MC_ring->Project("h_MC_ring_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
     tree_MC_ring->Project("h_MC_ring_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
     tree_MC_ring->Project("h_MC_ring_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
     tree_MC_ring->Project("h_MC_ring_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
@@ -346,7 +375,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    */
+    
     
     TCanvas *c = new TCanvas("c","c");
     h_time->Draw("E");
@@ -360,25 +389,11 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     h_MC_f7->Draw("same");
     h_MC_f8->Draw("same");
     h_MC_f9->Draw("same");
-    /*
-    h_MC_ring_tot->Draw("same");
-    h_MC_ring_f1->Draw("same");
-    h_MC_ring_f2->Draw("same");
-    h_MC_ring_f3->Draw("same");
-    h_MC_ring_f4->Draw("same");
-    h_MC_ring_f5->Draw("same");
-    h_MC_ring_f6->Draw("same");
-    h_MC_ring_f7->Draw("same");
-    h_MC_ring_f8->Draw("same");
-    h_MC_ring_f9->Draw("same");
-    */
   
-    
-    
+  
+       
     f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
-    f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));
-    h_amp->Write();
-    h_time->Write();
+    f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));  
     h_MC_tot->Write();
     h_MC_f1->Write();
     h_MC_f2->Write();
@@ -401,9 +416,6 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     h_MC_ring_f9->Write();
     c->Write();
     f_data->cd();
-    delete h_temp;
-    delete h_time;
-    delete h_amp;
     delete h_MC_tot;
     delete h_MC_tot_temp;
     delete h_MC_f1;
@@ -428,7 +440,6 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     delete c;
   }
   f_data->cd(Form("column_%i",my_column));
-  h_yields->Write();
   f_data->cd();
   f_data->Close();
   delete f_data;
@@ -512,13 +523,17 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
 
 
 Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int column_number, int row_number){
+  Fit_results_basic Results;
+  if(fit_model_d>4||fit_model_r>4){cout<<"invalid model specified, execution stopped"<<endl; return Results;}
+
+  
   if (input_basepath=="") input_basepath="Dati_PD/3.column_data/";
   
   //gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_PD_column(1); > ee.log
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
-  Fit_results_basic Results;
+
   bool change_model = true;
   gROOT->ProcessLine(".x myRooPdfs/RooExpGauss.cxx+") ;
   gROOT->ProcessLine(".x myRooPdfs/RooAsymGauss.cxx+") ;
@@ -560,7 +575,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   int  fiber_position_calibration_peak=0;
   bool fit_real_FiberCombs_data=true;
   int  bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=false;
+  bool add_background_component=true;
   int  amplitude_cut = -40;
   
   bool suppress_negligible_first_peak=false;

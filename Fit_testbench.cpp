@@ -260,15 +260,17 @@ void  make_MC_histos_column(TString output_path, int my_column){
   TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
   TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
   TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
-  
+  cout<<"input files initialized "<<endl;
   /////INITIALIZING output file
   TFile *f_data = new TFile(output_path+"MC_inputs.root","update");
-  
+  cout<<"output file initialized "<<endl;
+
+  cout<<"doing column "<< my_column<<endl;
   int my_pixelID=-9;
   my_pixelID=my_column;
   int my_row=-9;
   for(int g=1; g<=8;g++){
-    
+    cout<<"doing row "<<g<<endl;
     my_pixelID=my_column+(g-1)*64;
    
     //TCut cut_MC = Form("propTime<1&&column==%i&&row==%i",my_column,g);
@@ -312,7 +314,7 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_f7->SetLineColor(7);
     h_MC_f8->SetLineColor(8);
     h_MC_f9->SetLineColor(9);
-    h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
+    /*h_MC_f1->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f2->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f3->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f4->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
@@ -322,7 +324,7 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_f8->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_f9->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
     h_MC_tot->Scale(h_time->GetMaximum()/h_MC_tot->GetMaximum());
-   
+    */
 
     //////////////////////MC with ring model //////////////////
     TH1D *h_MC_ring_tot = new TH1D ("h_MC_ring_tot","h_MC_ring_tot",n_bins,-1,upper_bound_hist);
@@ -365,7 +367,7 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_ring_f7->SetMarkerStyle(20);
     h_MC_ring_f8->SetMarkerStyle(20);
     h_MC_ring_f9->SetMarkerStyle(20);
-    h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
+    /*h_MC_ring_f1->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_f2->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_f3->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_f4->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
@@ -375,10 +377,9 @@ void  make_MC_histos_column(TString output_path, int my_column){
     h_MC_ring_f8->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_f9->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
     h_MC_ring_tot->Scale(h_time->GetMaximum()/h_MC_ring_tot->GetMaximum());
-    
+    */
     
     TCanvas *c = new TCanvas("c","c");
-    h_time->Draw("E");
     h_MC_tot->Draw("same");
     h_MC_f1->Draw("same");
     h_MC_f2->Draw("same");

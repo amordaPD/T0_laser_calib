@@ -311,9 +311,9 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
   int my_column=-9;
   my_column=pmt_column+(pmt_pos-1)*4;
   ///////INITIALIZING MC FILES
-  TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
+  TFile *file_input_MC = new TFile("Dati_PD/1.raw_input/ana_laser_s01_0reso_500k.root");
   TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
-  TFile *file_input_MC_ring = new TFile("ana_laser_s01_0reso_ring_500k.root");
+  TFile *file_input_MC_ring = new TFile("Dati_PD/1.raw_input/ana_laser_s01_0reso_ring_500k.root");
   TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
   cout<<"input files initialized "<<endl;
   /////INITIALIZING output file
@@ -510,6 +510,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
   TFile *f_MC = new TFile(input_path+"MC_inputs.root");
   int MC_row=-99;
   TH1D* h_MC[5][9];
+  TH1D* h_MC_ring[5][9];
 
   
   for(int i=1;i<=4;i++){
@@ -523,13 +524,20 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
       MC_column=i+(pmt_pos-1)*4;
       h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g));
       h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",MC_column,MC_column,row_id_mc));
+      h_MC_ring[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",MC_column,MC_column,row_id_mc));
       h_amp[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_amp",i,i,g));
       int canvasID=i+4*(4-pmt_row);
       if(g<=4){
 	pmt_down->cd(canvasID);
 	h[i][g]->Draw();
 	h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
+	h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
+	h_MC_ring[i][g]->SetLineColor(2);
+	h_MC_ring[i][g]->SetMarkerSize(0);
+	h_MC_ring[i][g]->SetMarkerColor(2);
 	h_MC[i][g]->Draw("same");
+	h_MC_ring[i][g]->Draw("same");
+	gPad->BuildLegend();
 	pmts->cd(16+canvasID);
 	h[i][g]->Draw();
 	pmts_amp->cd(16+canvasID);
@@ -538,7 +546,13 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
 	pmt_up->cd(canvasID);
 	h[i][g]->Draw();
 	h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
-	h_MC[i][g]->Draw("same");	
+	h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
+	h_MC[i][g]->Draw("same");
+	h_MC_ring[i][g]->SetLineColor(2);
+	h_MC_ring[i][g]->SetMarkerSize(0);
+	h_MC_ring[i][g]->SetMarkerColor(2);
+	h_MC_ring[i][g]->Draw("same");	
+	gPad->BuildLegend();
 	pmts->cd(canvasID);
 	h[i][g]->Draw();
 	pmts_amp->cd(canvasID);
@@ -558,6 +572,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
     pmts->Write();
     pmt_up->Write();
     pmt_down->Write();
+    h_yield_map->Write();
     f_out->cd();
     f_out->Close();
     delete f_out;

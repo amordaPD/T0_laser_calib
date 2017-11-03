@@ -93,7 +93,7 @@ with open('D:\Padova\TOP\Time_calibration_codes\dati\long_run_T50.txt', 'r') as 
     content = content[3:-2]
     for x in content:
         row = x.split("*")
-        if(51 < float(row[3]) and float(row[3])<52.0 and 20 < float(row[4]) and float(row[4]) < 200 ):
+        if(51.2 < float(row[3]) and float(row[3])<51.7 and 0 < float(row[4]) and float(row[4]) < 400 ):
             listtime.append(float(row[3]))
             listamps.append(float(row[4]))
             listtemp.append(float(row[5]))
@@ -206,7 +206,7 @@ plt.show()
 
 
 # Fit a Gaussian mixture with EM using five components
-ncomps=6
+ncomps=9
 
 print("doing the fit with simple Gaussian Mixture")
 gmm = mixture.GaussianMixture(n_components=ncomps, covariance_type='full').fit(X)

@@ -482,7 +482,7 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
 
 
 
-void make_pmt_plots(TString input_path, TString input_filebasename, TString data_origin, int pmt_pos){
+void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos){
 
   bool save = true;
   if (input_path=="") input_path="Dati_PD/3.column_data/";
@@ -503,8 +503,6 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
 
 
   /////// READ INPUT DATA
-  TString f_prefix = "PD_";
-  if(data_origin=="KEK"){f_prefix = "KEK_";}
   TString input_filename=input_filebasename;
   input_filename=input_path+input_filename+"_data_histos";
   TFile *f = new TFile(input_filename+".root");
@@ -520,8 +518,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
     TH1D *h_yields = (TH1D*)f->Get(Form("column_%i/h_yields",i));
     for(int g=1; g<=8;g++){
       if(g<=4){pmt_row=g;} else{pmt_row=g-4;}
-      int row_id_mc=-99;
-      row_id_mc=9-g;
+      int row_id_mc=9-g;
       int MC_column=0;
       MC_column=i+(pmt_pos-1)*4;
       h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g));
@@ -573,7 +570,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
 
 
 
-Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int column_number, int row_number){
+Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int pmt_pos, int column_number, int row_number){
   Fit_results_basic Results;
   if(fit_model_d>4||fit_model_r>4){cout<<"invalid model specified, execution stopped"<<endl; return Results;}
 
@@ -591,17 +588,18 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   TString input_filename="";
   TString input_column=Form("_col_%i",column_number);
-  input_filename=input_basepath+"PD_"+input_basefilename+"_data_histos_test";
+  input_filename=input_basepath+input_basefilename+"_data_histos";
   TFile *f_input = new TFile(input_filename+".root"); //FOR PD data
  
   //TFile *f_input = new TFile(Form("KEK_data_histos_slot_8_col_%i_00049_allchs.root",column_number));
   Int_t pixelID=column_number+64*(row_number-1);
   
   TH1D* h_time = f_input->Get(Form("column_%i/histos_%i_%i/h_time",column_number,column_number,row_number));
- 
-  TH1D* h_MC_tot = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_tot",column_number,column_number,row_number));
 
-  TH1D* h_MC_tot_ring = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",column_number,column_number,row_number));
+  int column_number_MC=column_number+(pmt_pos-1)*4;
+  TH1D* h_MC_tot = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_tot",column_number_MC,column_number_MC,row_number));
+
+  TH1D* h_MC_tot_ring = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",column_number_MC,column_number_MC,row_number));
  
   TCanvas *can0 = f_input->Get(Form("column_%i/histos_%i_%i/c",column_number,column_number,row_number));
   can0->Draw();

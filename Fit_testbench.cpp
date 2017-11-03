@@ -61,10 +61,8 @@ struct Fit_results_basic{
   
 };
 
-void run_data_production(TString input_raw_name="", int my_slot=-99){
-
+void run_data_production(TString input_raw_name=""){
   TString file_origin="PD";
-  if(my_slot>0){file_origin=="KEK";}
 
   /*cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
   cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
@@ -73,7 +71,7 @@ void run_data_production(TString input_raw_name="", int my_slot=-99){
   for(int i=1;i<=4;i++){
     TString file_kind='';
     if(i==1){file_kind="recreate";}else{file_kind="update";}
-    make_data_histos_column("",input_raw_name,"",file_kind,my_slot,i);
+    make_PD_data_histos_column("",input_raw_name,"",file_kind,i);
   }
   
   cout<<"PRODUCING PMT SPECTRA"<<endl;
@@ -141,7 +139,7 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
 
 
 
-void  make_data_histos_column(TString input_path, TString file_name, TString output_path, TString out_file_status, int my_slot, int my_column){
+void  make_PD_data_histos_column(TString input_path, TString file_name, TString output_path, TString out_file_status, int my_column){
   if (input_path=="") input_path="Dati_PD/2.flat_input/";
   if (output_path=="") output_path="Dati_PD/3.column_data/";
   if(out_file_status!="recreate"&& out_file_status!="update"){
@@ -149,26 +147,16 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     out_file_status="recreate";
   }
 
-  int pmt_block=0;
-  my_column=my_column+pmt_block;
-  
-
   /////// INITIALIZING INPUT FILE
-  TString inp_f;
-  if(my_slot<0){ inp_f =input_path+file_name+"_DAQ_flat.root";} else {inp_f =input_path+file_name+".root";}
+  TString inp_f =input_path+file_name+"_DAQ_flat.root";
   TFile *file_input = new TFile(inp_f);
   cout<<"input file opened : "<<inp_f<<endl;
-  TString tree_input="times"; //For PD  data
-  if(my_slot>0) tree_input="laser"; //For KEK data
+  TString tree_input="times"; 
   TTree *t_input = (TTree*)file_input->Get(tree_input);
 
   /////// INITIALIZING OUTPUT FILE FOR DATA
-  TString data_origin="PD_";
-  if(my_slot>0) data_origin="KEK_";
-  TString slotID = "";
-  if(my_slot>0) slotID=Form("_slot_%i",my_slot);
   TString columnID =Form("col_%i",my_column);
-  TString of=output_path+data_origin+file_name+slotID+"_data_histos.root"; 
+  TString of=output_path+file_name+"_data_histos.root"; 
   TFile *f_data = new TFile(of,out_file_status);
   cout<<"output file created (updating) : "<<of<<endl;
   f_data->cd();
@@ -180,7 +168,7 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
   
   float upper_time;
   float lower_time;
-  if(my_slot<=0){upper_time=100; lower_time=0;}else{upper_time=82; lower_time=64;}
+  upper_time=100; lower_time=0;
   
   int my_pixelID_data=-9; ////////For PD data
   
@@ -190,16 +178,15 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
   int my_row=-9;
   int index_pmt=0;
   for(int g=1; g<=8;g++){
-    if(g>4)index_pmt=1;
     cout<<"doing "<<g<<"th row"<<endl;
+    if(g>4)index_pmt=1;
     my_pixelID=my_column;
     if(g<=4){my_row=g;}else{my_row=g-4;}
-    my_pixelID_data=(my_column)*4+20*index_pmt-g;///////actualy the readout channel for PD testbench system data
+    my_pixelID_data=(my_column)*4+20*index_pmt-g;///////actually the readout channel for PD testbench system data
     
  
-    TCut cut ;
-    if(my_slot<=0) cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
-    if(my_slot>0) cut = Form("%f<time&&time<%f&&column==%i&&row==%i&&slot==%i",lower_time,upper_time,my_column,g,my_slot); //For KEK
+    TCut cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
+
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
@@ -233,9 +220,8 @@ void  make_data_histos_column(TString input_path, TString file_name, TString out
     */
 
     //// THIS IS THE AMPLITUDE HISTOGRAM
-    TString variable_amp="";
-    Float_t up_limit_amp =-9999;
-    if(my_slot<0){variable_amp="amp"; up_limit_amp =300;}else{variable_amp="valuepeak"; up_limit_amp =2000; }
+    TString variable_amp="amp";
+    Float_t up_limit_amp =300;
     TH1D *h_amp = new TH1D("h_amp","Max Amplitude [ADC counts]",n_bins,0,300);
     t_input->Project("h_amp",variable_amp,cut);
    
@@ -264,23 +250,26 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
   TTree *t_input = (TTree*)f_input->Get("laser");
   TFile *f_output = new TFile(output_path+file_name+"_out.root","recreate");
   TH1D* h[16][64][8];
-  
-  float time=0;
-  int column=-9;
-  int row=-9;
-  int slot=-9;
-  int quality=-9;
+  TH1D* h_amp[16][64][8];
 
   for(int j=0;j<16;j++){
     for(int jj=0;jj<64;jj++){
       for(int jjj=0;jjj<8;jjj++){
-	
-	h[j][jj][jjj] = new TH1D(Form("slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,70,80);
+	h[j][jj][jjj] = new TH1D(Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,75,85);
+	h_amp[j][jj][jjj] = new TH1D(Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),1000,0,1000);
       }
     }
   }
   cout<<"initialized histograms"<<endl;
+    
+  float time=0;
+  int valuepeak=0;
+  int column=-9;
+  int row=-9;
+  int slot=-9;
+  int quality=-9;
   t_input->SetBranchAddress("time",&time);
+  t_input->SetBranchAddress("valuepeak",&valuepeak);
   t_input->SetBranchAddress("column",&column);
   t_input->SetBranchAddress("row",&row);
   t_input->SetBranchAddress("slot",&slot);
@@ -288,17 +277,22 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
 
   int nentries=t_input->GetEntries();
   for (int i=0;i<nentries;i++){
+    if(i%1000000==0)cout<<i<<endl;
     t_input->GetEntry(i);
-    //cout<<slot<<"  "<<row<<"  "<<column<<endl;
     if(quality!=1) continue;
     h[slot-1][column-1][row-1]->Fill(time);
+    h_amp[slot-1][column-1][row-1]->Fill(valuepeak);
   }
   cout<<"filled histograms"<<endl;
+  cout<<"now writing histograms"<<endl;
   f_output->cd();
   for(int j=0;j<16;j++){
+    f_output->mkdir(Form("slot_%i",j));
+    f_output->cd(Form("slot_%i",j));
     for(int jj=0;jj<16;jj++){
       for(int jjj=0;jjj<16;jjj++){
 	h[j][jj][jjj]->Write();
+	h_amp[j][jj][jjj]->Write();
       }
     }
   }
@@ -306,18 +300,16 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
   f_output->Close();
 
 
-
-
-
   
 }
 
-void  make_MC_histos_column(TString output_path, int my_column){
+void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
   if (output_path=="") output_path="Dati_PD/3.column_data/";
 
 
 
-
+  int my_column=-9;
+  my_column=pmt_column+(pmt_pos-1)*4;
   ///////INITIALIZING MC FILES
   TFile *file_input_MC = new TFile("ana_laser_s01_0reso_500k.root");
   TTree *tree_MC = (TTree*)file_input_MC->Get("laser");
@@ -341,8 +333,8 @@ void  make_MC_histos_column(TString output_path, int my_column){
     TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
     tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
 
-    int n_bins=200; ///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
-    Float_t upper_bound_hist=2;///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
+    int n_bins=200; ///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_PD_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
+    Float_t upper_bound_hist=2;///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_PD_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
     
     Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
     TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
@@ -490,7 +482,7 @@ void  make_MC_histos_column(TString output_path, int my_column){
 
 
 
-void make_pmt_plots(TString input_path, TString input_filebasename, TString data_origin){
+void make_pmt_plots(TString input_path, TString input_filebasename, TString data_origin, int pmt_pos){
 
   bool save = true;
   if (input_path=="") input_path="Dati_PD/3.column_data/";
@@ -514,7 +506,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TString f_prefix = "PD_";
   if(data_origin=="KEK"){f_prefix = "KEK_";}
   TString input_filename=f_prefix+input_filebasename;
-  input_filename=input_path+input_filename+"_slot_15_data_histos";
+  input_filename=input_path+input_filename+"_data_histos";
   TFile *f = new TFile(input_filename+".root");
   ////// READ MC INPUTS
   TFile *f_MC = new TFile(input_path+"MC_inputs.root");
@@ -529,9 +521,11 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
     for(int g=1; g<=8;g++){
       if(g<=4){pmt_row=g;} else{pmt_row=g-4;}
       int row_id_mc=-99;
-      if(data_origin=="PD"){row_id_mc=9-g;}else {row_id_mc=g;}
+      row_id_mc=9-g;
+      int MC_column=0;
+      MC_column=i+(pmt_pos-1)*4;
       h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g));
-      h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",i,i,row_id_mc));
+      h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",MC_column,MC_column,row_id_mc));
       h_amp[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_amp",i,i,g));
       int canvasID=i+4*(4-pmt_row);
       if(g<=4){
@@ -560,7 +554,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TCanvas *c_map = new TCanvas("pmts_occupancy_"+input_filebasename,"pmts_occupancy_"+input_filebasename);
   h_yield_map->DrawNormalized("colz");
   if(save){
-    TFile *f_out = new TFile(input_path+input_filebasename+"pmt_plots.root","recreate");
+    TFile *f_out = new TFile(input_path+input_filebasename+Form("pmt_pos%i_plots.root",pmt_pos),"recreate");
     f_out->cd();
     c_map->Write();
     pmts_amp->Write();

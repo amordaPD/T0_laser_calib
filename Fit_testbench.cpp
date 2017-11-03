@@ -346,7 +346,7 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
     TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",n_bins,-1,upper_bound_hist);  
+    TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
     TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
     TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
@@ -505,7 +505,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   /////// READ INPUT DATA
   TString f_prefix = "PD_";
   if(data_origin=="KEK"){f_prefix = "KEK_";}
-  TString input_filename=f_prefix+input_filebasename;
+  TString input_filename=input_filebasename;
   input_filename=input_path+input_filename+"_data_histos";
   TFile *f = new TFile(input_filename+".root");
   ////// READ MC INPUTS
@@ -554,7 +554,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, TString data
   TCanvas *c_map = new TCanvas("pmts_occupancy_"+input_filebasename,"pmts_occupancy_"+input_filebasename);
   h_yield_map->DrawNormalized("colz");
   if(save){
-    TFile *f_out = new TFile(input_path+input_filebasename+Form("pmt_pos%i_plots.root",pmt_pos),"recreate");
+    TFile *f_out = new TFile(input_path+input_filebasename+Form("_pmt_pos%i_plots.root",pmt_pos),"recreate");
     f_out->cd();
     c_map->Write();
     pmts_amp->Write();

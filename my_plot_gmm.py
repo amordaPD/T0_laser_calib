@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd 
 from pandas.plotting import scatter_matrix
+from matplotlib.colors import LogNorm
 
 from sklearn import mixture
 
@@ -116,6 +117,13 @@ print("input data read")
 print("initializing input matrix")
 X=np.column_stack((listamps,listtime))
 print(X)
+print("Drawing time-amp pattern")
+
+h_fig, h=plt.subplots()
+h.hist2d(listamps,listtime, range=([0,400],[51.2,51.7]), bins=(500,500), norm=LogNorm())
+h.set_xlabel('amplitude [ADC counts]')
+h.set_ylabel('time [ns]')
+plt.show()
 print("input matrix initialized")
 '''
 print("--------------")
@@ -230,6 +238,7 @@ print("#######################")
 
 # Fit a Dirichlet process Gaussian mixture using five components
 print("doing the fit with Bayes Gaussian Mixture")
+#dpgmm = mixture.BayesianGaussianMixture(n_components=ncomps,covariance_type='full',init_params='kmeans').fit(X)
 dpgmm = mixture.BayesianGaussianMixture(n_components=ncomps,covariance_type='full',init_params='kmeans').fit(X)
 print("measured means")
 print(dpgmm.means_)

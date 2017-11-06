@@ -65,9 +65,9 @@ struct Fit_results_basic{
 void run_data_production(TString input_raw_name=""){
   TString file_origin="PD";
 
-  /*cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
+  cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
   cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
-  */
+  
   cout<<"PRODUCING HISTOGRAMS FOR FITTING"<<endl;
   for(int i=1;i<=4;i++){
     TString file_kind='';
@@ -76,7 +76,7 @@ void run_data_production(TString input_raw_name=""){
   }
   
   cout<<"PRODUCING PMT SPECTRA"<<endl;
-  make_pmt_plots("",input_raw_name,file_origin);
+  make_pmt_plots("",input_raw_name,3);
   
 }
 

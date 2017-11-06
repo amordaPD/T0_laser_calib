@@ -48,14 +48,13 @@ void make_plots_scan() {
   TH1D *h_5 = new TH1D("h_5","h_5",n_bin,t_min,t_max);;
   TH1D *h_6 = new TH1D("h_6","h_6",n_bin,t_min,t_max);;
   TH1D *h_7 = new TH1D("h_7","h_7",n_bin,t_min,t_max);;
-  /*  TH1D *h_8 = new TH1D("h_8","h_8",150,7.2,7.6);;
-      TH1D *h_9 = new TH1D("h_all","h_all",150,7.2,7.6);;
-  */
 
   TCut single_photon="20<amps&&amps<40";
   TCut double_photon="50<amps&&amps<68";
   TCut triple_photon="75<amps&&amps<100";
-  TCut cut_photon=double_photon;
+  TCut four_photon="106<amps&&amps<126";
+  TCut five_photon="136<amps&&amps<162";
+  TCut cut_photon=four_photon;
   float temps[8];
   for(int gg=0;gg<8;gg++){
     temps[gg]=23.0+(4/7.0)*gg;
@@ -144,10 +143,10 @@ void make_plots_scan() {
   FRAC->GetXaxis()->SetTitle("temperature [C°]");
   FRAC->Draw("AP");
 
-  TH1D *h_t_all_temp = new TH1D("h_t_all_temp","Detection time distribution for 2 photon events",n_bin,t_min,t_max);
+  TH1D *h_t_all_temp = new TH1D("h_t_all_temp","Detection time distribution for 4 photon events",n_bin,t_min,t_max);
   h_t_all_temp->GetXaxis()->SetTitle("time [ns]");
   h_t_all_temp->GetYaxis()->SetTitle("A.U.");
-  TH1D *h_t_all_temp_corr = new TH1D("h_t_all_temp_corr","Detection time for 2 photon events, corrected",n_bin,t_min,t_max);
+  TH1D *h_t_all_temp_corr = new TH1D("h_t_all_temp_corr","Detection time for 4 photon events, corrected",n_bin,t_min,t_max);
   h_t_all_temp_corr->GetXaxis()->SetTitle("time [ns]");
   h_t_all_temp_corr->GetYaxis()->SetTitle("A.U.");
   
@@ -160,169 +159,11 @@ void make_plots_scan() {
   h_t_all_temp_corr->SetLineColor(4);
   c_temp->cd(4);
   h_t_all_temp_corr->DrawNormalized();
-  h_t_all_temp_corr->Fit("gaus","","",51.3,51.6);
+  h_t_all_temp_corr->Fit("gaus","","",51.3,51.52);
   c_temp->cd(3);
   h_t_all_temp->DrawNormalized();
-  h_t_all_temp->Fit("gaus","","",51.2,51.55);
+  h_t_all_temp->Fit("gaus","","",51.2,51.52);
   
- 
-  /////////////////////////////////
-  ////// Amplitude studies ////////
-  /////////////////////////////////
 
-  TH1D *h_amp_1p_1 = new TH1D("h_amp_1p_1","h_amp_1p_1",150,20,37);;
-  TH1D *h_amp_1p_2 = new TH1D("h_amp_1p_2","h_amp_1p_2",150,20,37);;
-  TH1D *h_amp_1p_3 = new TH1D("h_amp_1p_3","h_amp_1p_3",150,20,37);;
-  TH1D *h_amp_1p_4 = new TH1D("h_amp_1p_4","h_amp_1p_4",150,20,37);;
-  TH1D *h_amp_1p_5 = new TH1D("h_amp_1p_5","h_amp_1p_5",150,20,37);;
-  TH1D *h_amp_1p_6 = new TH1D("h_amp_1p_6","h_amp_1p_6",150,20,37);;
-  TH1D *h_amp_1p_7 = new TH1D("h_amp_1p_7","h_amp_1p_7",150,20,37);;
-
-  t->Project("h_amp_1p_1","amps",single_photon&&temp_cut[0]);
-  t->Project("h_amp_1p_2","amps",single_photon&&temp_cut[1]);
-  t->Project("h_amp_1p_3","amps",single_photon&&temp_cut[2]);
-  t->Project("h_amp_1p_4","amps",single_photon&&temp_cut[3]);
-  t->Project("h_amp_1p_5","amps",single_photon&&temp_cut[4]);
-  t->Project("h_amp_1p_6","amps",single_photon&&temp_cut[5]);
-  t->Project("h_amp_1p_7","amps",single_photon&&temp_cut[6]);
-  
-  ;
-  TH1D *h_amp_2p_1 = new TH1D("h_amp_2p_1","h_amp_2p_1",150,50,68);;
-  TH1D *h_amp_2p_2 = new TH1D("h_amp_2p_2","h_amp_2p_2",150,50,68);;
-  TH1D *h_amp_2p_3 = new TH1D("h_amp_2p_3","h_amp_2p_3",150,50,68);;
-  TH1D *h_amp_2p_4 = new TH1D("h_amp_2p_4","h_amp_2p_4",150,50,68);;
-  TH1D *h_amp_2p_5 = new TH1D("h_amp_2p_5","h_amp_2p_5",150,50,68);;
-  TH1D *h_amp_2p_6 = new TH1D("h_amp_2p_6","h_amp_2p_6",150,50,68);;
-  TH1D *h_amp_2p_7 = new TH1D("h_amp_2p_7","h_amp_2p_7",150,50,68);;
-
-
-  t->Project("h_amp_2p_1","amps",double_photon&&temp_cut[0]);
-  t->Project("h_amp_2p_2","amps",double_photon&&temp_cut[1]);
-  t->Project("h_amp_2p_3","amps",double_photon&&temp_cut[2]);
-  t->Project("h_amp_2p_4","amps",double_photon&&temp_cut[3]);
-  t->Project("h_amp_2p_5","amps",double_photon&&temp_cut[4]);
-  t->Project("h_amp_2p_6","amps",double_photon&&temp_cut[5]);
-  t->Project("h_amp_2p_7","amps",double_photon&&temp_cut[6]);
-
-  TH1D *h_amp_3p_1 = new TH1D("h_amp_3p_1","h_amp_3p_1",150,75,100);;
-  TH1D *h_amp_3p_2 = new TH1D("h_amp_3p_2","h_amp_3p_2",150,75,100);;
-  TH1D *h_amp_3p_3 = new TH1D("h_amp_3p_3","h_amp_3p_3",150,75,100);;
-  TH1D *h_amp_3p_4 = new TH1D("h_amp_3p_4","h_amp_3p_4",150,75,100);;
-  TH1D *h_amp_3p_5 = new TH1D("h_amp_3p_5","h_amp_3p_5",150,75,100);;
-  TH1D *h_amp_3p_6 = new TH1D("h_amp_3p_6","h_amp_3p_6",150,75,100);;
-  TH1D *h_amp_3p_7 = new TH1D("h_amp_3p_7","h_amp_3p_7",150,75,100);;
-
-
-  t->Project("h_amp_3p_1","amps",triple_photon&&temp_cut[0]);
-  t->Project("h_amp_3p_2","amps",triple_photon&&temp_cut[1]);
-  t->Project("h_amp_3p_3","amps",triple_photon&&temp_cut[2]);
-  t->Project("h_amp_3p_4","amps",triple_photon&&temp_cut[3]);
-  t->Project("h_amp_3p_5","amps",triple_photon&&temp_cut[4]);
-  t->Project("h_amp_3p_6","amps",triple_photon&&temp_cut[5]);
-  t->Project("h_amp_3p_7","amps",triple_photon&&temp_cut[6]);
-
-  
-  h_amp_1p_1->SetLineColor(1);
-  h_amp_1p_2->SetLineColor(2);
-  h_amp_1p_3->SetLineColor(3);
-  h_amp_1p_4->SetLineColor(4);
-  h_amp_1p_5->SetLineColor(5);
-  h_amp_1p_6->SetLineColor(6);
-  h_amp_1p_7->SetLineColor(7);
-  
-  h_amp_2p_1->SetLineColor(1);
-  h_amp_2p_2->SetLineColor(2);
-  h_amp_2p_3->SetLineColor(3);
-  h_amp_2p_4->SetLineColor(4);
-  h_amp_2p_5->SetLineColor(5);
-  h_amp_2p_6->SetLineColor(6);
-  h_amp_2p_7->SetLineColor(7);
-  
-  h_amp_3p_1->SetLineColor(1);
-  h_amp_3p_2->SetLineColor(2);
-  h_amp_3p_3->SetLineColor(3);
-  h_amp_3p_4->SetLineColor(4);
-  h_amp_3p_5->SetLineColor(5);
-  h_amp_3p_6->SetLineColor(6);
-  h_amp_3p_7->SetLineColor(7);
-  
-  TCanvas *c_amp_dist = new TCanvas("c_amp_dist","c_amp_dist");
-  c_amp_dist->Divide(2,2);
-  c_amp_dist->cd(1);
-  h_amp_1p_1->DrawNormalized("E");
-  h_amp_1p_2->DrawNormalized("same:E");
-  h_amp_1p_3->DrawNormalized("same:E");
-  h_amp_1p_4->DrawNormalized("same:E");
-  h_amp_1p_5->DrawNormalized("same:E");
-  h_amp_1p_6->DrawNormalized("same:E");
-  h_amp_1p_7->DrawNormalized("same:E");
-  c_amp_dist->cd(2);
-  h_amp_2p_1->DrawNormalized("E");
-  h_amp_2p_2->DrawNormalized("same:E");
-  h_amp_2p_3->DrawNormalized("same:E");
-  h_amp_2p_4->DrawNormalized("same:E");
-  h_amp_2p_5->DrawNormalized("same:E");
-  h_amp_2p_7->DrawNormalized("same:E");
-  gPad->BuildLegend();
-
-
-  c_amp_dist->cd(3);
-
-  
-  float means_amp[7];
-  float resolution_amp[7];
-  means_amp[0]=h_amp_2p_1->GetMean()-h_amp_1p_1->GetMean();
-  means_amp[1]=h_amp_2p_2->GetMean()-h_amp_1p_2->GetMean();
-  means_amp[2]=h_amp_2p_3->GetMean()-h_amp_1p_3->GetMean();
-  means_amp[3]=h_amp_2p_4->GetMean()-h_amp_1p_4->GetMean();
-  means_amp[4]=h_amp_2p_5->GetMean()-h_amp_1p_5->GetMean();
-  means_amp[5]=h_amp_2p_6->GetMean()-h_amp_1p_6->GetMean();
-  means_amp[6]=h_amp_2p_7->GetMean()-h_amp_1p_7->GetMean();
-							  
-  resolution_amp[0]=0;//h_amp_2p_1->GetRMS();
-  resolution_amp[1]=0;//h_amp_2p_2->GetRMS();
-  resolution_amp[2]=0;//h_amp_2p_3->GetRMS();
-  resolution_amp[3]=0;//h_amp_2p_4->GetRMS();
-  resolution_amp[4]=0;//h_amp_2p_5->GetRMS();
-  resolution_amp[5]=0;//h_amp_2p_6->GetRMS();
-  resolution_amp[6]=0;//h_amp_2p_6->GetRMS();
-
-  
-  TGraphErrors *FRAC_amp = new TGraphErrors(7,T,means_amp,err_T,resolution_amp); FRAC_amp->SetTitle("single-double photon amplitude separation (in [ADC counts]) vs temperature");
-  
-  FRAC_amp->SetMarkerStyle(20);
-  FRAC_amp->SetMarkerSize(2);
-  FRAC_amp->SetMarkerColor(2);
-  FRAC_amp->GetXaxis()->SetTitle("temperature [C°]");
-  FRAC_amp->GetYaxis()->SetTitle("#Delta_{2-1 #gamma}");
-  
-  
-  FRAC_amp->Draw("AP");
-  TF1 *f_amp = new TF1("f_amp", "[1] * x + [0]");
-  FRAC_amp->Fit(f_amp);
-
-
-  c_amp_dist->cd(4);
-  float means_amp_3[7];
-  float resolution_amp[7];
-  means_amp_3[0]=h_amp_3p_1->GetMean()-h_amp_2p_1->GetMean();
-  means_amp_3[1]=h_amp_3p_2->GetMean()-h_amp_2p_2->GetMean();
-  means_amp_3[2]=h_amp_3p_3->GetMean()-h_amp_2p_3->GetMean();
-  means_amp_3[3]=h_amp_3p_4->GetMean()-h_amp_2p_4->GetMean();
-  means_amp_3[4]=h_amp_3p_5->GetMean()-h_amp_2p_5->GetMean();
-  means_amp_3[5]=h_amp_3p_6->GetMean()-h_amp_2p_6->GetMean();
-  means_amp_3[6]=h_amp_3p_7->GetMean()-h_amp_2p_7->GetMean();
-
-   TGraphErrors *FRAC_amp_3 = new TGraphErrors(7,T,means_amp_3,err_T,resolution_amp); FRAC_amp_3->SetTitle("triple-double photon amplitude separation (in [ADC counts]) vs temperature");
-  
-  FRAC_amp_3->SetMarkerStyle(20);
-  FRAC_amp_3->SetMarkerSize(2);
-  FRAC_amp_3->SetMarkerColor(4);
-  FRAC_amp_3->GetXaxis()->SetTitle("temperature [C°]");
-  FRAC_amp_3->GetYaxis()->SetTitle("#Delta_{3-2 #gamma}");
-  
-  FRAC_amp_3->Draw("AP:same");
-  TF1 *f_amp_3 = new TF1("f_amp_3", "[1] * x + [0]");
-  FRAC_amp_3->Fit(f_amp_3);
 
 }

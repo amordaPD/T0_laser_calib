@@ -297,7 +297,6 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
       }
     }
   }
-  f_output->Write();
   f_output->Close();
 
 

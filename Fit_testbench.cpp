@@ -256,7 +256,7 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
   for(int j=0;j<16;j++){
     for(int jj=0;jj<64;jj++){
       for(int jjj=0;jjj<8;jjj++){
-	h[j][jj][jjj] = new TH1D(Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,75,85);
+	h[j][jj][jjj] = new TH1D(Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,70,85);
 	h_amp[j][jj][jjj] = new TH1D(Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),1000,0,1000);
       }
     }
@@ -288,10 +288,10 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
   cout<<"now writing histograms"<<endl;
   f_output->cd();
   for(int j=0;j<16;j++){
-    f_output->mkdir(Form("slot_%i",j));
-    f_output->cd(Form("slot_%i",j));
-    for(int jj=0;jj<16;jj++){
-      for(int jjj=0;jjj<16;jjj++){
+    f_output->mkdir(Form("slot_%i",j+1));
+    f_output->cd(Form("slot_%i",j+1));
+    for(int jj=0;jj<64;jj++){
+      for(int jjj=0;jjj<8;jjj++){
 	h[j][jj][jjj]->Write();
 	h_amp[j][jj][jjj]->Write();
       }
@@ -318,9 +318,145 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
   TTree *tree_MC_ring = (TTree*)file_input_MC_ring->Get("laser");
   cout<<"input files initialized "<<endl;
   /////INITIALIZING output file
-  TFile *f_data = new TFile(output_path+"MC_inputs.root","update");
+  TFile *f_data = new TFile(output_path+"MC_inputs_test.root","recreate");
   cout<<"output file initialized "<<endl;
 
+
+
+  
+  cout<<"initializing histograms"<<endl;
+  TH1D* h_nominal[64][8];
+  TH1D* h_nominal_f1[64][8];
+  TH1D* h_nominal_f2[64][8];
+  TH1D* h_nominal_f3[64][8];
+  TH1D* h_nominal_f4[64][8];
+  TH1D* h_nominal_f5[64][8];
+  TH1D* h_nominal_f6[64][8];
+  TH1D* h_nominal_f7[64][8];
+  TH1D* h_nominal_f8[64][8];
+  TH1D* h_nominal_f9[64][8];
+  
+  TH1D* h_ring[64][8];
+  TH1D* h_ring_f1[64][8];
+  TH1D* h_ring_f2[64][8];
+  TH1D* h_ring_f3[64][8];
+  TH1D* h_ring_f4[64][8];
+  TH1D* h_ring_f5[64][8];
+  TH1D* h_ring_f6[64][8];
+  TH1D* h_ring_f7[64][8];
+  TH1D* h_ring_f8[64][8];
+  TH1D* h_ring_f9[64][8];
+  for(int jj=0;jj<64;jj++){
+    for(int jjj=0;jjj<8;jjj++){
+      h_nominal[jj][jjj] = new TH1D(Form("time_nom_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f1[jj][jjj] = new TH1D(Form("time_nom_f1_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f1_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f2[jj][jjj] = new TH1D(Form("time_nom_f2_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f2_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f3[jj][jjj] = new TH1D(Form("time_nom_f3_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f3_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f4[jj][jjj] = new TH1D(Form("time_nom_f4_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f4_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f5[jj][jjj] = new TH1D(Form("time_nom_f5_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f5_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f6[jj][jjj] = new TH1D(Form("time_nom_f6_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f6_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f7[jj][jjj] = new TH1D(Form("time_nom_f7_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f7_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f8[jj][jjj] = new TH1D(Form("time_nom_f8_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f8_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_nominal_f9[jj][jjj] = new TH1D(Form("time_nom_f9_col_%i_row_%i",jj+1,jjj+1),Form("time_nom_f9_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring[jj][jjj] = new TH1D(Form("time_ring_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f1[jj][jjj] = new TH1D(Form("time_ring_f1_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f1_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f2[jj][jjj] = new TH1D(Form("time_ring_f2_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f2_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f3[jj][jjj] = new TH1D(Form("time_ring_f3_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f3_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f4[jj][jjj] = new TH1D(Form("time_ring_f4_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f4_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f5[jj][jjj] = new TH1D(Form("time_ring_f5_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f5_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f6[jj][jjj] = new TH1D(Form("time_ring_f6_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f6_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f7[jj][jjj] = new TH1D(Form("time_ring_f7_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f7_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f8[jj][jjj] = new TH1D(Form("time_ring_f8_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f8_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+      h_ring_f9[jj][jjj] = new TH1D(Form("time_ring_f9_col_%i_row_%i",jj+1,jjj+1),Form("time_ring_f9_col_%i_row_%i",jj+1,jjj+1),200,0.3,1);
+    }
+  }  
+  cout<<"initialized histograms"<<endl;
+  double time=0;
+  int column=-9;
+  int row=-9;
+  int fiberNo=-9;
+  tree_MC->SetBranchAddress("propTime",&time);
+  tree_MC->SetBranchAddress("column",&column);
+  tree_MC->SetBranchAddress("row",&row);
+  tree_MC->SetBranchAddress("fiberNo",&fiberNo);
+
+  int nentries=tree_MC->GetEntries();
+  for (int i=0;i<nentries;i++){
+    if(i%1000000==0)cout<<i<<endl;
+    tree_MC->GetEntry(i);
+    h_nominal[column-1][row-1]->Fill(time);
+    if(fiberNo==1){h_nominal_f1[column-1][row-1]->Fill(time);}
+    else if(fiberNo==2){h_nominal_f2[column-1][row-1]->Fill(time);}
+    else if(fiberNo==3){h_nominal_f3[column-1][row-1]->Fill(time);}
+    else if(fiberNo==4){h_nominal_f4[column-1][row-1]->Fill(time);}
+    else if(fiberNo==5){h_nominal_f5[column-1][row-1]->Fill(time);}
+    else if(fiberNo==6){h_nominal_f6[column-1][row-1]->Fill(time);}
+    else if(fiberNo==7){h_nominal_f7[column-1][row-1]->Fill(time);}
+    else if(fiberNo==8){h_nominal_f8[column-1][row-1]->Fill(time);}
+    else if(fiberNo==9){h_nominal_f9[column-1][row-1]->Fill(time);}
+  }
+  cout<<"filled histograms nominal model"<<endl;
+  
+  tree_MC_ring->SetBranchAddress("propTime",&time);
+  tree_MC_ring->SetBranchAddress("column",&column);
+  tree_MC_ring->SetBranchAddress("row",&row);
+  tree_MC_ring->SetBranchAddress("fiberNo",&fiberNo);
+  int nentries_ring=tree_MC_ring->GetEntries();
+  for (int i=0;i<nentries_ring;i++){
+    if(i%1000000==0)cout<<i<<endl;
+    tree_MC_ring->GetEntry(i);
+    h_ring[column-1][row-1]->Fill(time);
+    if(fiberNo==1){h_ring_f1[column-1][row-1]->Fill(time);}
+    else if(fiberNo==2){h_ring_f2[column-1][row-1]->Fill(time);}
+    else if(fiberNo==3){h_ring_f3[column-1][row-1]->Fill(time);}
+    else if(fiberNo==4){h_ring_f4[column-1][row-1]->Fill(time);}
+    else if(fiberNo==5){h_ring_f5[column-1][row-1]->Fill(time);}
+    else if(fiberNo==6){h_ring_f6[column-1][row-1]->Fill(time);}
+    else if(fiberNo==7){h_ring_f7[column-1][row-1]->Fill(time);}
+    else if(fiberNo==8){h_ring_f8[column-1][row-1]->Fill(time);}
+    else if(fiberNo==9){h_ring_f9[column-1][row-1]->Fill(time);}
+  }
+  cout<<"filled histograms ring model"<<endl;
+
+  f_data->cd();
+  for(int jj=0;jj<64;jj++){
+    for(int jjj=0;jjj<8;jjj++){
+      f_data->mkdir(Form("column_%i/histos_%i_%i",jj+1,jj+1,jjj+1));
+      f_data->cd(Form("column_%i/histos_%i_%i",jj+1,jj+1,jjj+1));  
+      h_nominal[jj][jjj]->Write(); 
+      h_nominal_f1[jj][jjj]->Write();
+      h_nominal_f2[jj][jjj]->Write();
+      h_nominal_f3[jj][jjj]->Write();
+      h_nominal_f4[jj][jjj]->Write();
+      h_nominal_f5[jj][jjj]->Write();
+      h_nominal_f6[jj][jjj]->Write();
+      h_nominal_f7[jj][jjj]->Write();
+      h_nominal_f8[jj][jjj]->Write();
+      h_nominal_f9[jj][jjj]->Write();
+      h_ring[jj][jjj]->Write();
+      h_ring_f1[jj][jjj]->Write();
+      h_ring_f2[jj][jjj]->Write();
+      h_ring_f3[jj][jjj]->Write();
+      h_ring_f4[jj][jjj]->Write();
+      h_ring_f5[jj][jjj]->Write();
+      h_ring_f6[jj][jjj]->Write();
+      h_ring_f7[jj][jjj]->Write();
+      h_ring_f8[jj][jjj]->Write();
+      h_ring_f9[jj][jjj]->Write();
+    }
+  }
+  f_data->cd();
+  f_data->Close();
+  delete f_data;
+
+
+
+
+
+  /*
+
+  
+  
   cout<<"doing column "<< my_column<<endl;
   int my_pixelID=-9;
   my_pixelID=my_column;
@@ -478,6 +614,7 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
   f_data->cd();
   f_data->Close();
   delete f_data;
+  */
 }
 
 

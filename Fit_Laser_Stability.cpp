@@ -9,12 +9,21 @@
 #include "TAxis.h"
 using namespace RooFit ;
 
-void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_number="1"){
+struct Fit_results{
+  float mean[2];
+  float delta[2];
+  float Av_N_ph[2];
+  float CT_prob[2];
+  float s0[2];
+  float s1[2];
+};
+
+
+Fit_results Fit_Laser_Stability(int fit_model=3, float T_central, float T_range){
   // S e t u p   m o d e l 
   // ---------------------
-  
-  // Declare variables x,mean,sigma with associated name, title, initial value and allowed range
-  //RooRealVar x("Amplitude_212","Amplitude_212",-150,300) ;
+  Fit_results Results;
+  //RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING) ;
   TString string_out="";
   if(fit_model==1){string_out="Poisson_NoOCT";}
   else if (fit_model==2){string_out="Poisson_OCT";}
@@ -23,17 +32,14 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
   gROOT->ProcessLine(".x ./myRooPdfs/RooExpGauss.cxx+") ;
   gROOT->ProcessLine(".x ./myRooPdfs/RooAsymGauss.cxx+") ;
   
-  int x_max=250;//1000;
+  int x_max=500;//1000;
   RooRealVar x("amps","amps",0,x_max) ;//
-  RooRealVar t_min("t_min","t_min",289,285,292) ;//
-  RooRealVar mean("mean","zero_value",44.5,-50,60) ;
-  RooRealVar Delta("Delta","Delta",40,30,120);
-  //RooRealVar Delta("Delta","Delta",50,20,120);
-  //RooRealVar mean("mean","zero_value",20,-50,50) ;
-  RooRealVar Av_N_ph("Av_N_ph","Average number of photons",0.2,0.,20);
+  RooRealVar mean("mean","zero_value",25,20,30) ; //position of first peak
+  RooRealVar Delta("Delta","Delta",40,30,120); //separation between two consecutive peaks - proportional to the gain of SiPM
+  RooRealVar Av_N_ph("Av_N_ph","Average number of photons",0.2,0.,20); //Average number of photons
+  RooRealVar q("q","q_{CT}", 0.1,0.0,1.0); //CT probability
   
-  RooRealVar N_tot("N_tot","N Signal events",95608,50000,98000); N_tot.setConstant(kTRUE);
-  RooRealVar N_bkg("N_bkg","Number of background events",2000,500,5000) ;
+
   
   RooRealVar N_Obs_0("N_Obs_0","Observed number of photons",0);
   RooRealVar N_Obs_1("N_Obs_1","Observed number of photons",1);
@@ -66,28 +72,28 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     RooRealVar mean_10("mean_10","#mu_{10}",1000,990,1030) ;
     RooRealVar mean_11("mean_11","#mu_{11}",1100,1090,1130) ;
   */
-  
-    RooRealVar sigma_0("sigma_0","#sigma_{0}",10,1,20) ;
-    RooRealVar sigma_1("sigma_1","#sigma_{1}",10,1,20) ;
-    RooRealVar sigma_2("sigma_2","#sigma_{2}",10,1,20) ;
-    RooRealVar sigma_3("sigma_3","#sigma_{3}",10,1,20) ;
-    RooRealVar sigma_4("sigma_4","#sigma_{4}",10,2,20) ;
-    RooRealVar sigma_5("sigma_5","#sigma_{5}",10,2,20) ;
-    RooRealVar sigma_6("sigma_6","#sigma_{6}",10,2,20) ;
-    RooRealVar sigma_7("sigma_7","#sigma_{7}",10,2,20) ;
-    RooRealVar sigma_8("sigma_8","#sigma_{8}",10,2,20) ;
-    RooRealVar sigma_9("sigma_9","#sigma_{9}",10,2,20) ;
-    RooRealVar sigma_10("sigma_10","#sigma_{10}",10,2,20) ;
-    RooRealVar sigma_11("sigma_11","#sigma_{11}",10,2,20) ;
-    RooRealVar sigma_12("sigma_12","#sigma_{12}",10,2,20) ;
-    RooRealVar sigma_13("sigma_13","#sigma_{13}",10,2,20) ;
-    RooRealVar sigma_14("sigma_14","#sigma_{14}",10,2,20) ;
-    RooRealVar sigma_15("sigma_15","#sigma_{15}",10,2,20) ;
-  
   /*
   RooRealVar sigma_0("sigma_0","#sigma_{0}",10,1,20) ;
-  RooRealVar s0("s0","s0",5.8559);//,5.855-0.2139,5.855+0.2139);//
-  RooRealVar s1("s1","s1",0.93189);//,0.9318-0.0385,0.9318+0.0385);
+  RooRealVar sigma_1("sigma_1","#sigma_{1}",10,1,20) ;
+  RooRealVar sigma_2("sigma_2","#sigma_{2}",10,1,20) ;
+  RooRealVar sigma_3("sigma_3","#sigma_{3}",10,1,20) ;
+  RooRealVar sigma_4("sigma_4","#sigma_{4}",10,2,20) ;
+  RooRealVar sigma_5("sigma_5","#sigma_{5}",10,2,20) ;
+  RooRealVar sigma_6("sigma_6","#sigma_{6}",10,2,20) ;
+  RooRealVar sigma_7("sigma_7","#sigma_{7}",10,2,20) ;
+  RooRealVar sigma_8("sigma_8","#sigma_{8}",10,2,20) ;
+  RooRealVar sigma_9("sigma_9","#sigma_{9}",10,2,20) ;
+  RooRealVar sigma_10("sigma_10","#sigma_{10}",10,2,20) ;
+  RooRealVar sigma_11("sigma_11","#sigma_{11}",10,2,20) ;
+  RooRealVar sigma_12("sigma_12","#sigma_{12}",10,2,20) ;
+  RooRealVar sigma_13("sigma_13","#sigma_{13}",10,2,20) ;
+  RooRealVar sigma_14("sigma_14","#sigma_{14}",10,2,20) ;
+  RooRealVar sigma_15("sigma_15","#sigma_{15}",10,2,20) ;
+  */
+  
+  RooRealVar s0("s0","s0",5.,4.,6.0);//
+  RooRealVar s1("s1","s1",0.1,0.05,1.5);
+  RooRealVar sigma_0("sigma_0","#sigma_{0}",10,1,20) ;
   RooFormulaVar sigma_1("sigma_1","sigma_1","s0+0*s1",RooArgList(s0,s1));
   RooFormulaVar sigma_2("sigma_2","sigma_2","s0+1*s1",RooArgList(s0,s1));
   RooFormulaVar sigma_3("sigma_3","sigma_3","s0+2*s1",RooArgList(s0,s1));
@@ -103,7 +109,8 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
   RooFormulaVar sigma_13("sigma_13","sigma_13","s0+12*s1",RooArgList(s0,s1));
   RooFormulaVar sigma_14("sigma_14","sigma_14","s0+13*s1",RooArgList(s0,s1));
   RooFormulaVar sigma_15("sigma_15","sigma_15","s0+14*s1",RooArgList(s0,s1));
-  */
+  
+
   //RooRealVar    mean_0("mean_0","mean of gaussian background",0,-5,5) ;
   RooFormulaVar mean_1("mean_1","mean_1","mean+0*Delta",RooArgList(mean,Delta)) ;
   RooFormulaVar mean_2("mean_2","mean_2","mean+1*Delta",RooArgList(mean,Delta)) ;
@@ -129,7 +136,9 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
   RooRealVar mean_bkg("mean_bkg","mean_bkg",300,200,500);
   RooGaussian PDF_bkg("PDF_bkg","PDF background",x,mean_bkg,sigma_bkg) ;
   RooRealVar  Frac_sig("Frac_sig"  ,"fraction of signal events", 0.9 ,0.8,1);
+
   
+  RooRealVar alpha_15("alpha_15","Observed number of photons",-0.5,-10,0);
   RooGaussian PDF_0("PDF_0","gaussian PDF background",x,mean,sigma_0) ;
   RooGaussian PDF_1("PDF_1","gaussian PDF background",x,mean_1,sigma_1) ;
   RooGaussian PDF_2("PDF_2","gaussian PDF background",x,mean_2,sigma_2) ;
@@ -141,11 +150,10 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
   RooGaussian PDF_8("PDF_8","gaussian PDF background",x,mean_8,sigma_8) ;
   RooGaussian PDF_9("PDF_9","gaussian PDF background",x,mean_9,sigma_9) ;
   RooGaussian PDF_10("PDF_10","gaussian PDF background",x,mean_10,sigma_10) ;
-  RooGaussian PDF_11("PDF_11","gaussian PDF background",x,mean_11,sigma_11) ;
+  RooExpGauss PDF_11("PDF_11","gaussian PDF background",x,mean_11,sigma_11,alpha_15) ;
   RooGaussian PDF_12("PDF_12","gaussian PDF background",x,mean_12,sigma_12) ;
   RooGaussian PDF_13("PDF_13","gaussian PDF background",x,mean_13,sigma_13) ;
   RooGaussian PDF_14("PDF_14","gaussian PDF background",x,mean_14,sigma_14) ;
-  RooRealVar alpha_15("alpha_15","Observed number of photons",-0.5,-10,0);
   RooExpGauss PDF_15("PDF_15","gaussian PDF background",x,mean_15,sigma_15,alpha_15) ;
   
 
@@ -188,19 +196,13 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     RooPoisson  Frac_8( "Frac_8","fraction of 8 ph signal events"     ,N_Obs_8,Av_N_ph);
     RooPoisson  Frac_9( "Frac_9","fraction of 9 ph signal events"     ,N_Obs_9,Av_N_ph);
     RooPoisson  Frac_10( "Frac_10","fraction of 10 ph signal events"  ,N_Obs_10,Av_N_ph);
-    RooPoisson  Frac_11( "Frac_11","fraction of 11 ph signal events"  ,N_Obs_11,Av_N_ph);
+    RooRealVar  Frac_11( "Frac_11"  ,"Frac_{11}", 0.006,0.0001,0.5);
+    //RooPoisson  Frac_11( "Frac_11","fraction of 11 ph signal events"  ,N_Obs_11,Av_N_ph);
     RooPoisson  Frac_12( "Frac_12","fraction of 12 ph signal events"  ,N_Obs_12,Av_N_ph);
     RooPoisson  Frac_13( "Frac_13","fraction of 13 ph signal events"  ,N_Obs_13,Av_N_ph);
     RooPoisson  Frac_14( "Frac_14","fraction of 13 ph signal events"  ,N_Obs_14,Av_N_ph);
     RooRealVar  Frac_15( "Frac_15"  ,"Frac_{15}", 0.006,0.0001,0.5);
-    
-    RooArgList pdfList(PDF_1,PDF_2,PDF_3,PDF_4,PDF_5);//,PDF_6,PDF_7,PDF_8);
-    //pdfList.add(RooArgList(PDF_9,PDF_10,PDF_11,PDF_12,PDF_13,PDF_14,PDF_15));
-    RooArgList fracList(Frac_1,Frac_2,Frac_3,Frac_4,Frac_5);//,Frac_6,Frac_7,Frac_8);
-    //fracList.add(RooArgList(Frac_9,Frac_10,Frac_11,Frac_12,Frac_13,Frac_14,Frac_15));
-    
-    
-    RooAddPdf model("model","model",pdfList,fracList);
+ 
     
   }else if(fit_model==2){
     
@@ -220,7 +222,6 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     RooPoisson  frac_9( "frac_9","fraction of 9 ph signal events"  ,N_Obs_9,Av_N_ph);
     RooPoisson  frac_10( "frac_10","fraction of 10 ph signal events"  ,N_Obs_10,Av_N_ph);
     
-    RooRealVar q("q","q_{CT}", 0.1,0.0,1.0);
     RooFormulaVar  Frac_0( "Frac_0","F_{0}","frac_0*1",RooArgList(frac_0));
     RooFormulaVar  Frac_1( "Frac_1","F_{1}","frac_1*(1-q)" ,RooArgList(frac_1,q));
     RooFormulaVar  Frac_2( "Frac_2","F_{2}","frac_2*(1-q)*(1-q)+frac_1*q",RooArgList(frac_2,q,frac_1));
@@ -239,14 +240,6 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     RooRealVar  Frac_14("Frac_14"  ,"Frac_{14}", 0.006,0.0001,0.5);
     RooRealVar  Frac_15("Frac_15"  ,"Frac_{15}", 0.006,0.0001,0.5);
     
-      
-    RooArgList pdfList(PDF_1,PDF_2,PDF_3,PDF_4,PDF_5);//,PDF_6,PDF_7,PDF_8);
-    //pdfList.add(RooArgList(PDF_9,PDF_10,PDF_11,PDF_12,PDF_13,PDF_14,PDF_15));
-    RooArgList fracList(Frac_1,Frac_2,Frac_3,Frac_4,Frac_5);//,Frac_6,Frac_7,Frac_8);
-    //fracList.add(RooArgList(Frac_9,Frac_10,Frac_11,Frac_12,Frac_13,Frac_14,Frac_15));
-    
-    
-    RooAddPdf model("model","model",pdfList,fracList);
     
   }else if(fit_model==3){
     
@@ -271,27 +264,28 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     RooRealVar  Frac_14("Frac_14"  ,"Frac_{14}", 0.006,0.0001,0.5);
     RooRealVar  Frac_15("Frac_15"  ,"Frac_{15}", 0.006,0.0001,0.5);
 
-    RooArgList  pdfList(PDF_1,PDF_2,PDF_3,PDF_4,PDF_5);//,PDF_6,PDF_7,PDF_8);
-    //pdfList.add(RooArgList(PDF_9,PDF_10,PDF_11,PDF_12,PDF_13,PDF_14,PDF_15));
-    RooArgList fracList(Frac_1,Frac_2,Frac_3,Frac_4,Frac_5);//,Frac_6,Frac_7,Frac_8);
-    //fracList.add(RooArgList(Frac_9,Frac_10,Frac_11,Frac_12,Frac_13,Frac_14,Frac_15));
-    
-    
-    RooAddPdf model("model","model",pdfList,fracList);
   }				    
  
-  
+     
+  RooArgList pdfList(PDF_1,PDF_2,PDF_3,PDF_4,PDF_5,PDF_6,PDF_7,PDF_8);
+  pdfList.add(RooArgList(PDF_9,PDF_10,PDF_11));//,PDF_12,PDF_13,PDF_14,PDF_15));
+  RooArgList fracList(Frac_1,Frac_2,Frac_3,Frac_4,Frac_5,Frac_6,Frac_7,Frac_8);
+  fracList.add(RooArgList(Frac_9,Frac_10,Frac_11));//,Frac_12,Frac_13,Frac_14,Frac_15));
+	       
+  RooAddPdf model("model","model",pdfList,fracList);
   
   // I m p o r t    d a t a
   // ------------------------
   TString input_basepath ="dati/";
-  TFile *f_input = new TFile("file_amp.root");
-  //TFile *f_input = new TFile(input_basepath+"scan-att-Vb30.5-thr-20-T"+tune_in+"-F15000.root");
-  //TFile *f_input = new TFile(input_basepath+"stabilita-thr--20-T50-F2000-"+run_number+".root");
+  TFile *f_input = new TFile(input_basepath+"long_run_T50_out_temp.root");
   TTree *t_input = (TTree*)f_input->Get("times");
   TH1D *h_amps = new TH1D("h_amps","h_amps",1000,0,x_max);
-  //t_input->Project("h_amps","amps[0]");
-  t_input->Project("h_amps","amp","cat==0||cat==1||cat==2||cat==3||cat==6");
+  float t_min=T_central-T_range;
+  float t_max=T_central+T_range;
+  cout<<"pereppe "<<t_min<<"  "<<t_max<<endl;
+  
+  t_input->Project("h_amps","amp",Form("%f<=temp&&temp<%f&&((amp<40)||(amp>40&&(51.2<time&&time<51.63)))",t_min,t_max));
+  //t_input->Project("h_amps","amp","cat==0||cat==1||cat==2||cat==3||cat==6");
   RooDataHist *ds = new RooDataHist("ds","ds",RooArgSet(x),Import(*h_amps)) ;
  
   // D o  F i t 
@@ -516,9 +510,23 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
     SIGMA->Draw("AP");
   */
   
+  Results.mean[0]=mean.getVal();
+  Results.mean[1]=mean.getError();
+  Results.delta[0]=Delta.getVal();
+  Results.delta[1]=Delta.getError();
+  Results.Av_N_ph[0]=Av_N_ph.getVal();
+  Results.Av_N_ph[1]=Av_N_ph.getError();
+  Results.CT_prob[0]=q.getVal();
+  Results.CT_prob[1]=q.getError();
+  Results.s0[0]=s0.getVal();
+  Results.s0[1]=s0.getError();
+  Results.s1[0]=s1.getVal();
+  Results.s1[1]=s1.getError();
   
-  TFile *f_output = new TFile("Output_"+string_out+"_T"+tune_in+"_"+run_number+".root","recreate");
+  TFile *f_output = new TFile(input_basepath+"Output_"+string_out+".root","update");
   f_output->cd();
+  f_output->mkdir(Form("Temp_%f",T_central));
+  f_output->cd(Form("Temp_%f",T_central));
   c_Fit->Write();
   c_2->Write();
   c_3->Write();
@@ -527,7 +535,8 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
   f_output->cd();
   f_output->Close();
   delete f_output;
-  
+
+  return Results;
 }
 
 
@@ -580,242 +589,133 @@ void Fit_Laser_Stability(int fit_model=3, TString tune_in="54",TString run_numbe
 
 
 
-
-
-
-
-
-
-
-
-
-void Fit_test(int fit_model){
-  // S e t u p   m o d e l 
-  // ---------------------
-  
-  // Declare variables x,mean,sigma with associated name, title, initial value and allowed range
-  //RooRealVar x("Amplitude_212","Amplitude_212",-150,300) ;
-  TString string_out="";
-  if(fit_model==1){string_out="Poisson_NoOCT";}
-  else if (fit_model==2){string_out="Poisson_OCT";}
-  else if (fit_model==3){string_out="Free_fractions";}
-  
-  gROOT->ProcessLine(".x ./myRooPdfs/RooExpGauss.cxx+") ;
-  gROOT->ProcessLine(".x ./myRooPdfs/RooAsymGauss.cxx+") ;
-  
-  int x_max=200;
-  RooRealVar x("amps","amps",25,x_max) ;//
-  RooRealVar mean("mean","zero_value",44.5,40,60) ;
-  RooRealVar Delta("Delta","Delta",42.92);//,10,120);
-  RooRealVar Av_N_ph("Av_N_ph","Average number of photons",7,0.,20);
-  
-  RooRealVar N_tot("N_tot","N Signal events",95608,50000,98000); N_tot.setConstant(kTRUE);
-  RooRealVar N_bkg("N_bkg","Number of background events",2000,500,5000) ;
-  
-  RooRealVar N_Obs_0("N_Obs_0","Observed number of photons",0);
-  RooRealVar N_Obs_1("N_Obs_1","Observed number of photons",1);
-  RooRealVar N_Obs_2("N_Obs_2","Observed number of photons",2);
-  RooRealVar N_Obs_3("N_Obs_3","Observed number of photons",3);
-  RooRealVar N_Obs_4("N_Obs_4","Observed number of photons",4);
- 
-  
-    RooRealVar sigma_0("sigma_0","#sigma_{0}",10,1,20) ;
-    RooRealVar sigma_1("sigma_1","#sigma_{1}",10,1,20) ;
-    RooRealVar sigma_2("sigma_2","#sigma_{2}",5,1,25) ;
-    RooRealVar sigma_2_CT("sigma_2_CT","#sigma_{2}",5,1,20) ;
-    RooRealVar sigma_3("sigma_3","#sigma_{3}",10,1,20) ;
-    RooRealVar sigma_4("sigma_4","#sigma_{4}",10,2,20) ;
-    RooRealVar sigma_5("sigma_5","#sigma_{5}",10,2,20) ;
-    RooRealVar sigma_6("sigma_6","#sigma_{6}",10,2,20) ;
-    RooRealVar sigma_7("sigma_7","#sigma_{7}",10,2,20) ;
-    RooRealVar sigma_8("sigma_8","#sigma_{8}",10,2,20) ;
-    RooRealVar sigma_9("sigma_9","#sigma_{9}",10,2,20) ;
-    RooRealVar sigma_10("sigma_10","#sigma_{10}",10,2,20) ;
-    RooRealVar sigma_11("sigma_11","#sigma_{11}",10,2,20) ;
-    RooRealVar sigma_12("sigma_12","#sigma_{12}",10,2,20) ;
-    RooRealVar sigma_13("sigma_13","#sigma_{13}",10,2,20) ;
-    RooRealVar sigma_14("sigma_14","#sigma_{14}",10,2,20) ;
-    /*
-    
-  RooRealVar s0("s0","s0",5.8559,5.855-0.2139,5.855+0.2139);//
-  RooRealVar s1("s1","s1",0.93189,0.9318-0.0385,0.9318+0.0385);
-  RooFormulaVar sigma_1("sigma_1","sigma_1","s0+0*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_2("sigma_2","sigma_2","s0+1*s1",RooArgList(s0,s1));
-  RooRealVar sigma_2_CT("sigma_2_CT","#sigma_{2}",10,1,20) ;
-  RooFormulaVar sigma_3("sigma_3","sigma_3","s0+2*s1",RooArgList(s0,s1));
-   RooFormulaVar sigma_4("sigma_4","sigma_4","s0+3*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_5("sigma_5","sigma_5","s0+4*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_6("sigma_6","sigma_6","s0+5*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_7("sigma_7","sigma_7","s0+6*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_8("sigma_8","sigma_8","s0+7*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_9("sigma_9","sigma_9","s0+8*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_10("sigma_10","sigma_10","s0+9*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_11("sigma_11","sigma_11","s0+10*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_12("sigma_12","sigma_12","s0+11*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_13("sigma_13","sigma_13","s0+12*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_14("sigma_14","sigma_14","s0+13*s1",RooArgList(s0,s1));
-  RooFormulaVar sigma_15("sigma_15","sigma_15","s0+14*s1",RooArgList(s0,s1));
-    */
- 
-  RooFormulaVar mean_1("mean_1","mean_1","mean+0*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_2("mean_2","mean_2","mean+1*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_3("mean_3","mean_3","mean+2*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_4("mean_4","mean_4","mean+3*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_5("mean_5","mean_5","mean+4*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_6("mean_6","mean_6","mean+5*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_7("mean_7","mean_7","mean+6*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_8("mean_8","mean_8","mean+7*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_9("mean_9","mean_9","mean+8*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_10("mean_10","mean_10","mean+9*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_11("mean_11","mean_11","mean+10*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_12("mean_12","mean_12","mean+11*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_13("mean_13","mean_13","mean+12*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_14("mean_14","mean_14","mean+13*Delta",RooArgList(mean,Delta)) ;
-  RooFormulaVar mean_15("mean_15","mean_15","mean+14*Delta",RooArgList(mean,Delta)) ;
-    
-  
-  
-  
-  
-  RooRealVar alpha("alpha","Observed number of photons",-0.5,-10,0);
- 
-  //RooGaussian PDF_1("PDF_1","gaussian PDF background",x,mean_1,sigma_1) ;
-  
-  RooGaussian PDF_1("PDF_1","gaussian PDF background",x,mean_1,sigma_1) ;
-  RooExpGauss PDF_2_C("PDF_2_C","gaussian PDF background",x,mean_2,sigma_2,alpha) ;
-  RooRealVar Delta_2_CT("Delta_2_CT","Delta_2_CT",20,10,30);
-  RooFormulaVar mean_2_CT("mean_2_CT","mean_2_CT","mean_2-Delta_2_CT",RooArgList(mean_2,Delta_2_CT));
-  RooGaussian PDF_2_CT("PDF_2_CT","gaussian PDF background",x,mean_2_CT,sigma_2_CT) ;
-  RooRealVar  Frac_2_CT("Frac_2_CT"    ,"Frac_{2}", 0.80,0,1);
-  RooAddPdf PDF_2("PDF_2","PDF_2",RooArgList(PDF_2_C,PDF_2_CT),Frac_2_CT);
-
-  
- 
-
-  if(fit_model){
-    
-    
-    ////////////////////////////////////////////////////////////////////
-    ///////////////////////////// FREE FRACTIONS////////////////////////
-    ////////////////////////////////////////////////////////////////////
-    RooRealVar  Frac_1("Frac_1"    ,"Frac_{1}", 0.80,0,1);
-    RooRealVar  Frac_2("Frac_2"    ,"Frac_{2}", 0.10,0,1);
-
-    RooRealVar  Frac_3("Frac_3"    ,"Frac_{3}", 0.07,0,0.5);
-    RooRealVar  Frac_4("Frac_4"    ,"Frac_{4}", 0.04,0,0.5);
-
-    RooArgList  pdfList(PDF_1,PDF_2);
-    RooArgList fracList(Frac_1);
-    
-    
-    RooAddPdf model("model","model",pdfList,fracList,kTRUE);
-  }				    
- 
-  
-  
-  // I m p o r t    d a t a
-  // ------------------------
-  TFile *f_input = new TFile("scan-att-Vb30.5-thr-20-T80-F15000.root");
-  TTree *t_input = (TTree*)f_input->Get("times");
-  TH1D *h_amps = new TH1D("h_amps","h_amps",500,0,x_max);
-  TCut cut ="";//"57.2<times[0]&&times[0]<58.7"
-  t_input->Project("h_amps","amps[0]",cut);
-  RooDataHist *ds = new RooDataHist("ds","ds",RooArgSet(x),Import(*h_amps)) ;
- 
-  // D o  F i t 
-  // ------------------------
-  
-  RooPlot* xframe2 = x.frame(Title("Data")) ;
-  ds->plotOn(xframe2,DataError(RooAbsData::SumW2)) ;
-  RooFitResult* fit_results = model.fitTo(*ds,Save(),Extended(kFALSE),SumW2Error(kTRUE));
-  
-  
-  TH2 *h_correlation = fit_results->correlationHist();
-  //model.plotOn(xframe2,Components("PDF_bkg"),LineStyle(kDashed),LineColor(1)) ;
-  model.plotOn(xframe2,Components("PDF_1"),LineStyle(kDashed),LineColor(2)) ;
-  model.plotOn(xframe2,Components("PDF_2"),LineStyle(kDashed),LineColor(8)) ;
-  model.plotOn(xframe2,Components("PDF_2_CT"),LineStyle(kDashed),LineColor(7)) ;
-  model.plotOn(xframe2,Components("PDF_2_C"),LineStyle(kDashed),LineColor(1)) ;
-  //model.plotOn(xframe2,Components("PDF_3"),LineStyle(kDashed),LineColor(4)) ;
- 
-  model.plotOn(xframe2) ;
-  //model.paramOn(xframe2);
-  
-  
-  
-  // Construct a histogram with the residuals of the data w.r.t. the curve
-  RooHist* hresid = xframe2->residHist() ;
-  
-  // Construct a histogram with the pulls of the data w.r.t the curve
-  RooHist* hpull = xframe2->pullHist() ;
-  
-  // Create a new frame to draw the residual distribution and add the distribution to the frame
-  RooPlot* xframe3 = x.frame(Title("Residual Distribution")) ;
-  xframe3->addPlotable(hresid,"P") ;
-  
-  // Create a new frame to draw the pull distribution and add the distribution to the frame
-  RooPlot* xframe4 = x.frame(Title("Pull Distribution")) ;
-  xframe4->addPlotable(hpull,"P") ;
-  
-  
-  
-  
-  // Draw all frames on a canvas
-  fit_results->Print("v");
-  //cout<<z_Frac.getVal()+s_Frac.getVal()+d_Frac.getVal()+tr_Frac.getVal()+f_Frac.getVal()+p_Frac.getVal()+e_Frac.getVal()<<endl;
-  
-  
-  
-  TF1 *line_0s = new TF1("line_0s","0",-100,1000);line_0s->SetLineColor(8);
-  TF1 *line_1ps = new TF1("line_1ps","1",-100,1000);line_1ps->SetLineColor(4);
-  TF1 *line_1ns = new TF1("line_1ns","-1",-100,1000);line_1ns->SetLineColor(4);
-  TF1 *line_2ps = new TF1("line_2ps","2",-100,1000);line_2ps->SetLineColor(kOrange-2);
-  TF1 *line_2ns = new TF1("line_2ns","-2",-100,1000);line_2ns->SetLineColor(kOrange-2);
-  TF1 *line_3ps = new TF1("line_3ps","3",-100,1000);line_3ps->SetLineColor(2);
-  TF1 *line_3ns = new TF1("line_3ns","-3",-100,1000);line_3ns->SetLineColor(2);
-  
-  TCanvas* c_Fit = new TCanvas("Fit results","Fit results",800,400) ;
-  c_Fit->Divide(2,2) ;
-  c_Fit->cd(4) ; gPad->SetLeftMargin(0.15) ; /*xframe->GetYaxis()->SetTitleOffset(1.6)*/ ; h_correlation->Draw("colz:text");
-  c_Fit->cd(1) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; xframe2->Draw() ; 
-  c_Fit->cd(2) ; gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2->Draw() ;
-  c_Fit->cd(3) ; gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5); xframe4->Draw() ;
-  line_3ns->Draw("same");line_3ps->Draw("same");
-  line_2ns->Draw("same");line_2ps->Draw("same");
-  line_1ns->Draw("same");line_1ps->Draw("same");
-  line_0s->Draw("same");
-  model.paramOn(xframe2);
-  TCanvas* c_2 = new TCanvas("Fit results 2","Fit results 2",800,400) ;
-  c_2->Divide(1,2);
-  c_2->cd(1); gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; /*gPad->SetLogy(1)*/ ; xframe2->Draw() ;
-  c_2->cd(2); gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5); xframe4->Draw() ;
-  line_3ns->Draw("same");line_3ps->Draw("same");
-  line_2ns->Draw("same");line_2ps->Draw("same");
-  line_1ns->Draw("same");line_1ps->Draw("same");
-  line_0s->Draw("same");
-  TCanvas* c_3 = new TCanvas("Fit results 3","Fit results 3",800,400) ;
-  c_3->Divide(1,2);
-  gStyle->SetOptFit(1111);
-  c_3->cd(1); gPad->SetLeftMargin(0.15) ; xframe2->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetLogy(1); xframe2->Draw() ;
-  c_3->cd(2); gPad->SetLeftMargin(0.15) ; xframe4->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); xframe4->GetYaxis()->SetRangeUser(-5,5); xframe4->Draw() ;
-  line_3ns->Draw("same");line_3ps->Draw("same");
-  line_2ns->Draw("same");line_2ps->Draw("same");
-  line_1ns->Draw("same");line_1ps->Draw("same");
-  line_0s->Draw("same");
-  
-  
-  
-  
-}
 
 void run_scan_fit(){
+  Float_t LOW_TEMP_RANGE=23.0;
+  Float_t UP_TEMP_RANGE=27.0;
+  Int_t N_scan=7;
+  float T_range=(UP_TEMP_RANGE-LOW_TEMP_RANGE)/N_scan;
 
-  for(int j=1;j<=7;j++){
-    TString run = Form("%i",j);
-    Fit_Laser_Stability(3,"50",run);
+  float T[7];
+  float err_T[7];
+  float mean[7];
+  float delta[7];
+  float av_n_ph[7];
+  float q_CT[7];
+  float s0[7];
+  float s1[7];
+  float err_mean[7];
+  float err_delta[7];
+  float err_av_n_ph[7];
+  float err_q_CT[7];
+  float err_s0[7];
+  float err_s1[7];
+    
+  for(int j=1;j<=N_scan;j++){
+    Fit_results Results;
+    float t_central=(LOW_TEMP_RANGE+0.5*T_range)+(j-1)*T_range;
+    Results=Fit_Laser_Stability(1,t_central,0.5*T_range);
+
+    T[j-1]=t_central;
+    err_T[j-1]=0.5*T_range;
+    mean[j-1]=Results.mean[0];
+    delta[j-1]=Results.delta[0];
+    av_n_ph[j-1]=Results.Av_N_ph[0];
+    q_CT[j-1]=Results.CT_prob[0];
+    s0[j-1]=Results.s0[0];
+    s1[j-1]=Results.s1[0];
+    err_mean[j-1]=Results.mean[1];
+    err_delta[j-1]=Results.delta[1];
+    err_av_n_ph[j-1]=Results.Av_N_ph[1];
+    err_q_CT[j-1]=Results.CT_prob[1];
+    err_s0[j-1]=Results.s0[1];
+    err_s1[j-1]=Results.s1[1];
   }
+
+  TGraphErrors *DELTA = new TGraphErrors(7,T,delta,err_T,err_delta);
+  DELTA->SetTitle("#Delta");
+  DELTA->SetName("Separation between two peaks");
+  DELTA->SetMarkerStyle(20);
+  DELTA->SetMarkerSize(2);
+  DELTA->SetMarkerColor(4);
+  DELTA->GetYaxis()->SetTitle("#Delta [ADC counts]");
+  DELTA->GetXaxis()->SetTitle("Temperature [C°]");
+
+  TGraphErrors *MEAN = new TGraphErrors(7,T,mean,err_T,err_mean);
+  MEAN->SetTitle("#mu_{0}");
+  MEAN->SetName("position of first peak");
+  MEAN->SetMarkerStyle(20);
+  MEAN->SetMarkerSize(2);
+  MEAN->SetMarkerColor(4);
+  MEAN->GetYaxis()->SetTitle("#mu_{0} [ADC counts]");
+  MEAN->GetXaxis()->SetTitle("Temperature [C°]");
+  
+  TGraphErrors *AV_N_PH = new TGraphErrors(7,T,av_n_ph,err_T,err_av_n_ph);
+  AV_N_PH->SetTitle("n_{#gamma}");
+  AV_N_PH->SetName("position of first peak");
+  AV_N_PH->SetMarkerStyle(20);
+  AV_N_PH->SetMarkerSize(2);
+  AV_N_PH->SetMarkerColor(4);
+  AV_N_PH->GetYaxis()->SetTitle("n_{#gamma}");
+  AV_N_PH->GetXaxis()->SetTitle("Temperature [C°]");
+  
+  TGraphErrors *Q_CT = new TGraphErrors(7,T,q_CT,err_T,err_q_CT);
+  Q_CT->SetTitle("q_{CT}");
+  Q_CT->SetName("CT probability");
+  Q_CT->SetMarkerStyle(20);
+  Q_CT->SetMarkerSize(2);
+  Q_CT->SetMarkerColor(4);
+  Q_CT->GetYaxis()->SetTitle("q_{CT}");
+  Q_CT->GetXaxis()->SetTitle("Temperature [C°]");
+  
+  TGraphErrors *S0 = new TGraphErrors(7,T,s0,err_T,err_s0);
+  S0->SetTitle("s_{0}");
+  S0->SetName("#sigma=s_{0}+n#cdot s_{1}");
+  S0->SetMarkerStyle(20);
+  S0->SetMarkerSize(2);
+  S0->SetMarkerColor(4);
+  S0->GetYaxis()->SetTitle("s_{0}");
+  S0->GetXaxis()->SetTitle("Temperature [C°]");
+  
+  TGraphErrors *S1 = new TGraphErrors(7,T,s1,err_T,err_s1);
+  S1->SetTitle("s_{1}");
+  S1->SetName("#sigma=s_{0}+n#cdot s_{1}");
+  S1->SetMarkerStyle(20);
+  S1->SetMarkerSize(2);
+  S1->SetMarkerColor(4);
+  S1->GetYaxis()->SetTitle("s_{1}");
+  S1->GetXaxis()->SetTitle("Temperature [C°]");
+  
+
+  TCanvas *c = new TCanvas("c","c");
+  c->Divide(2,3);
+  c->cd(1);
+  DELTA->Draw("AP");
+  c->cd(3);
+  MEAN->Draw("AP");
+  c->cd(5);
+  AV_N_PH->Draw("AP");
+  c->cd(2);
+  Q_CT->Draw("AP");
+  c->cd(4);
+  S0->Draw("AP");
+  c->cd(6);
+  S1->Draw("AP");
+  
+  
   
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

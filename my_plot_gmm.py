@@ -238,7 +238,7 @@ print("#######################")
 
 # Fit a Dirichlet process Gaussian mixture using five components
 print("doing the fit with Bayes Gaussian Mixture")
-#dpgmm = mixture.BayesianGaussianMixture(n_components=ncomps,covariance_type='full',init_params='kmeans').fit(X)
+#dpgmm = mixture.BayesianGaussianMixture(n_components=ncomps,covariance_type='tied',init_params='kmeans').fit(X)
 dpgmm = mixture.BayesianGaussianMixture(n_components=ncomps,covariance_type='full',init_params='kmeans').fit(X)
 print("measured means")
 print(dpgmm.means_)

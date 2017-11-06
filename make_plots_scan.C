@@ -147,7 +147,7 @@ void make_plots_scan() {
   TH1D *h_t_all_temp = new TH1D("h_t_all_temp","Detection time distribution for 2 photon events",n_bin,t_min,t_max);
   h_t_all_temp->GetXaxis()->SetTitle("time [ns]");
   h_t_all_temp->GetYaxis()->SetTitle("A.U.");
-  TH1D *h_t_all_temp_corr = new TH1D("h_t_all_temp_corr","Detection time for 2 photon events",n_bin,t_min,t_max);
+  TH1D *h_t_all_temp_corr = new TH1D("h_t_all_temp_corr","Detection time for 2 photon events, corrected",n_bin,t_min,t_max);
   h_t_all_temp_corr->GetXaxis()->SetTitle("time [ns]");
   h_t_all_temp_corr->GetYaxis()->SetTitle("A.U.");
   
@@ -158,10 +158,10 @@ void make_plots_scan() {
   float t0 = 25*p1+p0;
   t->Project("h_t_all_temp_corr",Form("times-((temp-25.0)*%f)",p1),cut_photon);
   h_t_all_temp_corr->SetLineColor(4);
-  c_temp->cd(3);
+  c_temp->cd(4);
   h_t_all_temp_corr->DrawNormalized();
   h_t_all_temp_corr->Fit("gaus","","",51.3,51.6);
-  c_temp->cd(4);
+  c_temp->cd(3);
   h_t_all_temp->DrawNormalized();
   h_t_all_temp->Fit("gaus","","",51.2,51.55);
   
@@ -313,7 +313,7 @@ void make_plots_scan() {
   means_amp_3[5]=h_amp_3p_6->GetMean()-h_amp_2p_6->GetMean();
   means_amp_3[6]=h_amp_3p_7->GetMean()-h_amp_2p_7->GetMean();
 
-   TGraphErrors *FRAC_amp_3 = new TGraphErrors(7,T,means_amp_3,err_T,resolution_amp); FRAC_amp_3->SetTitle("single-double photon amplitude separation (in [ADC counts]) vs temperature");
+   TGraphErrors *FRAC_amp_3 = new TGraphErrors(7,T,means_amp_3,err_T,resolution_amp); FRAC_amp_3->SetTitle("triple-double photon amplitude separation (in [ADC counts]) vs temperature");
   
   FRAC_amp_3->SetMarkerStyle(20);
   FRAC_amp_3->SetMarkerSize(2);

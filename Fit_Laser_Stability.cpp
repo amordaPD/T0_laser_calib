@@ -35,7 +35,7 @@ Fit_results Fit_Laser_Stability(int fit_model=3, float T_central, float T_range)
   int x_max=500;//1000;
   RooRealVar x("amps","amps",0,x_max) ;//
   RooRealVar mean("mean","zero_value",25,20,30) ; //position of first peak
-  RooRealVar Delta("Delta","Delta",40,30,120); //separation between two consecutive peaks - proportional to the gain of SiPM
+  RooRealVar Delta("Delta","Delta",30,29,31); //separation between two consecutive peaks - proportional to the gain of SiPM
   RooRealVar Av_N_ph("Av_N_ph","Average number of photons",0.2,0.,20); //Average number of photons
   RooRealVar q("q","q_{CT}", 0.1,0.0,1.0); //CT probability
   
@@ -614,7 +614,7 @@ void run_scan_fit(){
   for(int j=1;j<=N_scan;j++){
     Fit_results Results;
     float t_central=(LOW_TEMP_RANGE+0.5*T_range)+(j-1)*T_range;
-    Results=Fit_Laser_Stability(1,t_central,0.5*T_range);
+    Results=Fit_Laser_Stability(2,t_central,0.5*T_range);
 
     T[j-1]=t_central;
     err_T[j-1]=0.5*T_range;

@@ -614,7 +614,7 @@ void run_scan_fit(){
   for(int j=1;j<=N_scan;j++){
     Fit_results Results;
     float t_central=(LOW_TEMP_RANGE+0.5*T_range)+(j-1)*T_range;
-    Results=Fit_Laser_Stability(2,t_central,0.5*T_range);
+    Results=Fit_Laser_Stability(1,t_central,0.5*T_range);
 
     T[j-1]=t_central;
     err_T[j-1]=0.5*T_range;

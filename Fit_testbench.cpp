@@ -702,7 +702,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
   TCanvas *c_map = new TCanvas("pmts_occupancy_"+input_filebasename,"pmts_occupancy_"+input_filebasename);
   h_yield_map->DrawNormalized("colz");
   if(save){
-    TFile *f_out = new TFile(input_path+input_filebasename+Form("_pmt_pos%i_plots.root",pmt_pos),"recreate");
+    TFile *f_out = new TFile(input_path+"/pmt_plots/"+input_filebasename+Form("_pmt_pos%i_plots.root",pmt_pos),"recreate");
     f_out->cd();
     c_map->Write();
     pmts_amp->Write();

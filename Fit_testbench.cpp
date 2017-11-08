@@ -66,7 +66,7 @@ void run_data_production(TString input_raw_name=""){
   TString file_origin="PD";
 
   cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
-  cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
+  //cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
   
   cout<<"PRODUCING HISTOGRAMS FOR FITTING"<<endl;
   for(int i=1;i<=4;i++){
@@ -88,6 +88,9 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   float _times_DAQ[32];
   float _amps_DAQ[32];
   int _chans_DAQ[32];
+  float _temp_DAQ;
+  int _nchs_DAQ;
+  UInt_t _evtnum_DAQ;
   
   if(origin_path==""){origin_path="D:/Padova/TOP/Time_calibration_codes/Dati_PD/1.raw_input/";}
   if(output_path==""){output_path="D:/Padova/TOP/Time_calibration_codes/Dati_PD/2.flat_input/";}
@@ -95,6 +98,9 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   float time_DAQ(-99);
   float amp_DAQ(-99);
   int channel_DAQ(-99);
+  float temp_DAQ(-99);
+  int nchs_DAQ(-99);
+  UInt_t evtnum_DAQ(-99);
 
 
 
@@ -103,6 +109,9 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   _tree_DAQ->SetBranchAddress("times",&(_times_DAQ[0]));
   _tree_DAQ->SetBranchAddress("amps",&(_amps_DAQ[0]));
   _tree_DAQ->SetBranchAddress("chans",&(_chans_DAQ[0]));
+  _tree_DAQ->SetBranchAddress("nchans",&_nchs_DAQ);
+  _tree_DAQ->SetBranchAddress("evtnum",&_evtnum_DAQ);
+  _tree_DAQ->SetBranchAddress("temp",&_temp_DAQ);
 
 
   
@@ -111,6 +120,10 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   tree_DAQ->Branch("time",&time_DAQ,"time/F");
   tree_DAQ->Branch("amp",&amp_DAQ,"amp/F");
   tree_DAQ->Branch("channel",&channel_DAQ,"channel/I");
+  tree_DAQ->Branch("nchannels",&nchs_DAQ,"nchannels/I");
+  tree_DAQ->Branch("evtnum",&evtnum_DAQ,"evtnum/I");
+  tree_DAQ->Branch("temp",&temp_DAQ,"temp/F");
+  
    
   Int_t _nevents = _tree_DAQ->GetEntries();
   
@@ -120,11 +133,14 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
 
   for( _curevent =0; _curevent <_nevents; _curevent++) {
     _tree_DAQ->GetEntry(_curevent);
-    for(int _ichan=0; _ichan<32;_ichan++){
-      if(0<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<1000){
+    for(int _ichan=0; _ichan<_nchs_DAQ;_ichan++){
+      if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
 	time_DAQ=_times_DAQ[_ichan];
 	channel_DAQ=_chans_DAQ[_ichan];
 	amp_DAQ=_amps_DAQ[_ichan];
+	nchs_DAQ=_nchs_DAQ;
+	evtnum_DAQ=_evtnum_DAQ;
+	temp_DAQ=_temp_DAQ;
 	tree_DAQ->Fill();
       }
     }
@@ -170,7 +186,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
   float upper_time;
   float lower_time;
   upper_time=100; lower_time=0;
-  
+  //upper_time=60; lower_time=72;
   int my_pixelID_data=-9; ////////For PD data
   
   int my_pixelID=-9;
@@ -187,11 +203,12 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     
  
     TCut cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
-
+    TCut cut_16ch = Form("nchannels==16"); //For PD
+    TCut cut_32ch = Form("nchannels==32"); //For PD
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
-    TH1D *h_temp = new TH1D("h_temp","h_temp",1000,lower_time,upper_time);
+    TH1D *h_temp = new TH1D("h_temp","h_temp",200,lower_time,upper_time);
     t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
     Float_t max_bin = h_temp->GetMaximumBin();
@@ -204,7 +221,10 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     Int_t n_bins = 200;
     TH1D *h_time = new TH1D("h_time","Time [ns]",n_bins,-1.5,upper_bound_hist);
     t_input->Project("h_time",Form("time-%f",max_pos),cut);
-    
+    TH1D *h_time_16 = new TH1D("h_time_16","Time [ns]",n_bins,-1.5,upper_bound_hist);
+    t_input->Project("h_time_16",Form("time-%f",max_pos),cut&&cut_16ch);
+    TH1D *h_time_32 = new TH1D("h_time_32","Time [ns]",n_bins,-1.5,upper_bound_hist);
+    t_input->Project("h_time_32",Form("time-%f",max_pos),cut&&cut_32ch);
     
     /*
     float mean_tmp = h_time->GetMean();
@@ -225,15 +245,27 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     Float_t up_limit_amp =300;
     TH1D *h_amp = new TH1D("h_amp","Max Amplitude [ADC counts]",n_bins,0,300);
     t_input->Project("h_amp",variable_amp,cut);
+    TH1D *h_amp_16 = new TH1D("h_amp_16","Max Amplitude [ADC counts]",n_bins,0,300);
+    t_input->Project("h_amp_16",variable_amp,cut&&cut_16ch);
+    TH1D *h_amp_32 = new TH1D("h_amp_32","Max Amplitude [ADC counts]",n_bins,0,300);
+    t_input->Project("h_amp_32",variable_amp,cut&&cut_32ch);
    
     f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
     f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));
     h_amp->Write();
     h_time->Write();
+    h_amp_16->Write();
+    h_time_16->Write();
+    h_amp_32->Write();
+    h_time_32->Write();
     f_data->cd();
     delete h_temp;
     delete h_time;
     delete h_amp;
+    delete h_time_16;
+    delete h_amp_16;
+    delete h_time_32;
+    delete h_amp_32;
   }
   f_data->cd(Form("column_%i",my_column));
   h_yields->Write();
@@ -623,7 +655,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
 
   bool save = true;
   if (input_path=="") input_path="Dati_PD/3.column_data/";
-  
+  TString channel_cut="";//can be "_16" or "_32"
   TCanvas *pmt_up = new TCanvas("pmt_up_"+input_filebasename,"pmt_up_"+input_filebasename);
   pmt_up->Divide(4,4);
   TCanvas *pmt_down = new TCanvas("pmt_down_"+input_filebasename,"pmt_down_"+input_filebasename);
@@ -659,7 +691,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
       int row_id_mc=9-g;
       int MC_column=0;
       MC_column=i+(pmt_pos-1)*4;
-      h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g));
+      h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g)+channel_cut);
       h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",MC_column,MC_column,row_id_mc));
       h_MC_ring[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",MC_column,MC_column,row_id_mc));
       h_amp[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_amp",i,i,g));

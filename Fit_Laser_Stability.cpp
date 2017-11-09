@@ -19,7 +19,7 @@ struct Fit_results{
 };
 
 
-Fit_results Fit_Laser_Stability(int fit_model=3, float T_central, float T_range){
+Fit_results Fit_Laser_Stability(int fit_model=3, float T_central=25.0, float T_range=0.5){
   // S e t u p   m o d e l 
   // ---------------------
   Fit_results Results;
@@ -271,8 +271,13 @@ Fit_results Fit_Laser_Stability(int fit_model=3, float T_central, float T_range)
   pdfList.add(RooArgList(PDF_9,PDF_10,PDF_11));//,PDF_12,PDF_13,PDF_14,PDF_15));
   RooArgList fracList(Frac_1,Frac_2,Frac_3,Frac_4,Frac_5,Frac_6,Frac_7,Frac_8);
   fracList.add(RooArgList(Frac_9,Frac_10,Frac_11));//,Frac_12,Frac_13,Frac_14,Frac_15));
-	       
-  RooAddPdf model("model","model",pdfList,fracList);
+
+  if(false){
+    RooAddPdf model("model","model",pdfList,fracList);
+  }else{
+    RooAddPdf model_sig("model_sig","model_sig",pdfList,fracList);
+    RooAddPdf model("model","model",RooArgList(model_sig,PDF_bkg),RooArgList(Frac_sig));
+  }
   
   // I m p o r t    d a t a
   // ------------------------

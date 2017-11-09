@@ -66,7 +66,7 @@ void run_data_production(TString input_raw_name=""){
   TString file_origin="PD";
 
   cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
-  //cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
+  cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
   
   cout<<"PRODUCING HISTOGRAMS FOR FITTING"<<endl;
   for(int i=1;i<=4;i++){
@@ -134,7 +134,8 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   for( _curevent =0; _curevent <_nevents; _curevent++) {
     _tree_DAQ->GetEntry(_curevent);
     for(int _ichan=0; _ichan<_nchs_DAQ;_ichan++){
-      if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
+      //if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
+      if(0<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<100){
 	time_DAQ=_times_DAQ[_ichan];
 	channel_DAQ=_chans_DAQ[_ichan];
 	amp_DAQ=_amps_DAQ[_ichan];
@@ -185,7 +186,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
   
   float upper_time;
   float lower_time;
-  upper_time=100; lower_time=0;
+  upper_time=72; lower_time=60;
   //upper_time=60; lower_time=72;
   int my_pixelID_data=-9; ////////For PD data
   
@@ -202,13 +203,13 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     my_pixelID_data=(my_column)*4+20*index_pmt-g;///////actually the readout channel for PD testbench system data
     
  
-    TCut cut = Form("amp>15&&0<time&&time<100&&channel==%i",my_pixelID_data); //For PD
+    TCut cut = Form("amp>15&&60<time&&time<72&&channel==%i",my_pixelID_data); //For PD
     TCut cut_16ch = Form("nchannels==16"); //For PD
     TCut cut_32ch = Form("nchannels==32"); //For PD
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
-    TH1D *h_temp = new TH1D("h_temp","h_temp",200,lower_time,upper_time);
+    TH1D *h_temp = new TH1D("h_temp","h_temp",500,lower_time,upper_time);
     t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
     Float_t max_bin = h_temp->GetMaximumBin();

@@ -134,8 +134,8 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   for( _curevent =0; _curevent <_nevents; _curevent++) {
     _tree_DAQ->GetEntry(_curevent);
     for(int _ichan=0; _ichan<_nchs_DAQ;_ichan++){
-      //if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
-      if(0<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<100){
+      if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
+      //if(0<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<100){
 	time_DAQ=_times_DAQ[_ichan];
 	channel_DAQ=_chans_DAQ[_ichan];
 	amp_DAQ=_amps_DAQ[_ichan];

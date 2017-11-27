@@ -767,24 +767,63 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
 
 
 
-perform_yields_shapes_comparison(TString input_path, TString file_in_1, TString file_in_2, TString file_in_3, TString file_in_4){
+perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString file_in_1, TString file_in_2, TString file_in_3, TString file_in_4=""){
 
+  /*
+    file_0 is for the target comparison
+    One histograms matrix per channel, enumerating from 1 to keep things more readeable
+    ex. perform_yields_shapes_comparison("",
+    "quarzo-06nov17-PMTpos3-3f-thr--20-T50-F1982-1",
+    "quarzo-06nov17-PMTpos3-f1-thr--20-T50-F1982-1",
+    "quarzo-06nov17-PMTpos3-f2-thr--20-T50-F1982-1",
+    "quarzo-06nov17-PMTpos3-f3-thr--20-T50-F1982-1",
+    "quarzo-06nov17-PMTpos3-3f-thr--20-T50-F1982-1"
+    )
+
+    perform_yields_shapes_comparison("","quarzo-06nov17-PMTpos3-3f-thr--20-T50-F1982-1","quarzo-06nov17-PMTpos3-f1-thr--20-T50-F1982-1","quarzo-06nov17-PMTpos3-f2-thr--20-T50-F1982-1",    "quarzo-06nov17-PMTpos3-f3-thr--20-T50-F1982-1","quarzo-06nov17-PMTpos3-3f-thr--20-T50-F1982-1")
+  */
+  
   if (input_path=="") input_path="Dati_PD/3.column_data/";
+  TFile *f_input_0 = new TFile(input_path+file_in_0+"_data_histos.root");
   TFile *f_input_1 = new TFile(input_path+file_in_1+"_data_histos.root");
   TFile *f_input_2 = new TFile(input_path+file_in_2+"_data_histos.root");
   TFile *f_input_3 = new TFile(input_path+file_in_3+"_data_histos.root");
   TFile *f_input_4 = new TFile(input_path+file_in_4+"_data_histos.root");
+  TFile *f_ntr_input_0 = new TFile(input_path+"../2.flat_input/"+file_in_0+"_DAQ_flat.root");
+  TFile *f_ntr_input_1 = new TFile(input_path+"../2.flat_input/"+file_in_1+"_DAQ_flat.root");
+  TFile *f_ntr_input_2 = new TFile(input_path+"../2.flat_input/"+file_in_2+"_DAQ_flat.root");
+  TFile *f_ntr_input_3 = new TFile(input_path+"../2.flat_input/"+file_in_3+"_DAQ_flat.root");
+  TFile *f_ntr_input_4 = new TFile(input_path+"../2.flat_input/"+file_in_4+"_DAQ_flat.root");
+  TH1 *h_ntr_0 = f_ntr_input_0->Get("h_ntriggers");
+  TH1 *h_ntr_1 = f_ntr_input_1->Get("h_ntriggers");
+  TH1 *h_ntr_2 = f_ntr_input_2->Get("h_ntriggers");
+  TH1 *h_ntr_3 = f_ntr_input_3->Get("h_ntriggers");
+  TH1 *h_ntr_4 = f_ntr_input_4->Get("h_ntriggers");
+  Double_t ntrigs[5];
+  ntrigs[0] = h_ntr_0->GetBinContent(1);
+  ntrigs[1] = h_ntr_1->GetBinContent(1);
+  ntrigs[2] = h_ntr_2->GetBinContent(1);
+  ntrigs[3] = h_ntr_3->GetBinContent(1);
+  ntrigs[4] = h_ntr_4->GetBinContent(1);
   
+
+
+  TH1D *h_0[5][9];
   TH1D *h[5][5][9];
 
   TCanvas *pmts = new TCanvas("pmts","pmts");
   pmts->Divide(4,8);
+  TCanvas *pmts_up = new TCanvas("pmts_up","pmts_up");
+  pmts_up->Divide(4,4);
+  TCanvas *pmts_down = new TCanvas("pmts_down","pmts_down");
+  pmts_down->Divide(4,4);
 
 
 
   
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
+      h_0[column][row]  = (TH1D*)f_input_0->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
       h[1][column][row] = (TH1D*)f_input_1->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
       h[2][column][row] = (TH1D*)f_input_2->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
       h[3][column][row] = (TH1D*)f_input_3->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
@@ -792,6 +831,18 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_1, TString 
     }
   }
 
+
+  /*
+    Sum the histograms with their own weights
+  */
+  for(int ii=2;ii<=3;ii++){
+    for(int row=1;row<=8;row++){
+      for(int column=1;column<=4;column++){
+	h[1][column][row]->Add(h[ii][column][row],ntrigs[ii]/ntrigs[0]);
+      }
+    }
+  }
+  /*
   int canvasID=-9;
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
@@ -807,7 +858,30 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_1, TString 
       h[1][column][row]->DrawNormalized("same");
     }
   }
-  
+  */
+  int canvasID=-9;
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      canvasID=column+4*(8-row);
+      pmts->cd(canvasID);
+      h_0[column][row]->SetLineColor(8);
+      h[1][column][row]->SetLineColor(4);
+      h_0[column][row]->DrawNormalized();
+      h[1][column][row]->DrawNormalized("same");
+      if(row<=4){
+	pmts_down->cd(-4*row+column+16);
+	h_0[column][row]->DrawNormalized();
+	h[1][column][row]->DrawNormalized("same");
+	gPad->SetLogy();
+      }
+      else{
+	pmts_up->cd(-4*(row-4)+column+16);
+	h_0[column][row]->DrawNormalized();
+	h[1][column][row]->DrawNormalized("same");
+	gPad->SetLogy();
+      }
+    }
+  }
   
 }
 

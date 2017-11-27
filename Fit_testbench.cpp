@@ -101,6 +101,7 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   float temp_DAQ(-99);
   int nchs_DAQ(-99);
   UInt_t evtnum_DAQ(-99);
+  Double_t numevts(-99);
 
 
 
@@ -143,15 +144,23 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
 	evtnum_DAQ=_evtnum_DAQ;
 	temp_DAQ=_temp_DAQ;
 	tree_DAQ->Fill();
+	if(_evtnum_DAQ>numevts) {numevts=_evtnum_DAQ;}
       }
     }
     
   }
+  cout<<"n trigger : "<<numevts<<endl;
+  TH1D *h_ntriggers = new TH1D("h_ntriggers","h_ntriggers",1,0,1);
+  h_ntriggers->SetBinContent(1,numevts);
+  Double_t n_triggers = h_ntriggers->GetBinContent(1);
+  cout<<"n triggers : "<<n_triggers<<endl;
   f_data->cd();
   tree_DAQ->Write();
+  h_ntriggers->Write();
+  delete h_ntriggers;
+  f_data->cd();
   f_data->Close();
   delete f_data;
-
   return 1;
 }
 
@@ -181,6 +190,10 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
   f_data->mkdir(Form("column_%i",my_column));
   f_data->cd(Form("column_%i",my_column));
 
+  TH1D *h_ntrig = file_input->Get("h_ntriggers");
+  
+  Double_t n_triggers = h_ntrig->GetBinContent(1);
+  cout<<"n triggers : "<<n_triggers<<endl;
 
   TH1D *h_yields = new TH1D("h_yields","event yields",8,0,9);
   
@@ -215,7 +228,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     Float_t max_bin = h_temp->GetMaximumBin();
     TAxis *xaxis = h_temp->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
-
+    h_temp->Scale(1.0/n_triggers);
 
     //////// THIS IS THE HISTOGRAM THAT WILL BE FITTED
     Float_t upper_bound_hist=2;
@@ -254,6 +267,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
     f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));
     h_amp->Write();
+    h_temp->Write();
     h_time->Write();
     h_amp_16->Write();
     h_time_16->Write();
@@ -267,6 +281,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     delete h_amp_16;
     delete h_time_32;
     delete h_amp_32;
+    delete h_ntrig;
   }
   f_data->cd(Form("column_%i",my_column));
   h_yields->Write();
@@ -752,8 +767,49 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
 
 
 
+perform_yields_shapes_comparison(TString input_path, TString file_in_1, TString file_in_2, TString file_in_3, TString file_in_4){
+
+  if (input_path=="") input_path="Dati_PD/3.column_data/";
+  TFile *f_input_1 = new TFile(input_path+file_in_1+"_data_histos.root");
+  TFile *f_input_2 = new TFile(input_path+file_in_2+"_data_histos.root");
+  TFile *f_input_3 = new TFile(input_path+file_in_3+"_data_histos.root");
+  TFile *f_input_4 = new TFile(input_path+file_in_4+"_data_histos.root");
+  
+  TH1D *h[5][5][9];
+
+  TCanvas *pmts = new TCanvas("pmts","pmts");
+  pmts->Divide(4,8);
 
 
+
+  
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      h[1][column][row] = (TH1D*)f_input_1->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+      h[2][column][row] = (TH1D*)f_input_2->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+      h[3][column][row] = (TH1D*)f_input_3->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+      h[4][column][row] = (TH1D*)f_input_4->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+    }
+  }
+
+  int canvasID=-9;
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      canvasID=column+4*(8-row);
+      pmts->cd(canvasID);
+      h[4][column][row]->SetLineColor(8);
+      h[4][column][row]->DrawNormalized();
+      h[3][column][row]->SetLineColor(4);
+      h[3][column][row]->DrawNormalized("same");
+      h[2][column][row]->SetLineColor(2);
+      h[2][column][row]->DrawNormalized("same");
+      h[1][column][row]->SetLineColor(1);
+      h[1][column][row]->DrawNormalized("same");
+    }
+  }
+  
+  
+}
 
 Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int pmt_pos, int column_number, int row_number){
   Fit_results_basic Results;

@@ -47,8 +47,8 @@ def plot_results(X, Y_, means, covariances, index, title):
         splot.add_artist(ell)
         """
     plt.xlim(30., 300)
-    #plt.ylim(57, 59)
-    plt.ylim(51,52)
+    plt.ylim(6.5, 8)
+    #plt.ylim(51,52)
     plt.xlabel('amplitude')
     plt.ylabel('time [ns]')
     plt.legend(loc='best')
@@ -66,7 +66,7 @@ def plot_1D_results(X, Y_,var,index_one_ph,title):
                 continue
             plt.hist(X[Y_ == i, 0],label=(' %i category' % i), range=range_var, bins=200,alpha=0.3)
     if var==1 :
-        range_var=(51, 52)#(57,59)
+        range_var=(6.5,8)#(51, 52)#(7,8)#
         variable="time [ns]"
         n, bins, patches = plt.hist(X[Y_ == index_one_ph, 1],label=(' %i category' % index_one_ph), range=range_var, bins=200,alpha=0.3,normed=1)
         (mu, sigma) = norm.fit(X[Y_ == index_one_ph, var])
@@ -94,16 +94,17 @@ listtemp = []
 listtime = []
 listamps = []
 #with open('times_vs_amps.txt', 'r') as f:
-#with open('D:\Padova\TOP\Time_calibration_codes\dati\stabilita-thr--20-T50-F2000-1.txt', 'r') as f:
-with open('D:\Padova\TOP\Time_calibration_codes\dati\long_run_T50.txt', 'r') as f:
+with open('D:\Padova\TOP\Time_calibration_codes\dati\stabilita-thr--20-T50-F2000-1.txt', 'r') as f:
+#with open('D:\Padova\TOP\Time_calibration_codes\dati\long_run_T50.txt', 'r') as f:
     content = f.readlines()
     content = content[3:-2]
     for x in content:
         row = x.split("*")
-        if(51.2 < float(row[3]) and float(row[3])<51.7 and 0 < float(row[4]) and float(row[4]) < 400 ):
+        #if(51.2 < float(row[3]) and float(row[3])<51.7 and 0 < float(row[4]) and float(row[4]) < 400 ):
+        if(6.5 < float(row[3]) and float(row[3])<8 and 0 < float(row[4]) and float(row[4]) < 400 ):     
             listtime.append(float(row[3]))
             listamps.append(float(row[4]))
-            listtemp.append(float(row[5]))
+            listtemp.append(0)#float(row[5]))
 print("input data read")
 #print(listtime)
 #print("producing scatter matrix")
@@ -120,16 +121,11 @@ print(X)
 print("Drawing time-amp pattern")
 
 h_fig, h=plt.subplots()
-h.hist2d(listamps,listtime, range=([0,400],[51.2,51.7]), bins=(500,500), norm=LogNorm())
+h.hist2d(listamps,listtime, range=([0,400],[6.5,8]), bins=(500,500), norm=LogNorm())
 h.set_xlabel('amplitude [ADC counts]')
 h.set_ylabel('time [ns]')
 plt.show()
 print("input matrix initialized")
-'''
-print("--------------")
-XY=np.column_stack((listamps,listtime,listtemp))
-print(XY)
-'''
 print("--------------")
 XX=np.column_stack((X,listtemp))
 print(XX)
@@ -220,7 +216,7 @@ plt.show()
 
 
 # Fit a Gaussian mixture with EM using five components
-ncomps=9
+ncomps=6
 
 print("doing the fit with simple Gaussian Mixture")
 gmm = mixture.GaussianMixture(n_components=ncomps, covariance_type='full').fit(X)
@@ -259,13 +255,13 @@ plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,'Gaussian Mixtur
 plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,
              'Bayesian Gaussian Mixture with a Dirichlet process prior')
 plt.show()
-'''
+
 plot_1D_results(X, dpgmm.predict(X),0,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
 plt.show()
 
 plot_1D_results(X, dpgmm.predict(X),1,index_one_ph,'Bayesian Gaussian Mixture with a Dirichlet process prior')
 plt.show()
-'''
+
 '''
 output = open("file.txt", "w")
 for iterator in range(0,ncomps):
@@ -283,6 +279,7 @@ for iterator in range(0,ncomps):
 output.close()
 
 '''
+
 output = open("dati\long_run_T50_out.txt", "w")
 for iterator in range(0,ncomps):
     for it in XX[dpgmm.predict(X) == iterator]:

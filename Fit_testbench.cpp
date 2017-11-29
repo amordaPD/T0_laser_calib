@@ -962,6 +962,12 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
 
   TFile *f_out = new TFile("output_comparison.root","recreate");
   f_out->cd();
+  c_spread->Write();
+  pmts_up->Write();
+  pmts_down->Write();
+  pmts->Write();
+  f_out->mkdir("histograms");
+  f_out->cd("histograms");
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
       h_0[column][row]->Write();

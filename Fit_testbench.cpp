@@ -828,16 +828,47 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       h[2][column][row] = (TH1D*)f_input_2->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
       h[3][column][row] = (TH1D*)f_input_3->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
       h[4][column][row] = (TH1D*)f_input_4->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+      h[0][column][row] = (TH1D*)h[1][column][row]->Clone();
     }
   }
+  
+  TH1D *h_spread = new TH1D("h_spread","h_spread",50,-0.5,0.5);
+  TH3D *h3_spread = new TH3D("h3_spread","h3_spread",4,1,5,8,1,9,50,-0.5,0.5);
+  TH2D *h2_spread = new TH2D("h2_spread","h2_spread",4,1,5,8,1,9);
+  
+  //////////Comparison of events yields
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      Int_t obs_number = h_0[column][row]->GetEntries();
+      Int_t exp_number = 0;
+      for(int l=1;l<=3;l++){
+	exp_number = exp_number + (h[l][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[l]));
+      }
+      h_spread->Fill((obs_number-exp_number)/float(obs_number));
+      h3_spread->Fill(column,row,(obs_number-exp_number)/float(obs_number));
+      h2_spread->SetBinContent(column,row,(obs_number-exp_number)/float(obs_number));
+      //cout<<"row : "<<row<<"  , column : "<<column<<" ::::: <<obs number : "<<obs_number<<"     exp number : "<<exp_number<<endl;
+    }
+  }
+  
+  TCanvas *c_spread = new TCanvas("c_spread","c_spread");
+  c_spread->Divide(2,2);
+  c_spread->cd(1);
+  h_spread->DrawNormalized();
+  c_spread->cd(2);
+  h2_spread->Draw("colz");
+  c_spread->cd(3);
+  h3_spread->Draw("colz");
 
  
  
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
+      h[0][column][row]->Scale(ntrigs[0]/ntrigs[1]);
       h[1][column][row]->Scale(ntrigs[0]/ntrigs[1]);
       for(int ii=2;ii<=3;ii++){
-	h[1][column][row]->Add(h[ii][column][row],ntrigs[0]/ntrigs[ii]);
+	h[0][column][row]->Add(h[ii][column][row],ntrigs[0]/ntrigs[ii]);
+	h[ii][column][row]->Scale(ntrigs[0]/ntrigs[ii]);
       }
     }
   }
@@ -867,19 +898,32 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       canvasID=column+4*(8-row);
       pmts->cd(canvasID);
       h_0[column][row]->SetLineColor(8);
-      h[1][column][row]->SetLineColor(4);
-      h_0[column][row]->DrawNormalized();
-      h[1][column][row]->DrawNormalized("same");
+      h[0][column][row]->SetLineColor(7);
+      h[1][column][row]->SetLineColor(1);
+      h[2][column][row]->SetLineColor(2);
+      h[3][column][row]->SetLineColor(4);
+      
+      h_0[column][row]->Draw();
+      h[0][column][row]->Draw("same");
+      h[1][column][row]->Draw("same");
+      h[2][column][row]->Draw("same");
+      h[3][column][row]->Draw("same");
       if(row<=4){
 	pmts_down->cd(-4*row+column+16);
-	h_0[column][row]->DrawNormalized();
-	h[1][column][row]->DrawNormalized("same");
+	h_0[column][row]->Draw();
+	h[0][column][row]->Draw("same");
+	h[1][column][row]->Draw("same");
+	h[2][column][row]->Draw("same");
+	h[3][column][row]->Draw("same");
 	gPad->SetLogy();
       }
       else{
 	pmts_up->cd(-4*(row-4)+column+16);
-	h_0[column][row]->DrawNormalized();
-	h[1][column][row]->DrawNormalized("same");
+	h_0[column][row]->Draw();
+	h[0][column][row]->Draw("same");
+	h[1][column][row]->Draw("same");
+	h[2][column][row]->Draw("same");
+	h[3][column][row]->Draw("same");
 	gPad->SetLogy();
       }
     }

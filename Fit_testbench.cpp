@@ -831,24 +831,25 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
     }
   }
 
-
-  /*
-    Sum the histograms with their own weights
-  */
-  for(int ii=2;ii<=3;ii++){
-    for(int row=1;row<=8;row++){
-      for(int column=1;column<=4;column++){
-	h[1][column][row]->Add(h[ii][column][row],ntrigs[ii]/ntrigs[0]);
+ 
+ 
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      h[1][column][row]->Scale(ntrigs[0]/ntrigs[1]);
+      for(int ii=2;ii<=3;ii++){
+	h[1][column][row]->Add(h[ii][column][row],ntrigs[0]/ntrigs[ii]);
       }
     }
   }
+
+  
   /*
-  int canvasID=-9;
-  for(int row=1;row<=8;row++){
+    int canvasID=-9;
+    for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
-      canvasID=column+4*(8-row);
-      pmts->cd(canvasID);
-      h[4][column][row]->SetLineColor(8);
+    canvasID=column+4*(8-row);
+    pmts->cd(canvasID);
+    h[4][column][row]->SetLineColor(8);
       h[4][column][row]->DrawNormalized();
       h[3][column][row]->SetLineColor(4);
       h[3][column][row]->DrawNormalized("same");
@@ -859,6 +860,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
     }
   }
   */
+  
   int canvasID=-9;
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){

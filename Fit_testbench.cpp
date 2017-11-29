@@ -62,11 +62,11 @@ struct Fit_results_basic{
   
 };
 
-void run_data_production(TString input_raw_name=""){
+void run_data_production(TString input_raw_name="", bool flat_ntuple=false){
   TString file_origin="PD";
 
   cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
-  cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
+  if(flat_ntuple) cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
   
   cout<<"PRODUCING HISTOGRAMS FOR FITTING"<<endl;
   for(int i=1;i<=4;i++){

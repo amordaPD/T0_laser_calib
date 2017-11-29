@@ -805,7 +805,6 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   ntrigs[2] = h_ntr_2->GetBinContent(1);
   ntrigs[3] = h_ntr_3->GetBinContent(1);
   ntrigs[4] = h_ntr_4->GetBinContent(1);
-  
 
 
   TH1D *h_0[5][9];
@@ -831,7 +830,37 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       h[0][column][row] = (TH1D*)h[1][column][row]->Clone();
     }
   }
-  
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      h_0[column][row]->SetName(Form("full_row_%i__column_%i",row,column));
+      h_0[column][row]->SetTitle(Form("full_row_%i__column_%i",row,column));
+      h_0[column][row]->GetXaxis()->SetTitle("Time [ns]");
+      h_0[column][row]->GetXaxis()->SetLabelFont(70);
+      h_0[column][row]->GetXaxis()->SetLabelSize(0.05);
+      h_0[column][row]->GetXaxis()->SetTitleFont(70);
+      h_0[column][row]->GetXaxis()->SetTitleSize(0.05);
+      h_0[column][row]->GetYaxis()->SetTitle("A.U");
+      h_0[column][row]->GetYaxis()->SetLabelFont(70);
+      h_0[column][row]->GetYaxis()->SetLabelSize(0.05);
+      h_0[column][row]->GetYaxis()->SetTitleFont(70);
+      h_0[column][row]->GetYaxis()->SetTitleSize(0.05);
+      for(int ll = 0; ll<=4; ll++){
+	h[ll][column][row]->SetName(Form("full_row_%i__column_%i__fib%i",row,column,ll));
+	h[ll][column][row]->SetTitle(Form("full_row_%i__column_%i__fib%i",row,column,ll));
+	h[ll][column][row]->GetXaxis()->SetTitle("Time [ns]");
+	h[ll][column][row]->GetXaxis()->SetLabelFont(70);
+	h[ll][column][row]->GetXaxis()->SetLabelSize(0.05);
+	h_0[column][row]->GetXaxis()->SetTitleFont(70);
+	h_0[column][row]->GetXaxis()->SetTitleSize(0.05);
+	h[ll][column][row]->GetYaxis()->SetTitle("A.U");
+	h[ll][column][row]->GetYaxis()->SetLabelFont(70);
+	h[ll][column][row]->GetYaxis()->SetLabelSize(0.05);
+	h_0[column][row]->GetYaxis()->SetTitleFont(70);
+	h_0[column][row]->GetYaxis()->SetTitleSize(0.05);
+      }
+      
+    }
+  }
   TH1D *h_spread = new TH1D("h_spread","h_spread",50,-0.5,0.5);
   TH3D *h3_spread = new TH3D("h3_spread","h3_spread",4,1,5,8,1,9,50,-0.5,0.5);
   TH2D *h2_spread = new TH2D("h2_spread","h2_spread",4,1,5,8,1,9);
@@ -928,6 +957,24 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       }
     }
   }
+
+
+
+  TFile *f_out = new TFile("output_comparison.root","recreate");
+  f_out->cd();
+  for(int row=1;row<=8;row++){
+    for(int column=1;column<=4;column++){
+      h_0[column][row]->Write();
+      for(int ii=0;ii<=4;ii++){
+	h[ii][column][row]->Write();
+      }
+    }
+  }
+  f_out->Close();
+  delete f_out;
+    
+
+  
   
 }
 

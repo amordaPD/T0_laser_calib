@@ -199,7 +199,8 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
   
   float upper_time;
   float lower_time;
-  upper_time=72; lower_time=60;
+  lower_time=60;
+  upper_time=72; 
   //upper_time=60; lower_time=72;
   int my_pixelID_data=-9; ////////For PD data
   
@@ -222,7 +223,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
 
 
     /////// THIS IS THE HISTOGAM USED TO RESCALE THE TIME DISTRIBUTION TO ZERO
-    TH1D *h_temp = new TH1D("h_temp","h_temp",500,lower_time,upper_time);
+    TH1D *h_temp = new TH1D("h_temp",Form("time_col_%i_row_%i",my_column,g),500,lower_time,upper_time);
     t_input->Project("h_temp","time",cut);
     h_yields->SetBinContent(g,t_input->GetEntries(cut));
     Float_t max_bin = h_temp->GetMaximumBin();
@@ -266,7 +267,9 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
    
     f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
     f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));
+    h_amp->SetName(Form("amp_col_%i_row_%i",my_column,g));
     h_amp->Write();
+    h_temp->SetName(Form("time_col_%i_row_%i",my_column,g));
     h_temp->Write();
     h_time->Write();
     h_amp_16->Write();
@@ -297,14 +300,17 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
   
   TFile *f_input = new TFile(input_path+file_name+".root");
   TTree *t_input = (TTree*)f_input->Get("laser");
-  TFile *f_output = new TFile(output_path+file_name+"_out.root","recreate");
+  TFile *f_output = new TFile(output_path+file_name+"_data_histos.root","recreate");
   TH1D* h[16][64][8];
   TH1D* h_amp[16][64][8];
+  float low_time = 65;
+  float up_time = 70;
 
+  
   for(int j=0;j<16;j++){
     for(int jj=0;jj<64;jj++){
       for(int jjj=0;jjj<8;jjj++){
-	h[j][jj][jjj] = new TH1D(Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,70,85);
+	h[j][jj][jjj] = new TH1D(Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("time_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),200,low_time,up_time);
 	h_amp[j][jj][jjj] = new TH1D(Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),Form("amp_slot_%i_col_%i_row_%i",j+1,jj+1,jjj+1),1000,0,1000);
       }
     }
@@ -339,15 +345,22 @@ void  make_KEK_data_histos_column(TString input_path, TString file_name, TString
     f_output->mkdir(Form("slot_%i",j+1));
     f_output->cd(Form("slot_%i",j+1));
     for(int jj=0;jj<64;jj++){
+      TH1D *h_yields = new TH1D("h_yields","event yields",8,0,9);
       for(int jjj=0;jjj<8;jjj++){
+	f_output->mkdir(Form("slot_%i/column_%i/histos_%i_%i",j+1,jj+1,jj+1,jjj+1));
+	f_output->cd(Form("slot_%i/column_%i/histos_%i_%i",j+1,jj+1,jj+1,jjj+1));
 	h[j][jj][jjj]->Write();
 	h_amp[j][jj][jjj]->Write();
-      }
-    }
+	h_yields->SetBinContent(jjj+1,h[j][jj][jjj]->GetEntries());
+       }
+      f_output->cd(Form("slot_%i/column_%i/",j+1,jj+1));
+      h_yields->Write();
+     }
   }
+
   f_output->Close();
 
-
+  delete f_output;
   
 }
 
@@ -499,175 +512,12 @@ void  make_MC_histos_column(TString output_path, int pmt_column, int pmt_pos){
 
 
 
-
-  /*
-
-  
-  
-  cout<<"doing column "<< my_column<<endl;
-  int my_pixelID=-9;
-  my_pixelID=my_column;
-  int my_row=-9;
-  for(int g=1; g<=8;g++){
-    cout<<"doing row "<<g<<endl;
-    my_pixelID=my_column+(g-1)*64;
-   
-    //TCut cut_MC = Form("propTime<1&&column==%i&&row==%i",my_column,g);
-    TCut cut_MC = Form("propTime<1&&pixel==%i",my_pixelID);
-    TH1D *h_MC_tot_temp = new TH1D ("h_MC_tot_temp","h_MC_tot_temp",100,0.3,1);
-    tree_MC->Project("h_MC_tot_temp","propTime",cut_MC);
-
-    int n_bins=200; ///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_PD_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
-    Float_t upper_bound_hist=2;///!!!!!IT HAS TO BE THE SAME OF THE ONE SPECIFIED IN make_PD_data_histos_column(), IF WE WANT TO PLOT ONE ON TOP OF THE OTHER
-    
-    Float_t max_bin_MC = h_MC_tot_temp->GetMaximumBin();
-    TAxis *xaxis_MC = h_MC_tot_temp->GetXaxis(); 
-    Double_t max_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
-    TH1D *h_MC_tot = new TH1D ("h_MC_tot","h_MC_tot",n_bins,-1,upper_bound_hist);
-    tree_MC->Project("h_MC_tot",Form("propTime-%f",max_pos_MC),cut_MC);
-    TH1D *h_MC_f1 = new TH1D ("h_MC_f1","h_MC_f1",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f2 = new TH1D ("h_MC_f2","h_MC_f2",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f3 = new TH1D ("h_MC_f3","h_MC_f3",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f4 = new TH1D ("h_MC_f4","h_MC_f4",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f5 = new TH1D ("h_MC_f5","h_MC_f5",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f6 = new TH1D ("h_MC_f6","h_MC_f6",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f7 = new TH1D ("h_MC_f7","h_MC_f7",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_f8 = new TH1D ("h_MC_f8","h_MC_f8",n_bins,-1,upper_bound_hist);  
-    TH1D *h_MC_f9 = new TH1D ("h_MC_f9","h_MC_f9",n_bins,-1,upper_bound_hist);
-    tree_MC->Project("h_MC_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixel==%i",my_pixelID));
-    tree_MC->Project("h_MC_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixel==%i",my_pixelID));
-    h_MC_tot->SetLineColor(1);
-    h_MC_f1->SetLineColor(11);
-    h_MC_f2->SetLineColor(2);
-    h_MC_f3->SetLineColor(3);
-    h_MC_f4->SetLineColor(4);
-    h_MC_f5->SetLineColor(13);
-    h_MC_f6->SetLineColor(6);
-    h_MC_f7->SetLineColor(7);
-    h_MC_f8->SetLineColor(8);
-    h_MC_f9->SetLineColor(9);
-
-    //////////////////////MC with ring model //////////////////
-    TH1D *h_MC_ring_tot = new TH1D ("h_MC_ring_tot","h_MC_ring_tot",n_bins,-1,upper_bound_hist);
-    tree_MC_ring->Project("h_MC_ring_tot",Form("propTime-%f",max_pos_MC),cut_MC);
-    TH1D *h_MC_ring_f1 = new TH1D ("h_MC_ring_f1","h_MC_ring_f1",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f2 = new TH1D ("h_MC_ring_f2","h_MC_ring_f2",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f3 = new TH1D ("h_MC_ring_f3","h_MC_ring_f3",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f4 = new TH1D ("h_MC_ring_f4","h_MC_ring_f4",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f5 = new TH1D ("h_MC_ring_f5","h_MC_ring_f5",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f6 = new TH1D ("h_MC_ring_f6","h_MC_ring_f6",n_bins,-1,upper_bound_hist);  
-    TH1D *h_MC_ring_f7 = new TH1D ("h_MC_ring_f7","h_MC_ring_f7",n_bins,-1,upper_bound_hist);
-    TH1D *h_MC_ring_f8 = new TH1D ("h_MC_ring_f8","h_MC_ring_f8",n_bins,-1,upper_bound_hist);  
-    TH1D *h_MC_ring_f9 = new TH1D ("h_MC_ring_f9","h_MC_ring_f9",n_bins,-1,upper_bound_hist);
-    tree_MC_ring->Project("h_MC_ring_f1",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==1&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f2",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==2&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f3",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==3&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f4",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==4&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f5",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==5&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f6",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==6&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f7",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==7&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f8",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==8&&pixel==%i",my_pixelID));
-    tree_MC_ring->Project("h_MC_ring_f9",Form("propTime-%f",max_pos_MC),Form("propTime<1&&fiberNo==9&&pixel==%i",my_pixelID));
-    h_MC_ring_tot->SetLineColor(1);
-    h_MC_ring_f1->SetLineColor(11);
-    h_MC_ring_f2->SetLineColor(2);
-    h_MC_ring_f3->SetLineColor(3);
-    h_MC_ring_f4->SetLineColor(4);
-    h_MC_ring_f5->SetLineColor(13);
-    h_MC_ring_f6->SetLineColor(6);
-    h_MC_ring_f7->SetLineColor(7);
-    h_MC_ring_f8->SetLineColor(8);
-    h_MC_ring_f9->SetLineColor(9);
-    h_MC_ring_tot->SetMarkerStyle(20);
-    h_MC_ring_f1->SetMarkerStyle(20);
-    h_MC_ring_f2->SetMarkerStyle(20);
-    h_MC_ring_f3->SetMarkerStyle(20);
-    h_MC_ring_f4->SetMarkerStyle(20);
-    h_MC_ring_f5->SetMarkerStyle(20);
-    h_MC_ring_f6->SetMarkerStyle(20);
-    h_MC_ring_f7->SetMarkerStyle(20);
-    h_MC_ring_f8->SetMarkerStyle(20);
-    h_MC_ring_f9->SetMarkerStyle(20);
-    
-    TCanvas *c = new TCanvas("c","c");
-    h_MC_tot->Draw("same");
-    h_MC_f1->Draw("same");
-    h_MC_f2->Draw("same");
-    h_MC_f3->Draw("same");
-    h_MC_f4->Draw("same");
-    h_MC_f5->Draw("same");
-    h_MC_f6->Draw("same");
-    h_MC_f7->Draw("same");
-    h_MC_f8->Draw("same");
-    h_MC_f9->Draw("same");
-  
-  
-       
-    f_data->mkdir(Form("column_%i/histos_%i_%i",my_column,my_column,g));
-    f_data->cd(Form("column_%i/histos_%i_%i",my_column,my_column,g));  
-    h_MC_tot->Write();
-    h_MC_f1->Write();
-    h_MC_f2->Write();
-    h_MC_f3->Write();
-    h_MC_f4->Write();
-    h_MC_f5->Write();
-    h_MC_f6->Write();
-    h_MC_f7->Write();
-    h_MC_f8->Write();
-    h_MC_f9->Write();
-    h_MC_ring_tot->Write();
-    h_MC_ring_f1->Write();
-    h_MC_ring_f2->Write();
-    h_MC_ring_f3->Write();
-    h_MC_ring_f4->Write();
-    h_MC_ring_f5->Write();
-    h_MC_ring_f6->Write();
-    h_MC_ring_f7->Write();
-    h_MC_ring_f8->Write();
-    h_MC_ring_f9->Write();
-    c->Write();
-    f_data->cd();
-    delete h_MC_tot;
-    delete h_MC_tot_temp;
-    delete h_MC_f1;
-    delete h_MC_f2;
-    delete h_MC_f3;
-    delete h_MC_f4;
-    delete h_MC_f5;
-    delete h_MC_f6;
-    delete h_MC_f7;
-    delete h_MC_f8;
-    delete h_MC_f9;
-    delete h_MC_ring_tot;
-    delete h_MC_ring_f1;
-    delete h_MC_ring_f2;
-    delete h_MC_ring_f3;
-    delete h_MC_ring_f4;
-    delete h_MC_ring_f5;
-    delete h_MC_ring_f6;
-    delete h_MC_ring_f7;
-    delete h_MC_ring_f8;
-    delete h_MC_ring_f9;
-    delete c;
-  }
-  f_data->cd(Form("column_%i",my_column));
-  f_data->cd();
-  f_data->Close();
-  delete f_data;
-  */
 }
 
 
 
 
-void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos){
+void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos, int slotID=-1){
 
   bool save = true;
   if (input_path=="") input_path="Dati_PD/3.column_data/";
@@ -696,32 +546,52 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
   int MC_row=-99;
   TH1D* h_MC[5][9];
   TH1D* h_MC_ring[5][9];
-
+  TString slot_ID= "";
+  TString slot_ID_undsc= "";
+  TString slot_ID_bs= "";
+  int shift_position=0; //when looking at KEK data to shift the position of the PMT while keeping the PD column numbering scheme
+  
+  if(slotID>0) {
+    slot_ID = Form("slot_%i",slotID);
+    slot_ID_undsc = "_";
+    slot_ID_bs= "/";
+    shift_position=1;
+  }
   
   for(int i=1;i<=4;i++){
     int pmt_index=1;
     int pmt_row=-1;
-    TH1D *h_yields = (TH1D*)f->Get(Form("column_%i/h_yields",i));
+    TH1D *h_yields = (TH1D*)f->Get(slot_ID+slot_ID_bs+Form("column_%i/h_yields",i+shift_position*(pmt_pos-1)*4));
     for(int g=1; g<=8;g++){
       if(g<=4){pmt_row=g;} else{pmt_row=g-4;}
       int row_id_mc=9-g;
       int MC_column=0;
+      TString histo_name_base_slot=slot_ID+slot_ID_bs;
+      TString histo_name_base=Form("column_%i/histos_%i_%i/",i+shift_position*(pmt_pos-1)*4,i+shift_position*(pmt_pos-1)*4,g);
+      TString histo_name_prefix_time = "time_";
+      TString histo_name_prefix_amp = "amp_";
+      TString histo_name_slot=slot_ID+slot_ID_undsc;
+      TString histo_name_colrow= Form("col_%i_row_%i",i+shift_position*(pmt_pos-1)*4,g);
+      TString histoname_time =histo_name_base_slot+histo_name_base+histo_name_prefix_time+histo_name_slot+histo_name_colrow+channel_cut;
+      TString histoname_amp  =histo_name_base_slot+histo_name_base+histo_name_prefix_amp+histo_name_slot+histo_name_colrow+channel_cut;
+      
+      cout<<histoname_time<<endl;
       MC_column=i+(pmt_pos-1)*4;
-      h[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_time",i,i,g)+channel_cut);
-      h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",MC_column,MC_column,row_id_mc));
-      h_MC_ring[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",MC_column,MC_column,row_id_mc));
-      h_amp[i][g]=(TH1D*)f->Get(Form("column_%i/histos_%i_%i/h_amp",i,i,g));
+      h[i][g]=(TH1D*)f->Get(histoname_time);
+      //§ h_MC[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_tot",MC_column,MC_column,row_id_mc));
+      //§ h_MC_ring[i][g]=(TH1D*)f_MC->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",MC_column,MC_column,row_id_mc));
+      h_amp[i][g]=(TH1D*)f->Get(histoname_amp);
       int canvasID=i+4*(4-pmt_row);
       if(g<=4){
 	pmt_down->cd(canvasID);
 	h[i][g]->Draw();
-	h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
-	h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
-	h_MC_ring[i][g]->SetLineColor(2);
-	h_MC_ring[i][g]->SetMarkerSize(0);
-	h_MC_ring[i][g]->SetMarkerColor(2);
-	h_MC[i][g]->Draw("same");
-	h_MC_ring[i][g]->Draw("same");
+	//§ h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
+	//§ h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
+	//§ h_MC_ring[i][g]->SetLineColor(2);
+	//§ h_MC_ring[i][g]->SetMarkerSize(0);
+	//§ h_MC_ring[i][g]->SetMarkerColor(2);
+	//§ h_MC[i][g]->Draw("same");
+	//§ h_MC_ring[i][g]->Draw("same");
 	gPad->BuildLegend();
 	pmts->cd(16+canvasID);
 	h[i][g]->Draw();
@@ -730,13 +600,13 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos)
       }else {
 	pmt_up->cd(canvasID);
 	h[i][g]->Draw();
-	h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
-	h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
-	h_MC[i][g]->Draw("same");
-	h_MC_ring[i][g]->SetLineColor(2);
-	h_MC_ring[i][g]->SetMarkerSize(0);
-	h_MC_ring[i][g]->SetMarkerColor(2);
-	h_MC_ring[i][g]->Draw("same");	
+	//§ h_MC[i][g]->Scale(h[i][g]->GetMaximum()/h_MC[i][g]->GetMaximum());
+	//§ h_MC_ring[i][g]->Scale(h[i][g]->GetMaximum()/h_MC_ring[i][g]->GetMaximum());
+	//§ h_MC[i][g]->Draw("same");
+	//§ h_MC_ring[i][g]->SetLineColor(2);
+	//§ h_MC_ring[i][g]->SetMarkerSize(0);
+	//§ h_MC_ring[i][g]->SetMarkerColor(2);
+	//§ h_MC_ring[i][g]->Draw("same");	
 	gPad->BuildLegend();
 	pmts->cd(canvasID);
 	h[i][g]->Draw();

@@ -881,13 +881,14 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   TH1D* h_time = f_input->Get(Form("column_%i/histos_%i_%i/h_time",column_number,column_number,row_number));
 
   int column_number_MC=column_number+(pmt_pos-1)*4;
+  /*
   TH1D* h_MC_tot = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_tot",column_number_MC,column_number_MC,row_number));
 
   TH1D* h_MC_tot_ring = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_ring_tot",column_number_MC,column_number_MC,row_number));
- 
-  TCanvas *can0 = f_input->Get(Form("column_%i/histos_%i_%i/c",column_number,column_number,row_number));
-  can0->Draw();
-
+  
+    TCanvas *can0 = f_input->Get(Form("column_%i/histos_%i_%i/c",column_number,column_number,row_number));
+    can0->Draw();
+  */
 
   
   TString _draw_results="draw";
@@ -926,12 +927,13 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   
   double my_low_x=-0.7;//-0.5;//1;
   double my_up_x=0.8;//0.8;
-  TAxis *xaxis_MC = h_MC_tot->GetXaxis();
-  xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-1);
-  Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
-  Double_t max_first_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
-  //  cout<<"ciao "<<max_first_pos_MC<<endl;
-  
+  /*
+    TAxis *xaxis_MC = h_MC_tot->GetXaxis();
+    xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-1);
+    Float_t max_bin_MC = h_MC_tot->GetMaximumBin();
+    Double_t max_first_pos_MC = xaxis_MC->GetBinCenter(max_bin_MC);
+    //  cout<<"ciao "<<max_first_pos_MC<<endl;
+  */
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
   x.setRange("Fit_Range_L",-0.55,-0.2) ;
   RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_time)) ;
@@ -1488,10 +1490,10 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
 void loop_fit_column(TString input_basepath, TString input_basefilename, TString output_basepath, int column_number,int fit_model_ID){
   /*
-To Run:
-gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
-   */
-
+    To Run:
+    gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4); > a.log
+  */
+  
 
   if (input_basepath=="") input_basepath="Dati_PD/3.column_data/";
   if (output_basepath=="") output_basepath="Dati_PD/4.fit_results/";
@@ -1530,7 +1532,7 @@ gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
     
     x[h-1]=h; err_x[h-1]=0;
     Fit_results_basic my_Results;                        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    my_Results = basic_fit_data("",input_basefilename,0,fit_model_ID,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     cc->cd(h);
     my_Results.xframe2_fit_0->Draw() ;
     cc->cd(8+h);gPad->SetLeftMargin(0.15) ; my_Results.xframe2_pull_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); my_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_Results.xframe2_pull_0->Draw() ;

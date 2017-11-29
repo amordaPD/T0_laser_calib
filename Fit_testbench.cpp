@@ -898,9 +898,9 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       canvasID=column+4*(8-row);
       pmts->cd(canvasID);
       h_0[column][row]->SetLineColor(8);
-      h[0][column][row]->SetLineColor(7);
+      h[0][column][row]->SetLineColor(kMagenta+3);
       h[1][column][row]->SetLineColor(1);
-      h[2][column][row]->SetLineColor(2);
+      h[2][column][row]->SetLineColor(kOrange+7);
       h[3][column][row]->SetLineColor(4);
       
       h_0[column][row]->Draw();

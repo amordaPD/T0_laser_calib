@@ -720,13 +720,10 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
 	h[ll][column][row]->GetXaxis()->SetTitle("Time [ns]");
 	h[ll][column][row]->GetXaxis()->SetLabelFont(70);
 	h[ll][column][row]->GetXaxis()->SetLabelSize(0.05);
-	h_0[column][row]->GetXaxis()->SetTitleFont(70);
-	h_0[column][row]->GetXaxis()->SetTitleSize(0.05);
 	h[ll][column][row]->GetYaxis()->SetTitle("A.U");
 	h[ll][column][row]->GetYaxis()->SetLabelFont(70);
 	h[ll][column][row]->GetYaxis()->SetLabelSize(0.05);
-	h_0[column][row]->GetYaxis()->SetTitleFont(70);
-	h_0[column][row]->GetYaxis()->SetTitleSize(0.05);
+	//cout<<"h["<<ll<<"] integral : "<<h[ll][column][row]->GetIntegral()<<"  , h["<<ll<<"] entries : " <<h[ll][column][row]->GetEntries()<<endl;
       }
       
     }
@@ -734,6 +731,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   TH1D *h_spread = new TH1D("h_spread","h_spread",50,-0.5,0.5);
   TH3D *h3_spread = new TH3D("h3_spread","h3_spread",4,1,5,8,1,9,50,-0.5,0.5);
   TH2D *h2_spread = new TH2D("h2_spread","h2_spread",4,1,5,8,1,9);
+  TH2D *h22_spread = new TH2D("h22_spread","h22_spread",4,1,5,8,1,9);
   
   //////////Comparison of events yields
   for(int row=1;row<=8;row++){
@@ -746,6 +744,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       h_spread->Fill((obs_number-exp_number)/float(obs_number));
       h3_spread->Fill(column,row,(obs_number-exp_number)/float(obs_number));
       h2_spread->SetBinContent(column,row,(obs_number-exp_number)/float(obs_number));
+      h22_spread->SetBinContent(column,row,-((h[2][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[2]))-exp_number)/float(exp_number));
       //cout<<"row : "<<row<<"  , column : "<<column<<" ::::: <<obs number : "<<obs_number<<"     exp number : "<<exp_number<<endl;
     }
   }
@@ -755,23 +754,32 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   c_spread->cd(1);
   h_spread->DrawNormalized();
   c_spread->cd(2);
-  h2_spread->Draw("colz");
-  c_spread->cd(3);
   h3_spread->Draw("colz");
+  c_spread->cd(3);
+  h2_spread->Draw("colz");
+  c_spread->cd(4);
+  h22_spread->Draw("colz");
 
  
  
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
-      h[0][column][row]->Scale(ntrigs[0]/ntrigs[1]);
-      h[1][column][row]->Scale(ntrigs[0]/ntrigs[1]);
+      h[0][column][row]->Scale((h[0][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[1]));
+      h[1][column][row]->Scale((h[1][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[1]));
+      h[2][column][row]->Scale((h[2][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[2]));
+      h[3][column][row]->Scale((h[3][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[3]));
+      
       for(int ii=2;ii<=3;ii++){
-	h[0][column][row]->Add(h[ii][column][row],ntrigs[0]/ntrigs[ii]);
-	h[ii][column][row]->Scale(ntrigs[0]/ntrigs[ii]);
+	//h[ii][column][row]->Scale((h[ii][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[ii])));
+	h[0][column][row]->Add(h[ii][column][row]);
       }
+      Int_t exp_number = 0;
+      for(int l=1;l<=3;l++){
+	exp_number = exp_number + (h[l][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[l]));
+      }
+      h_0[column][row]->Scale(exp_number);
     }
   }
-
   
   /*
     int canvasID=-9;

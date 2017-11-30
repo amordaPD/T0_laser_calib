@@ -229,7 +229,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     Float_t max_bin = h_temp->GetMaximumBin();
     TAxis *xaxis = h_temp->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
-    h_temp->Scale(1.0/n_triggers);
+    //h_temp->Scale(1.0/n_triggers);
 
     //////// THIS IS THE HISTOGRAM THAT WILL BE FITTED
     Float_t upper_bound_hist=2;
@@ -854,7 +854,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   
 }
 
-Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int pmt_pos, int column_number, int row_number){
+Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int slotID, int pmt_pos, int column_number, int row_number){
   Fit_results_basic Results;
   if(fit_model_d>4||fit_model_r>4){cout<<"invalid model specified, execution stopped"<<endl; return Results;}
 
@@ -865,7 +865,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   /////////////////////////////////////////////////////////////////
   ////// HERE Starts the fit part /////////////////////////////////
   /////////////////////////////////////////////////////////////////
-
+  bool raw_spectra = true;
   bool change_model = true;
   gROOT->ProcessLine(".x myRooPdfs/RooExpGauss.cxx+") ;
   gROOT->ProcessLine(".x myRooPdfs/RooAsymGauss.cxx+") ;
@@ -877,9 +877,50 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
  
   //TFile *f_input = new TFile(Form("KEK_data_histos_slot_8_col_%i_00049_allchs.root",column_number));
   Int_t pixelID=column_number+64*(row_number-1);
-  
-  TH1D* h_time = f_input->Get(Form("column_%i/histos_%i_%i/h_time",column_number,column_number,row_number));
 
+  
+  double my_low_x=-0.7;//-0.5;//1;
+  double my_up_x=2.2;//0.8;
+  double time_shift=0.0;
+  if(raw_spectra){
+    TString slot_ID= "";
+    TString slot_ID_undsc= "";
+    TString slot_ID_bs= "";
+    int shift_position=0; //when looking at KEK data to shift the position of the PMT while keeping the PD column numbering scheme
+    if(slotID>0) {
+      slot_ID = Form("slot_%i",slotID);
+      slot_ID_undsc = "_";
+      slot_ID_bs= "/";
+      shift_position=1;
+    }
+    TString histo_name_base_slot=slot_ID+slot_ID_bs;
+    TString histo_name_base=Form("column_%i/histos_%i_%i/",
+				 column_number+shift_position*(pmt_pos-1)*4,
+				 column_number+shift_position*(pmt_pos-1)*4,
+				 row_number);
+    TString histo_name_prefix_time = "time_";
+    TString histo_name_prefix_amp = "amp_";
+    TString histo_name_slot=slot_ID+slot_ID_undsc;
+    TString histo_name_colrow= Form("col_%i_row_%i",
+				    column_number+shift_position*(pmt_pos-1)*4,
+				    row_number);
+    TString histoname_time =histo_name_base_slot+histo_name_base+histo_name_prefix_time+histo_name_slot+histo_name_colrow;
+    TString histoname_amp  =histo_name_base_slot+histo_name_base+histo_name_prefix_amp+histo_name_slot+histo_name_colrow;
+    cout<<histoname_time<<endl;
+    TH1D* h_time = f_input->Get(histoname_time);
+    
+    Float_t max_bin = h_time->GetMaximumBin();
+    TAxis *xaxis = h_time->GetXaxis(); 
+    Double_t max_pos = xaxis->GetBinCenter(max_bin);
+    time_shift=max_pos;
+    my_low_x=max_pos-0.7;//-0.5;//1;
+    my_up_x=max_pos+1.5;//70;//0.8;
+    
+  }
+  else{
+    TH1D* h_time = f_input->Get(Form("column_%i/histos_%i_%i/h_time",column_number,column_number,row_number));
+  }
+  
   int column_number_MC=column_number+(pmt_pos-1)*4;
   /*
   TH1D* h_MC_tot = f_input->Get(Form("column_%i/histos_%i_%i/h_MC_tot",column_number_MC,column_number_MC,row_number));
@@ -925,8 +966,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
 
   
-  double my_low_x=-0.7;//-0.5;//1;
-  double my_up_x=0.8;//0.8;
+ 
   /*
     TAxis *xaxis_MC = h_MC_tot->GetXaxis();
     xaxis_MC->SetRange(0,(TMath::Abs(my_low_x)/(my_up_x-my_low_x))*h_MC_tot->GetNbinsX()-1);
@@ -935,7 +975,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     //  cout<<"ciao "<<max_first_pos_MC<<endl;
   */
   RooRealVar x("Time","Time [ns]",my_low_x,my_up_x) ;
-  x.setRange("Fit_Range_L",-0.55,-0.2) ;
   RooDataHist ds_0("ds_0","ds_0",RooArgSet(x),Import(*h_time)) ;
   RooDataHist ds_0_H("ds_0_H","ds_0_H",RooArgSet(x),Import(*h_time)) ;
   
@@ -1019,7 +1058,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
    up_sigma_T_0=0.500;
   
   low_alpha_0=0.01;
-   up_alpha_0=0.7;
+   up_alpha_0=0.8;
   
   low_beta_0=0.5;
    up_beta_0=1.0;
@@ -1033,12 +1072,12 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
 
    
-   starting_alpha_0=0.125;
+   starting_alpha_0=0.7125;
    starting_beta_0=0.9;
    
-   starting_mean_H_0=0.0;//starting_mean_L_0+starting_delta_H_0;
-   low_mean_H_0=starting_mean_H_0-0.075;//315;
-   up_mean_H_0=starting_mean_H_0+0.075;//0.315;
+   starting_mean_H_0=time_shift;//starting_mean_L_0+starting_delta_H_0;
+   low_mean_H_0=starting_mean_H_0-0.175;//315;
+   up_mean_H_0=starting_mean_H_0+0.175;//0.315;
 
    
    starting_mean_L_0=0.0;
@@ -1263,15 +1302,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   */
   if(do_prefit){
 
-    /*
-  mean_H_0.setConstant(kTRUE);
-  PDF_L_0.fitTo(ds_0_H,Save(),Minimizer(Type_minim_pf,Algo_minim_pf),Strategy(2),SumW2Error(kFALSE),PrintLevel(MN_output_print_level_prefit),PrintEvalErrors(-1),Range("Fit_Range_L"),Verbose(kFALSE));//);
-  Delta_H_0.setConstant(kTRUE);
-  sigma_L_0.setConstant(kTRUE);
-  alpha_CB_L.setConstant(kTRUE);
-  mean_H_0.setConstant(kFALSE);
-    */
-    
 
 
     
@@ -1532,7 +1562,8 @@ void loop_fit_column(TString input_basepath, TString input_basefilename, TString
     
     x[h-1]=h; err_x[h-1]=0;
     Fit_results_basic my_Results;                        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int slotID, int pmt_pos, int column_number, int row_number)
+    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,-1,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     cc->cd(h);
     my_Results.xframe2_fit_0->Draw() ;
     cc->cd(8+h);gPad->SetLeftMargin(0.15) ; my_Results.xframe2_pull_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); my_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_Results.xframe2_pull_0->Draw() ;

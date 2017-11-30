@@ -692,11 +692,11 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
-      h_0[column][row]  = (TH1D*)f_input_0->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
-      h[1][column][row] = (TH1D*)f_input_1->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
-      h[2][column][row] = (TH1D*)f_input_2->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
-      h[3][column][row] = (TH1D*)f_input_3->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
-      h[4][column][row] = (TH1D*)f_input_4->Get(Form("column_%i/histos_%i_%i/h_temp",column,column,row));
+      h_0[column][row]  = (TH1D*)f_input_0->Get(Form("column_%i/histos_%i_%i/time_col_%i_row_%i",column,column,row,column,row));
+      h[1][column][row] = (TH1D*)f_input_1->Get(Form("column_%i/histos_%i_%i/time_col_%i_row_%i",column,column,row,column,row));
+      h[2][column][row] = (TH1D*)f_input_2->Get(Form("column_%i/histos_%i_%i/time_col_%i_row_%i",column,column,row,column,row));
+      h[3][column][row] = (TH1D*)f_input_3->Get(Form("column_%i/histos_%i_%i/time_col_%i_row_%i",column,column,row,column,row));
+      h[4][column][row] = (TH1D*)f_input_4->Get(Form("column_%i/histos_%i_%i/time_col_%i_row_%i",column,column,row,column,row));
       h[0][column][row] = (TH1D*)h[1][column][row]->Clone();
     }
   }

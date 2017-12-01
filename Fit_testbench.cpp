@@ -637,7 +637,7 @@ void make_pmt_plots(TString input_path, TString input_filebasename, int pmt_pos,
 
 
 
-perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString file_in_1, TString file_in_2, TString file_in_3, TString file_in_4=""){
+perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString file_in_1, TString file_in_2, TString file_in_3, TString file_in_4="", int n_comparison = 3){
 
   /*
     file_0 is for the target comparison
@@ -731,7 +731,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   TH1D *h_spread = new TH1D("h_spread","h_spread",50,-0.5,0.5);
   TH3D *h3_spread = new TH3D("h3_spread","h3_spread",4,1,5,8,1,9,50,-0.5,0.5);
   TH2D *h2_spread = new TH2D("h2_spread","#frac{n. obs - n. exp}{n. obs}",4,1,5,8,1,9);
-  TH2D *h22_spread = new TH2D("h22_spread","#frac{n. exp_{tot} - n. exp_{main fiber}}{n. exp_{tot}}",4,1,5,8,1,9);
+  TH2D *h22_spread = new TH2D("h22_spread","#frac{n. exp - n. exp_{main fiber}}{n. exp}",4,1,5,8,1,9);
   h2_spread->GetXaxis()->SetTitle("column");
   h2_spread->GetYaxis()->SetTitle("row");
   h22_spread->GetXaxis()->SetTitle("column");
@@ -745,9 +745,16 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       float      exp_number_1 = (h[1][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[1]));
       float      exp_number_2 = (h[2][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[2]));
       float      exp_number_3 = (h[3][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[3]));
-      
-      Int_t exp_number =  exp_number_1+exp_number_2+exp_number_3;
 
+      float exp_number_i[4];
+      exp_number_i[1]=exp_number_1;
+      exp_number_i[2]=exp_number_2;
+      exp_number_i[3]=exp_number_3;
+      Int_t exp_number = 0; 
+      for(int hh=1;hh<=n_comparison; hh++){
+	exp_number = exp_number+exp_number_i[hh];
+      }
+	
       /*
       cout<<"------------------"<<endl;
       cout<<"------------------"<<endl;
@@ -791,7 +798,7 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       cout<<"h[2][column][row]->Integral()          "<<h[2][column][row]->Integral()<<endl;
       */
     
-      for(int ii=2;ii<=3;ii++){
+      for(int ii=2;ii<=n_comparison;ii++){
 	h[0][column][row]->Add(h[ii][column][row]);
       }
 
@@ -859,15 +866,15 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
       h_0[column][row]->Draw();
       h[0][column][row]->Draw("same");
       h[1][column][row]->Draw("same");
-      h[2][column][row]->Draw("same");
-      h[3][column][row]->Draw("same");
+      if(n_comparison>=2) h[2][column][row]->Draw("same");
+      if(n_comparison>=3) h[3][column][row]->Draw("same");
       if(row<=4){
 	pmts_down->cd(-4*row+column+16);
 	h_0[column][row]->Draw();
 	h[0][column][row]->Draw("same");
 	h[1][column][row]->Draw("same");
-	h[2][column][row]->Draw("same");
-	h[3][column][row]->Draw("same");
+	if(n_comparison>=2) h[2][column][row]->Draw("same");
+	if(n_comparison>=3) h[3][column][row]->Draw("same");
 	gPad->SetLogy();
       }
       else{
@@ -875,8 +882,8 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
 	h_0[column][row]->Draw();
 	h[0][column][row]->Draw("same");
 	h[1][column][row]->Draw("same");
-	h[2][column][row]->Draw("same");
-	h[3][column][row]->Draw("same");
+	if(n_comparison>=2) h[2][column][row]->Draw("same");
+	if(n_comparison>=3) h[3][column][row]->Draw("same");
 	gPad->SetLogy();
       }
     }

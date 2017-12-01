@@ -737,15 +737,74 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   for(int row=1;row<=8;row++){
     for(int column=1;column<=4;column++){
       Int_t obs_number = h_0[column][row]->GetEntries();
-      Int_t exp_number = 0;
-      for(int l=1;l<=3;l++){
-	exp_number = exp_number + (h[l][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[l]));
-      }
+      
+      float      exp_number_1 = (h[1][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[1]));
+      float      exp_number_2 = (h[2][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[2]));
+      float      exp_number_3 = (h[3][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[3]));
+      
+      Int_t exp_number =  exp_number_1+exp_number_2+exp_number_3;
+
+      /*
+      cout<<"------------------"<<endl;
+      cout<<"------------------"<<endl;
+      cout<<"------------------"<<endl;
+      cout<<exp_number_1<<"  =  "<<h[1][column][row]->GetEntries()<<" * ("<<float(ntrigs[0])<<")/("<<ntrigs[1]<<")"<<endl;
+      cout<<exp_number_2<<"  =  "<<h[2][column][row]->GetEntries()<<" * ("<<float(ntrigs[0])<<")/("<<ntrigs[2]<<")"<<endl;
+      cout<<exp_number_3<<"  =  "<<h[3][column][row]->GetEntries()<<" * ("<<float(ntrigs[0])<<")/("<<ntrigs[3]<<")"<<endl;
+      cout<<exp_number<< " vs "<<obs_number<<endl;
+      */
       h_spread->Fill((obs_number-exp_number)/float(obs_number));
       h3_spread->Fill(column,row,(obs_number-exp_number)/float(obs_number));
       h2_spread->SetBinContent(column,row,(obs_number-exp_number)/float(obs_number));
-      h22_spread->SetBinContent(column,row,-((h[2][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[2]))-exp_number)/float(exp_number));
-      //cout<<"row : "<<row<<"  , column : "<<column<<" ::::: <<obs number : "<<obs_number<<"     exp number : "<<exp_number<<endl;
+      h22_spread->SetBinContent(column,row,(exp_number-exp_number_2)/float(exp_number));
+
+      /*
+      cout<<"prima del rescaling"<<endl;
+
+      cout<<"h[0][column][row]->GetEntries()        "<<h[0][column][row]->GetEntries()<<endl;
+      cout<<"h[0][column][row]->GetIntegral()       "<<h[0][column][row]->GetIntegral()<<endl;
+      cout<<"h[0][column][row]->Integral()          "<<h[0][column][row]->Integral()<<endl;
+
+      cout<<"h[2][column][row]->GetEntries()        "<<h[2][column][row]->GetEntries()<<endl;
+      cout<<"h[2][column][row]->GetIntegral()       "<<h[2][column][row]->GetIntegral()<<endl;
+      cout<<"h[2][column][row]->Integral()          "<<h[2][column][row]->Integral()<<endl;
+      */
+      
+      h[0][column][row]->Scale(double(exp_number_1)/(h[0][column][row]->Integral()));
+      h[1][column][row]->Scale(double(exp_number_1)/(h[1][column][row]->Integral()));
+      h[2][column][row]->Scale(double(exp_number_2)/(h[2][column][row]->Integral()));
+      h[3][column][row]->Scale(double(exp_number_3)/(h[3][column][row]->Integral()));
+      
+      /*
+      cout<<"prima del rescaling"<<endl;
+      
+      cout<<"h[0][column][row]->GetEntries()        "<<h[0][column][row]->GetEntries()<<endl;
+      cout<<"h[0][column][row]->GetIntegral()       "<<h[0][column][row]->GetIntegral()<<endl;
+      cout<<"h[0][column][row]->Integral()          "<<h[0][column][row]->Integral()<<endl;
+      
+      cout<<"h[2][column][row]->GetEntries()        "<<h[2][column][row]->GetEntries()<<endl;
+      cout<<"h[2][column][row]->GetIntegral()       "<<h[2][column][row]->GetIntegral()<<endl;
+      cout<<"h[2][column][row]->Integral()          "<<h[2][column][row]->Integral()<<endl;
+      */
+    
+      for(int ii=2;ii<=3;ii++){
+	h[0][column][row]->Add(h[ii][column][row]);
+      }
+
+
+      /*
+      cout<<"------------------"<<endl;
+      cout<<" test non normalization "<<endl;
+      cout<<"h_0[column][row]->GetEntries()        "<<h_0[column][row]->GetEntries()<<endl;
+      cout<<"h_0[column][row]->GetIntegral()       "<<h_0[column][row]->GetIntegral()<<endl;
+      cout<<"h_0[column][row]->Integral()          "<<h_0[column][row]->Integral()<<endl;
+      //h_0[column][row]->Scale(exp_number); 
+      cout<<"h[0][column][row]->GetEntries()        "<<h[0][column][row]->GetEntries()<<endl;
+      cout<<"h[0][column][row]->GetIntegral()       "<<h[0][column][row]->GetIntegral()<<endl;
+      cout<<"h[0][column][row]->Integral()          "<<h[0][column][row]->Integral()<<endl;
+      */
+
+      
     }
   }
   
@@ -761,25 +820,6 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   h22_spread->Draw("colz");
 
  
- 
-  for(int row=1;row<=8;row++){
-    for(int column=1;column<=4;column++){
-      h[0][column][row]->Scale((h[0][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[1]));
-      h[1][column][row]->Scale((h[1][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[1]));
-      h[2][column][row]->Scale((h[2][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[2]));
-      h[3][column][row]->Scale((h[3][column][row]->GetEntries())*(float(ntrigs[0])/ntrigs[3]));
-      
-      for(int ii=2;ii<=3;ii++){
-	//h[ii][column][row]->Scale((h[ii][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[ii])));
-	h[0][column][row]->Add(h[ii][column][row]);
-      }
-      Int_t exp_number = 0;
-      for(int l=1;l<=3;l++){
-	exp_number = exp_number + (h[l][column][row]->GetEntries())*(float(ntrigs[0])/(ntrigs[l]));
-      }
-      h_0[column][row]->Scale(exp_number);
-    }
-  }
   
   /*
     int canvasID=-9;

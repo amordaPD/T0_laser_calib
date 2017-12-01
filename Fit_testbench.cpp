@@ -124,7 +124,13 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   tree_DAQ->Branch("nchannels",&nchs_DAQ,"nchannels/I");
   tree_DAQ->Branch("evtnum",&evtnum_DAQ,"evtnum/I");
   tree_DAQ->Branch("temp",&temp_DAQ,"temp/F");
-  
+  TTree *tree_DAQ_oor = new TTree("times_oor","times_oor"); // for out of range events, to better understand what's going on there
+  tree_DAQ_oor->Branch("time",&time_DAQ,"time/F");
+  tree_DAQ_oor->Branch("amp",&amp_DAQ,"amp/F");
+  tree_DAQ_oor->Branch("channel",&channel_DAQ,"channel/I");
+  tree_DAQ_oor->Branch("nchannels",&nchs_DAQ,"nchannels/I");
+  tree_DAQ_oor->Branch("evtnum",&evtnum_DAQ,"evtnum/I");
+  tree_DAQ_oor->Branch("temp",&temp_DAQ,"temp/F");
    
   Int_t _nevents = _tree_DAQ->GetEntries();
   
@@ -135,16 +141,17 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   for( _curevent =0; _curevent <_nevents; _curevent++) {
     _tree_DAQ->GetEntry(_curevent);
     for(int _ichan=0; _ichan<_nchs_DAQ;_ichan++){
+      time_DAQ=_times_DAQ[_ichan];
+      channel_DAQ=_chans_DAQ[_ichan];
+      amp_DAQ=_amps_DAQ[_ichan];
+      nchs_DAQ=_nchs_DAQ;
+      evtnum_DAQ=_evtnum_DAQ;
+      temp_DAQ=_temp_DAQ;
       if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
-      //if(0<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<100){
-	time_DAQ=_times_DAQ[_ichan];
-	channel_DAQ=_chans_DAQ[_ichan];
-	amp_DAQ=_amps_DAQ[_ichan];
-	nchs_DAQ=_nchs_DAQ;
-	evtnum_DAQ=_evtnum_DAQ;
-	temp_DAQ=_temp_DAQ;
 	tree_DAQ->Fill();
 	if(_evtnum_DAQ>numevts) {numevts=_evtnum_DAQ;}
+      } else {
+	tree_DAQ_oor->Fill();
       }
     }
     
@@ -156,6 +163,7 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
   cout<<"n triggers : "<<n_triggers<<endl;
   f_data->cd();
   tree_DAQ->Write();
+  tree_DAQ_oor->Write();
   h_ntriggers->Write();
   delete h_ntriggers;
   f_data->cd();

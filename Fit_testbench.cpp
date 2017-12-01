@@ -730,8 +730,12 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   }
   TH1D *h_spread = new TH1D("h_spread","h_spread",50,-0.5,0.5);
   TH3D *h3_spread = new TH3D("h3_spread","h3_spread",4,1,5,8,1,9,50,-0.5,0.5);
-  TH2D *h2_spread = new TH2D("h2_spread","h2_spread",4,1,5,8,1,9);
-  TH2D *h22_spread = new TH2D("h22_spread","h22_spread",4,1,5,8,1,9);
+  TH2D *h2_spread = new TH2D("h2_spread","#frac{n. obs - n. exp}{n. obs}",4,1,5,8,1,9);
+  TH2D *h22_spread = new TH2D("h22_spread","#frac{n. exp_{tot} - n. exp_{main fiber}}{n. exp_{tot}}",4,1,5,8,1,9);
+  h2_spread->GetXaxis()->SetTitle("column");
+  h2_spread->GetYaxis()->SetTitle("row");
+  h22_spread->GetXaxis()->SetTitle("column");
+  h22_spread->GetYaxis()->SetTitle("row");
   
   //////////Comparison of events yields
   for(int row=1;row<=8;row++){
@@ -809,14 +813,16 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   }
   
   TCanvas *c_spread = new TCanvas("c_spread","c_spread");
-  c_spread->Divide(2,2);
+  c_spread->Divide(2,1);
+  /*
   c_spread->cd(1);
   h_spread->DrawNormalized();
   c_spread->cd(2);
   h3_spread->Draw("colz");
-  c_spread->cd(3);
+  */
+  c_spread->cd(1);
   h2_spread->Draw("colz");
-  c_spread->cd(4);
+  c_spread->cd(2);
   h22_spread->Draw("colz");
 
  

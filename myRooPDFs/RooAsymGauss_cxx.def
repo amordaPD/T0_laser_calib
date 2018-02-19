@@ -1,0 +1,216 @@
+LIBRARY    RooAsymGauss_cxx
+EXPORTS 
+	?fgIsA@RooAsymGauss@@0PAVTClass@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_complexlEdoublegR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TBuffer@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TClass@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TMemberInspector@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TNamed@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TObject@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TMatrixTlEdoublegR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TVectorTlEdoublegR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_TVectorTlEfloatgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooAbsArg@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooAbsPdf@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooAbsReal@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooPrintable@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooRealProxy@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcOcharcOlongcOcharmUcOcharaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcOROOTcLcLTSchemaHelpercOlongcOROOTcLcLTSchemaHelpermUcOROOTcLcLTSchemaHelperaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlETVirtualArraymUcOallocatorlETVirtualArraymUgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlETVirtualArraymUcOallocatorlETVirtualArraymUgRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcOTVirtualArraymUcOlongcOTVirtualArraymUmUcOTVirtualArraymUaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlETVirtualArraymUcOallocatorlETVirtualArraymUgRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlEbidirectional_iterator_tagcOTObjectmUcOlongcOconstsPTObjectmUmUcOconstsPTObjectmUaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_listlEdoublecOallocatorlEdoublegRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_listlEstringcOallocatorlEstringgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_setlEstringcOlesslEstringgRcOallocatorlEstringgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcOTObjArraymUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcOTObjArraymUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcOstringcOlesslEstringgRcOallocatorlEpairlEconstsPstringcOstringgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_setlEpairlERooAbsArgmUcORooAbsArgmUgRcOlesslEpairlERooAbsArgmUcORooAbsArgmUgRsPgRcOallocatorlEpairlERooAbsArgmUcORooAbsArgmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_dequelERooAbsCachemUcOallocatorlERooAbsCachemUgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplERooAbsArgmUcOTRefArraymUcOlesslERooAbsArgmUgRcOallocatorlEpairlERooAbsArgmUsPconstcOTRefArraymUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_dequelERooAbsArgmUcOallocatorlERooAbsArgmUgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_stacklERooAbsArgmUcOdequelERooAbsArgmUcOallocatorlERooAbsArgmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlERooCurvemUcOallocatorlERooCurvemUgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooCurvemUcOallocatorlERooCurvemUgRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcORooCurvemUcOlongcORooCurvemUmUcORooCurvemUaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooCurvemUcOallocatorlERooCurvemUgRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcOTH1mUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcOTH1mUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcORooDataHistmUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcORooDataHistmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcORooDataSetmUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcORooDataSetmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcORooAbsDatamUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcORooAbsDatamUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_listlERooAbsRealcLcLEvalErrorcOallocatorlERooAbsRealcLcLEvalErrorgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_pairlEstringcOlistlERooAbsRealcLcLEvalErrorcOallocatorlERooAbsRealcLcLEvalErrorgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEconstsPRooAbsArgmUcOpairlEstringcOlistlERooAbsRealcLcLEvalErrorcOallocatorlERooAbsRealcLcLEvalErrorgRsPgRsPgRcOlesslEconstsPRooAbsArgmUgRcOallocatorlEpairlEconstsPRooAbsArgmUsPconstcOpairlEstringcOlistlERooAbsRealcLcLEvalErrorcOallocatorlERooAbsRealcLcLEvalErrorgRsPgRsPgRsPgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOallocatorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOallocatorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRsPgRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcOpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOlongcOpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRmUcOpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOallocatorlEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRsPgRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOunsignedsPlongcOlesslEpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRsPgRcOallocatorlEpairlEconstsPpairlEconstsPRooArgSetmUcOconstsPRooArgSetmUgRcOunsignedsPlonggRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEintcOstringcOlesslEintgRcOallocatorlEpairlEconstsPintcOstringgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcORooMsgServicecLcLStreamConfigcOlongcORooMsgServicecLcLStreamConfigmUcORooMsgServicecLcLStreamConfigaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_dequelEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRcOallocatorlEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_stacklEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRcOdequelEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRcOallocatorlEvectorlERooMsgServicecLcLStreamConfigcOallocatorlERooMsgServicecLcLStreamConfiggRsPgRsPgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcObasic_ostreamlEcharcOchar_traitslEchargRsPgRmUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcObasic_ostreamlEcharcOchar_traitslEchargRsPgRmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlERooNormSetCachecOallocatorlERooNormSetCachegRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooNormSetCachecOallocatorlERooNormSetCachegRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcORooNormSetCachecOlongcORooNormSetCachemUcORooNormSetCacheaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooNormSetCachecOallocatorlERooNormSetCachegRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_vectorlERooAbsCacheElementmUcOallocatorlERooAbsCacheElementmUgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooAbsCacheElementmUcOallocatorlERooAbsCacheElementmUgRsPgRcLcLiteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_iteratorlErandom_access_iterator_tagcORooAbsCacheElementmUcOlongcORooAbsCacheElementmUmUcORooAbsCacheElementmUaNgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_reverse_iteratorlEvectorlERooAbsCacheElementmUcOallocatorlERooAbsCacheElementmUgRsPgRcLcLconst_iteratorgR@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_RooAsymGauss@@3UG__linked_taginfo@@A 	 DATA
+	?G__RooAsymGauss_cxx_ACLiC_dictLN_maplEstringcORooSharedPropertiesmUcOlesslEstringgRcOallocatorlEpairlEconstsPstringcORooSharedPropertiesmUgRsPgRsPgR@@3UG__linked_taginfo@@A 	 DATA
+	?__empty_global_delete@@YAXPAX@Z
+	?__empty_global_delete@@YAXPAXI@Z
+	??0funcptr_and_voidptr@G__func2void@@QAE@PAX@Z
+	??BG__func2void@@QBEPAXXZ
+	G__cpp_dllrevRooAsymGauss_cxx_ACLiC_dict
+	G__set_cpp_environmentRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_tagtableRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_inheritanceRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_typetableRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_memvarRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_globalRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_memfuncRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setup_funcRooAsymGauss_cxx_ACLiC_dict
+	G__cpp_setupRooAsymGauss_cxx_ACLiC_dict
+	?GetOption@TObject@@UBEPBDXZ
+	??2TObject@@SAPAXI@Z
+	??_UTObject@@SAPAXI@Z
+	??2TObject@@SAPAXIPAX@Z
+	??_UTObject@@SAPAXIPAX@Z
+	?IsReading@TBuffer@@QBE_NXZ
+	?IsLong@TString@@ABE_NXZ
+	?GetLongPointer@TString@@ABEPBDXZ
+	?GetShortPointer@TString@@ABEPBDXZ
+	?GetPointer@TString@@ABEPBDXZ
+	??BTString@@QBEPBDXZ
+	??0TNamed@@QAE@XZ
+	??1TNamed@@UAE@XZ
+	?GetName@TNamed@@UBEPBDXZ
+	?GetTitle@TNamed@@UBEPBDXZ
+	?Hash@TNamed@@UBEKXZ
+	?IsSortable@TNamed@@UBE_NXZ
+	?IsA@TNamed@@UBEPAVTClass@@XZ
+	?Clone@RooAbsArg@@UBEPAVTObject@@PBD@Z
+	?isDerived@RooAbsArg@@UBE_NXZ
+	?isFundamental@RooAbsArg@@UBE_NXZ
+	?isLValue@RooAbsArg@@UBE_NXZ
+	?Print@RooAbsArg@@UBEXPBD@Z
+	?printMetaArgs@RooAbsArg@@UBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+	?IsSortable@RooAbsArg@@UBE_NXZ
+	?inRange@RooAbsArg@@UBE_NPBD@Z
+	?hasRange@RooAbsArg@@UBE_NPBD@Z
+	?canNodeBeCached@RooAbsArg@@UBE?AW4CacheMode@1@XZ
+	?setCacheAndTrackHints@RooAbsArg@@UAEXAAVRooArgSet@@@Z
+	?operModeHook@RooAbsArg@@MAEXXZ
+	?optimizeDirtyHook@RooAbsArg@@MAEXPBVRooArgSet@@@Z
+	?getParametersHook@RooAbsArg@@MBEXPBVRooArgSet@@PAV2@_N@Z
+	?getObservablesHook@RooAbsArg@@MBEXPBVRooArgSet@@PAV2@@Z
+	?cacheUniqueSuffix@RooAbsArg@@UBEPBDXZ
+	?serverNameChangeHook@RooAbsArg@@UAEXPBV1@0@Z
+	?setExpensiveObjectCache@RooAbsArg@@UAEXAAVRooExpensiveObjectCache@@@Z
+	?importWorkspaceHook@RooAbsArg@@UAE_NAAVRooWorkspace@@@Z
+	?getVal@RooAbsReal@@QBENPBVRooArgSet@@@Z
+	?forceAnalyticalInt@RooAbsReal@@UBE_NABVRooAbsArg@@@Z
+	?forceNumInt@RooAbsReal@@UAEX_N@Z
+	?minTrialSamples@RooAbsReal@@UBEHABVRooArgSet@@@Z
+	?defaultErrorLevel@RooAbsReal@@UBENXZ
+	?isBinnedDistribution@RooAbsReal@@UBE_NABVRooArgSet@@@Z
+	?binBoundaries@RooAbsReal@@UBEPAV?$list@NV?$allocator@N@std@@@std@@AAVRooAbsRealLValue@@NN@Z
+	?plotSamplingHint@RooAbsReal@@UBEPAV?$list@NV?$allocator@N@std@@@std@@AAVRooAbsRealLValue@@NN@Z
+	?setData@RooAbsReal@@UAE_NAAVRooAbsData@@_N@Z
+	?enableOffsetting@RooAbsReal@@UAEX_N@Z
+	?isOffsetting@RooAbsReal@@UBE_NXZ
+	?offset@RooAbsReal@@UBENXZ
+	?syncCache@RooAbsReal@@MAEXPBVRooArgSet@@@Z
+	?plotOn@RooAbsPdf@@UBEPAVRooPlot@@PAV2@ABVRooCmdArg@@111111111@Z
+	?getConstraints@RooAbsPdf@@UBEPAVRooArgSet@@ABV2@AAV2@_N@Z
+	?selfNormalized@RooAbsPdf@@UBE_NXZ
+	?extendMode@RooAbsPdf@@UBE?AW4ExtendMode@1@XZ
+	?expectedEvents@RooAbsPdf@@UBENABVRooArgSet@@@Z
+	?redirectServersHook@RooAbsPdf@@MAE_NABVRooAbsCollection@@_N11@Z
+	??0RooArgProxy@@QAE@XZ
+	?name@RooArgProxy@@UBEPBDXZ
+	?IsA@RooArgProxy@@UBEPAVTClass@@XZ
+	??0RooRealProxy@@QAE@XZ
+	?Clone@RooRealProxy@@UBEPAVTObject@@PBD@Z
+	??BRooRealProxy@@QBENXZ
+	?min@RooRealProxy@@QBENPBD@Z
+	?max@RooRealProxy@@QBENPBD@Z
+	?IsA@RooRealProxy@@UBEPAVTClass@@XZ
+	??0RooAsymGauss@@QAE@XZ
+	??0RooAsymGauss@@QAE@PBD0AAVRooAbsReal@@111@Z
+	??0RooAsymGauss@@QAE@ABV0@PBD@Z
+	?clone@RooAsymGauss@@UBEPAVTObject@@PBD@Z
+	??1RooAsymGauss@@UAE@XZ
+	?analyticalIntegral@RooAsymGauss@@UBENHPBD@Z
+	?evaluate@RooAsymGauss@@MBENXZ
+	?ApproxErf@RooAsymGauss@@IBENN@Z
+	?Class@RooAsymGauss@@SAPAVTClass@@XZ
+	?Class_Name@RooAsymGauss@@SAPBDXZ
+	?Class_Version@RooAsymGauss@@SAFXZ
+	?Dictionary@RooAsymGauss@@SAXXZ
+	?IsA@RooAsymGauss@@UBEPAVTClass@@XZ
+	?ShowMembers@RooAsymGauss@@UAEXAAVTMemberInspector@@@Z
+	?Streamer@RooAsymGauss@@UAEXAAVTBuffer@@@Z
+	?StreamerNVirtual@RooAsymGauss@@QAEXAAVTBuffer@@@Z
+	?DeclFileName@RooAsymGauss@@SAPBDXZ
+	?ImplFileLine@RooAsymGauss@@SAHXZ
+	?ImplFileName@RooAsymGauss@@SAPBDXZ
+	?DeclFileLine@RooAsymGauss@@SAHXZ
+	?erf@RooMath@@SANN@Z
+	?GenerateInitInstance@ROOTDict@@YAPAVTGenericClassInfo@ROOT@@PBVRooAsymGauss@@@Z
+	??0TLockGuard@@QAE@PAVTVirtualMutex@@@Z
+	??1TLockGuard@@UAE@XZ
+	?IsA@TLockGuard@@UBEPAVTClass@@XZ
+	??1TVirtualIsAProxy@@UAE@XZ
+	??0TVirtualIsAProxy@@QAE@XZ
+	??0?$TInstrumentedIsAProxy@VRooAsymGauss@@@@QAE@PAVTClass@@@Z
+	??1?$TInstrumentedIsAProxy@VRooAsymGauss@@@@UAE@XZ
+	?SetClass@?$TInstrumentedIsAProxy@VRooAsymGauss@@@@UAEXPAVTClass@@@Z
+	??R?$TInstrumentedIsAProxy@VRooAsymGauss@@@@UAEPAVTClass@@PBX@Z
+	??$InspectMember@VRooRealProxy@@@TMemberInspector@@QAEXAAVRooRealProxy@@PBD@Z
+	G__cpp_reset_tagtableRooAsymGauss_cxx_ACLiC_dict
+	??0G__Sizep2memfuncRooAsymGauss_cxx_ACLiC_dict@@QAE@XZ
+	?sizep2memfunc@G__Sizep2memfuncRooAsymGauss_cxx_ACLiC_dict@@QAEIXZ
+	?G__get_sizep2memfuncRooAsymGauss_cxx_ACLiC_dict@@YAIXZ
+	??$?0P6APAVTClass@@XZ@G__func2void@@QAE@P6APAVTClass@@XZ@Z
+	??$?0P6APBDXZ@G__func2void@@QAE@P6APBDXZ@Z
+	??$?0P6AFXZ@G__func2void@@QAE@P6AFXZ@Z
+	??$?0P6AXXZ@G__func2void@@QAE@P6AXXZ@Z
+	??$?0P6AHXZ@G__func2void@@QAE@P6AHXZ@Z
+	??0G__cpp_setup_initRooAsymGauss_cxx_ACLiC_dict@@QAE@XZ
+	??1G__cpp_setup_initRooAsymGauss_cxx_ACLiC_dict@@QAE@XZ
+	?IsA@RooArgProxy@@WCM@BEPAVTClass@@XZ
+	?ShowMembers@RooArgProxy@@WCM@AEXAAVTMemberInspector@@@Z
+	?Streamer@RooArgProxy@@WCM@AEXAAVTBuffer@@@Z
+	?IsA@RooRealProxy@@WCM@BEPAVTClass@@XZ
+	?ShowMembers@RooRealProxy@@WCM@AEXAAVTMemberInspector@@@Z
+	?Streamer@RooRealProxy@@WCM@AEXAAVTBuffer@@@Z
+	?IsA@RooAsymGauss@@WCM@BEPAVTClass@@XZ
+	?ShowMembers@RooAsymGauss@@WCM@AEXAAVTMemberInspector@@@Z
+	?Streamer@RooAsymGauss@@WCM@AEXAAVTBuffer@@@Z
+	??_R0?AVRooAsymGauss@@@8 	 DATA
+	?G__cpp_setup_initializerRooAsymGauss_cxx_ACLiC_dict@@3VG__cpp_setup_initRooAsymGauss_cxx_ACLiC_dict@@A 	 DATA
+	??_R0?AVTObject@@@8 	 DATA
+	??_R0?AVTNamed@@@8 	 DATA
+	??_R0?AVTVirtualIsAProxy@@@8 	 DATA
+	??_R0?AVRooPrintable@@@8 	 DATA
+	??_R0?AVRooAbsProxy@@@8 	 DATA
+	??_R0?AVRooArgProxy@@@8 	 DATA
+	??_R0?AVRooRealProxy@@@8 	 DATA
+	??_R0?AVRooAbsReal@@@8 	 DATA
+	??_R0?AVRooAbsArg@@@8 	 DATA
+	??_R0?AVRooAbsPdf@@@8 	 DATA
+	??_R0?AVTLockGuard@@@8 	 DATA
+	??_R0?AV?$TInstrumentedIsAProxy@VRooAsymGauss@@@@@8 	 DATA

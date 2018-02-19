@@ -926,25 +926,71 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
 Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int slotID, int pmt_pos, int column_number, int row_number){
   Fit_results_basic Results;
   if(fit_model_d>4||fit_model_r>4){cout<<"invalid model specified, execution stopped"<<endl; return Results;}
-
-  
   if (input_basepath=="") input_basepath="Dati_PD/3.column_data/";
+
+  /////////////////////////////////////////
+  ///// Fit machinery configuration ///////
+  /////////////////////////////////////////
+  TString _draw_results="draw";
+
+  bool do_prefit=true;
+  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll  ///true recomended
+  int MN_output_print_level=-1;
+  int MN_output_print_level_prefit;
+  bool print_prefit_info=false;
+  const char * Type_minim="Minuit";
+  const char * Algo_minim="minimize";//
+  const char * Type_minim_pf="Minuit";//"Minuit2";//
+  const char * Algo_minim_pf="minimize";//"scan";//
+  bool binned_fit = true; //recomended true if you don't want to wait 7 minutes for the fit output
   
-  //gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_PD_column(1); > ee.log
-  /////////////////////////////////////////////////////////////////
-  ////// HERE Starts the fit part /////////////////////////////////
-  /////////////////////////////////////////////////////////////////
+  bool compute_FWHM = true;
+
+  bool direct_parametrization =true;
+  bool fit_for_first_peak=false;
+  int  fiber_position_calibration_peak=0;
+  bool fit_real_FiberCombs_data=true;
+  int  bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
+  bool add_background_component=true;
+  int  amplitude_cut = -40;
+  
+  bool suppress_negligible_first_peak=false;
+  bool do_simultaneous_fit=false;
+  bool add_third_signal_pos0=false;
+  bool simulate_CB_tail=false;
+  
+  
+  if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
+  bool draw_results;
+  if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
+
+
   bool raw_spectra = true;
   bool change_model = true;
   gROOT->ProcessLine(".x myRooPdfs/RooExpGauss.cxx+") ;
   gROOT->ProcessLine(".x myRooPdfs/RooAsymGauss.cxx+") ;
 
+
+
+
+
+
+
+
+
+
+
+  
+  //gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_PD_column(1); > ee.log
+  /////////////////////////////////////////////////////////////////
+  ////// HERE Starts the fit part /////////////////////////////////
+  /////////////////////////////////////////////////////////////////
+
+
   TString input_filename="";
   TString input_column=Form("_col_%i",column_number);
   input_filename=input_basepath+input_basefilename+"_data_histos";
   TFile *f_input = new TFile(input_filename+".root"); //FOR PD data
- 
-  //TFile *f_input = new TFile(Form("KEK_data_histos_slot_8_col_%i_00049_allchs.root",column_number));
   Int_t pixelID=column_number+64*(row_number-1);
 
   
@@ -983,8 +1029,8 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     TAxis *xaxis = h_time->GetXaxis(); 
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
     time_shift=max_pos;
-    my_low_x=max_pos-0.7;//-0.5;//1;
-    my_up_x=max_pos+0.7;//0.7;//1.5;
+    my_low_x=max_pos-0.7;//-0.7;//1;
+    my_up_x=max_pos+0.5;//1.5;
     
   }
   else{
@@ -1001,38 +1047,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     can0->Draw();
   */
 
-  
-  TString _draw_results="draw";
-
-  bool do_prefit=true;
-  bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll  ///true recomended
-  int MN_output_print_level=-1;
-  int MN_output_print_level_prefit;
-  bool print_prefit_info=false;
-  const char * Type_minim="Minuit";
-  const char * Algo_minim="minimize";//
-  const char * Type_minim_pf="Minuit";//"Minuit2";//
-  const char * Algo_minim_pf="minimize";//"scan";//
-  bool binned_fit = true; //recomended true if you don't want to wait 7 minutes for the fit output
-  bool compute_FWHM = true;
-  bool direct_parametrization =true;
-  bool fit_for_first_peak=false;
-  int  fiber_position_calibration_peak=0;
-  bool fit_real_FiberCombs_data=true;
-  int  bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
-  bool add_background_component=true;
-  int  amplitude_cut = -40;
-  
-  bool suppress_negligible_first_peak=false;
-  bool do_simultaneous_fit=false;
-  bool add_third_signal_pos0=false;
-  //if(row_number>4){add_third_signal_pos0=true;}
-  bool simulate_CB_tail=false;
-  
-  
-  if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
-  bool draw_results;
-  if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
 
 
   
@@ -1174,7 +1188,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   low_n_CB_H=0;
    up_n_CB_H=200;
 
-   starting_alpha_CB_T=-1.5;
+   starting_alpha_CB_T=-0.5;
   starting_n_CB_T=6;
 
   low_alpha_CB_T=-5;
@@ -1202,14 +1216,20 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
+
+  RooRealVar scale_factor("scale_factor","scale_fator",3.14);//,3.0,3.5);
+  RooFormulaVar sigma_L_T("sigma_L_T","sigma_L_T","scale_factor*sigma_L_0",RooArgList(scale_factor,sigma_L_0));
+  RooFormulaVar sigma_H_T("sigma_H_T","sigma_H_T","scale_factor*sigma_L_0",RooArgList(scale_factor,sigma_L_0));
+  RooFormulaVar sigma_T_T("sigma_T_T","sigma_T_T","scale_factor*sigma_L_0",RooArgList(scale_factor,sigma_L_0));
+  
   
   RooRealVar sigma_L_T_0("sigma_L_T_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_T_0("sigma_H_T_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   RooRealVar sigma_T_T_0("sigma_T_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
 
   RooRealVar  sigma_KR_T_0("sigma_KR_T_0","sigma_KR_T_0",0.08,0.01,0.1);
-  RooRealVar  delta_mean_KR_T_0("delta_mean_KR_T_0","delta_mean_KR_T_0",0.300,0.2,0.3);
-  RooRealVar  frac_KR_C_0("frac_KR_C_0","frac_KR_C_0",0.9,0.9,1);
+  RooRealVar  delta_mean_KR_T_0("delta_mean_KR_T_0","delta_mean_KR_T_0",0.110);
+  RooRealVar  frac_KR_C_0("frac_KR_C_0","frac_KR_C_0",0.88);
 
 
 
@@ -1236,7 +1256,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     RooGaussian PDF_L_C_0("PDF_H_C_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
     //TAIL COMPONENT
     RooFormulaVar mean_L_T_0("mean_L_T_0","mean_L_T_0","mean_L_0+delta_mean_KR_T_0",RooArgList(mean_L_0,delta_mean_KR_T_0));
-    RooExpGauss PDF_L_T_0("PDF_L_T_0","gaussian L_0",x,mean_L_T_0,sigma_KR_T_0,alpha_CB_T) ;
+    RooExpGauss PDF_L_T_0("PDF_L_T_0","gaussian L_0",x,mean_L_T_0,sigma_L_T,alpha_CB_T) ;
     RooArgList  pdfList_sig_L_0(PDF_L_C_0,PDF_L_T_0);
     RooArgList  fracList_sig_L_0(frac_KR_C_0);
     RooAddPdf   PDF_L_0("PDF_L_0","PDF_L_0",pdfList_sig_L_0,fracList_sig_L_0,kTRUE);
@@ -1258,7 +1278,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;
     RooGaussian PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0) ;
   }else if(fit_model_r==1){
-    RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
+    RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
     RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;
   }else if(fit_model_r==2){
     RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_L) ;
@@ -1271,7 +1291,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     RooGaussian PDF_H_C_0("PDF_H_C_0","gaussian L_0",x,mean_H_0,sigma_L_0) ;
     //TAIL COMPONENT
     RooFormulaVar mean_H_T_0("mean_H_T_0","mean_H_T_0","mean_H_0+delta_mean_KR_T_0",RooArgList(mean_H_0,delta_mean_KR_T_0));
-    RooExpGauss PDF_H_T_0("PDF_H_T_0","gaussian L_0",x,mean_H_T_0,sigma_KR_T_0,alpha_CB_T) ;
+    RooExpGauss PDF_H_T_0("PDF_H_T_0","gaussian L_0",x,mean_H_T_0,sigma_L_T,alpha_CB_L) ;
     RooArgList  pdfList_sig_H_0(PDF_H_C_0,PDF_H_T_0);
     RooArgList  fracList_sig_H_0(frac_KR_C_0);
     RooAddPdf   PDF_H_0("PDF_H_0","PDF_H_0",pdfList_sig_H_0,fracList_sig_H_0,kTRUE);
@@ -1280,8 +1300,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   }
 
-
-
+  
   
   ////////////////////////////////////////////////////////////////////
   //////////// BUILDING FULL MODEL /////////////////////////////
@@ -1422,7 +1441,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     alpha_0.setVal(0.00);
     sigma_L_0.setVal(0.100);
     Delta_H_0.setConstant(kTRUE);
-    sigma_L_0.setConstant(kTRUE);
+    //sigma_L_0.setConstant(kTRUE);
     alpha_CB_L.setConstant(kTRUE);
     n_CB_L.setConstant(kTRUE);
     alpha_0.setConstant(kTRUE);

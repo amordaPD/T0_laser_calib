@@ -1030,7 +1030,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     Double_t max_pos = xaxis->GetBinCenter(max_bin);
     time_shift=max_pos;
     my_low_x=max_pos-0.7;//-0.7;//1;
-    my_up_x=max_pos+0.5;//1.5;
+    my_up_x=max_pos+0.75;//1.5;
     
   }
   else{
@@ -1209,10 +1209,17 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   RooRealVar mean_H_0("mean_H_0","mean_{H}^{0}",starting_mean_H_0,low_mean_H_0,up_mean_H_0);
   RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
+
+
+  /*
+  if(slotID>0){
+    Delta_H_0.setVal(-0.04*(row_number)+0.354);}
+  else {
+    Delta_H_0.setVal(-0.04*(9-row_number)+0.354);
+  }
+  Delta_H_0.setConstant(kTRUE);
+  */
   
-
-
-
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
@@ -1248,7 +1255,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     //RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
     RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
   }else if(fit_model_d==2){
-    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L) ;
+    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0,alpha_CB_L) ;
   }else if(fit_model_d==3){
     RooAsymGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,sigma_L_T_0) ;
   }else if(fit_model_d==4){
@@ -1281,7 +1288,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
     RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;
   }else if(fit_model_r==2){
-    RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_L) ;
+    RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_L) ;
     RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T) ;
   }else if(fit_model_r==3){
     RooAsymGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,sigma_H_T_0) ;
@@ -1302,7 +1309,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   
   
-  ////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
   //////////// BUILDING FULL MODEL /////////////////////////////
   //////////////////////////////////////////////////////////////
 
@@ -1359,7 +1366,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   
   
   RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
-  //RooGaussian PDF_B_0("PDF_B_0","gaussian T_0",x,mean_T_0,sigma_T_0) ;
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   if(!add_background_component){
     a0_0.setConstant(kTRUE);
@@ -1373,19 +1379,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   RooAddPdf   model_0("model_0","model_0",pdfList_0,fracList_0,kTRUE);
   RooAddPdf   model_0_b("model_0_b","model_0_b",pdfList_0,fracList_0,kTRUE);
 
-  /*
-  if(change_model&&row_number<=3){
-    cout<<"the two peaks are too close (Delta_H<0.15): repeating the fit with only one signal "<<endl; 
-    Delta_H_0.setVal(0.00);
-    //mean_L_0.setVal(0.00);
-    //sigma_L_0.setVal(0.00);
-    alpha_0.setVal(0.00);
-    alpha_0.setConstant(kTRUE);
-    //mean_L_0.setConstant(kTRUE);
-    //sigma_L_0.setConstant(kTRUE);
-    //Delta_H_0.setConstant(kTRUE);
-  }
-  */
   if(do_prefit){
 
 
@@ -1565,7 +1558,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   Results.T_Res_H[1]=sigma_H_0.getError();
   Results.T0[0]=mean_H_0.getVal();
   Results.T0[1]=mean_H_0.getError();
-  if(!change_model||row_number>3){
+  if(!change_model||!change_model_row){
     Results.T_Res_L[0]=sigma_L_0.getVal();
     Results.T_Res_L[1]=sigma_L_0.getError();
     Results.delta_H_0[0]=Delta_H_0.getVal();
@@ -1605,7 +1598,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 }
 
 
-void loop_fit_column(TString input_basepath, TString input_basefilename, TString output_basepath, int column_number,int fit_model_ID){
+void loop_fit_column(TString input_basepath, TString input_basefilename, TString output_basepath, int slot_ID, int column_number,int fit_model_ID){
   /*
     To Run:
     gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4); > a.log
@@ -1653,7 +1646,7 @@ void loop_fit_column(TString input_basepath, TString input_basefilename, TString
     //basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int slotID, int pmt_pos, int column_number, int row_number){
     //    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,-1,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
-    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,11,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    my_Results = basic_fit_data("",input_basefilename,2,fit_model_ID,slot_ID,3,column_number,h);   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     cc->cd(h);
     my_Results.xframe2_fit_0->Draw() ;
     cc->cd(8+h);gPad->SetLeftMargin(0.15) ; my_Results.xframe2_pull_0->GetYaxis()->SetTitleOffset(1.6) ; gPad->SetGridy(); my_Results.xframe2_pull_0->GetYaxis()->SetRangeUser(-5,5); my_Results.xframe2_pull_0->Draw() ;
@@ -1791,29 +1784,31 @@ void loop_fit_column(TString input_basepath, TString input_basefilename, TString
     mg_DELTA_0->GetYaxis()->SetTitle("#Delta_{H}");
     gPad->Update();
     gPad->BuildLegend();
-    
-    TCanvas* c_delta_KR = new TCanvas("c_delta_KR","c_delta_KR",0,0,1124,700);
-    mg_DELTA_H_KR_0->Draw("AP");
-    gPad->Update();
-    mg_DELTA_H_KR_0->GetXaxis()->SetTitle("row");
-    mg_DELTA_H_KR_0->GetYaxis()->SetTitle("#Delta_{H}^{KR}");
-    gPad->Update();
-    gPad->BuildLegend();
-    TCanvas* c_frac_KR = new TCanvas("c_frac_KR","c_frac_KR",0,0,1124,700);
-    mg_FRAC_H_KR_0->Draw("AP");
-    gPad->Update();
-    mg_FRAC_H_KR_0->GetXaxis()->SetTitle("row");
-    mg_FRAC_H_KR_0->GetYaxis()->SetTitle("f_{H}^{KR}");
-    gPad->Update();
-    gPad->BuildLegend();
-    
+    if(fit_model_ID==4){
+      TCanvas* c_delta_KR = new TCanvas("c_delta_KR","c_delta_KR",0,0,1124,700);
+      mg_DELTA_H_KR_0->Draw("AP");
+      gPad->Update();
+      mg_DELTA_H_KR_0->GetXaxis()->SetTitle("row");
+      mg_DELTA_H_KR_0->GetYaxis()->SetTitle("#Delta_{H}^{KR}");
+      gPad->Update();
+      gPad->BuildLegend();
+      TCanvas* c_frac_KR = new TCanvas("c_frac_KR","c_frac_KR",0,0,1124,700);
+      mg_FRAC_H_KR_0->Draw("AP");
+      gPad->Update();
+      mg_FRAC_H_KR_0->GetXaxis()->SetTitle("row");
+      mg_FRAC_H_KR_0->GetYaxis()->SetTitle("f_{H}^{KR}");
+      gPad->Update();
+      gPad->BuildLegend();
+    }
     f_result->cd();
     cc->Write();
     c_frac_pos0->Write();
     c_delta_pos0->Write();
     c_Res_pos0->Write();
-    c_frac_KR->Write();
-    c_delta_KR->Write();
+    if(fit_model_ID==4){
+      c_frac_KR->Write();
+      c_delta_KR->Write();
+    }
     mg_SIGMA_0->Write();
     mg_FRAC_0->Write();
     mg_FRAC_H_KR_0->Write();
@@ -1927,7 +1922,7 @@ gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
         
     TMultiGraph *mg_SIGMA_0 = new TMultiGraph();
     mg_SIGMA_0->SetTitle("Time-resolution (#delta t) vs Channel");
-    mg_SIGMA_0->Add(SIGMA_L_0);
+    //mg_SIGMA_0->Add(SIGMA_L_0);
     mg_SIGMA_0->Add(SIGMA_H_0);
     
     TCanvas* c_Res_pos0 = new TCanvas("c_Res_pos0","c_Res_pos0",0,0,1124,700);
@@ -2019,21 +2014,22 @@ gROOT->ProcessLine(".L Fit_testbench.cpp"); loop_fit_column("","file","",3,4)
     mg_DELTA_0->GetYaxis()->SetTitle("#Delta_{H}");
     gPad->Update();
     gPad->BuildLegend();
-    
-    TCanvas* c_delta_KR = new TCanvas("c_delta_KR","c_delta_KR",0,0,1124,700);
-    mg_DELTA_H_KR_0->Draw("AP");
-    gPad->Update();
-    mg_DELTA_H_KR_0->GetXaxis()->SetTitle("row");
-    mg_DELTA_H_KR_0->GetYaxis()->SetTitle("#Delta_{H}^{KR}");
-    gPad->Update();
-    gPad->BuildLegend();
-    TCanvas* c_frac_KR = new TCanvas("c_frac_KR","c_frac_KR",0,0,1124,700);
-    mg_FRAC_H_KR_0->Draw("AP");
-    gPad->Update();
-    mg_FRAC_H_KR_0->GetXaxis()->SetTitle("row");
-    mg_FRAC_H_KR_0->GetYaxis()->SetTitle("f_{H}^{KR}");
-    gPad->Update();
-    gPad->BuildLegend();
+    if(0){
+      TCanvas* c_delta_KR = new TCanvas("c_delta_KR","c_delta_KR",0,0,1124,700);
+      mg_DELTA_H_KR_0->Draw("AP");
+      gPad->Update();
+      mg_DELTA_H_KR_0->GetXaxis()->SetTitle("row");
+      mg_DELTA_H_KR_0->GetYaxis()->SetTitle("#Delta_{H}^{KR}");
+      gPad->Update();
+      gPad->BuildLegend();
+      TCanvas* c_frac_KR = new TCanvas("c_frac_KR","c_frac_KR",0,0,1124,700);
+      mg_FRAC_H_KR_0->Draw("AP");
+      gPad->Update();
+      mg_FRAC_H_KR_0->GetXaxis()->SetTitle("row");
+      mg_FRAC_H_KR_0->GetYaxis()->SetTitle("f_{H}^{KR}");
+      gPad->Update();
+      gPad->BuildLegend();
+    }
     
     f_result->cd();
     cc->Write();

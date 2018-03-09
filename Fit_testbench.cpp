@@ -63,7 +63,7 @@ struct Fit_results_basic{
 };
 
 void run_data_production(TString input_raw_name="", bool flat_ntuple=false){
-  TString file_origin="PD";
+  
 
   cout<<"PRODUCING FLAT NTUPLE INPUT"<<endl;
   if(flat_ntuple) cscoper_DAQ("",input_raw_name,"");//produce_flat_ntuples
@@ -147,7 +147,7 @@ int cscoper_DAQ(TString origin_path, TString fname, TString output_path){
       nchs_DAQ=_nchs_DAQ;
       evtnum_DAQ=_evtnum_DAQ;
       temp_DAQ=_temp_DAQ;
-      if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<72){
+      if(60<_times_DAQ[_ichan]&&_times_DAQ[_ichan]<100){
 	tree_DAQ->Fill();
 	if(_evtnum_DAQ>numevts) {numevts=_evtnum_DAQ;}
       } else {
@@ -207,8 +207,8 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
   
   float upper_time;
   float lower_time;
-  lower_time=60;
-  upper_time=72; 
+  lower_time=50;
+  upper_time=100; 
   //upper_time=60; lower_time=72;
   int my_pixelID_data=-9; ////////For PD data
   
@@ -225,7 +225,7 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     my_pixelID_data=(my_column)*4+20*index_pmt-g;///////actually the readout channel for PD testbench system data
     
  
-    TCut cut = Form("amp>15&&60<time&&time<72&&channel==%i",my_pixelID_data); //For PD
+    TCut cut = Form("amp>5&&%f<time&&time<%f&&channel==%i",lower_time,upper_time,my_pixelID_data); //For PD
     TCut cut_16ch = Form("nchannels==16"); //For PD
     TCut cut_32ch = Form("nchannels==32"); //For PD
 
@@ -956,7 +956,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   
   bool suppress_negligible_first_peak=false;
   bool do_simultaneous_fit=false;
-  bool add_third_signal_pos0=false;
+  bool add_third_signal_pos0=true;
   bool simulate_CB_tail=false;
   
   
@@ -965,7 +965,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
 
 
-  bool raw_spectra = true;
+  bool raw_spectra = false;
   bool change_model = true;
   gROOT->ProcessLine(".x myRooPdfs/RooExpGauss.cxx+") ;
   gROOT->ProcessLine(".x myRooPdfs/RooAsymGauss.cxx+") ;
@@ -1065,6 +1065,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   double low_x_0;
   double up_x_0;
+  
   double starting_mean_H_0;
   double low_mean_H_0;
   double up_mean_H_0;
@@ -1086,21 +1087,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   double starting_sigma_H_0;
   double low_sigma_H_0;
   double up_sigma_H_0; 
-  double starting_Frac_H_0;
-  double      low_Frac_L_0;
-  double       up_Frac_L_0;
-  double starting_Frac_L_0;
-  double      low_Frac_H_0;
-  double       up_Frac_H_0;
-  double starting_Frac_T_0;
-  double      low_Frac_T_0;
-  double       up_Frac_T_0;
-  double starting_alpha_0;
-  double      low_alpha_0;
-  double       up_alpha_0;
-  double starting_beta_0;
-  double      low_beta_0;
-  double       up_beta_0;
 
   
   double starting_alpha_CB_L;
@@ -1123,86 +1109,72 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   double starting_n_CB_T;
   double low_n_CB_T;
   double up_n_CB_T;
-  /////POS 0
-   low_x_0=my_low_x; up_x_0=my_up_x;
   
+  low_x_0=my_low_x; up_x_0=my_up_x;
+  ////////absolute PEAK position
+  
+  starting_mean_H_0=time_shift;
+  low_mean_H_0=starting_mean_H_0-0.175;
+  up_mean_H_0=starting_mean_H_0+0.175;
+  
+  starting_mean_L_0=0.0;
+  low_mean_L_0=starting_mean_L_0-0.315;
+  up_mean_L_0=starting_mean_L_0+0.315;
+
+  ///////PEAKS separation
   low_delta_H_0=0.02;
-   up_delta_H_0=0.5;
+  up_delta_H_0=0.5;
+  starting_delta_H_0=0.3;
   
-  low_delta_T_0=0;
-   up_delta_T_0=0.5;
+  low_delta_T_0=0.0;
+  up_delta_T_0=0.5;
+  starting_delta_T_0=0.2;
   
+  
+  ////// RESOLUTIONS
   low_sigma_L_0=0.035;
-   up_sigma_L_0=0.5200;
+  up_sigma_L_0=0.5200;
+  starting_sigma_L_0=0.08;
   
   low_sigma_H_0=0.045;
-   up_sigma_H_0=0.5150;
+  up_sigma_H_0=0.5150;
+  starting_sigma_H_0=0.08;
   
   low_sigma_T_0=0.050;
-   up_sigma_T_0=0.500;
+  up_sigma_T_0=0.800;
+  starting_sigma_T_0=0.10;
   
-  low_alpha_0=0.01;
-   up_alpha_0=0.8;
-  
-  low_beta_0=0.5;
-   up_beta_0=1.0;
-
-  
-   starting_delta_H_0=0.5;
-   starting_delta_T_0=0.3;
-   starting_sigma_L_0=0.08100;
-   starting_sigma_H_0=0.08100;
-   starting_sigma_T_0=0.108100;
-
-
-   
-   starting_alpha_0=0.7125;
-   starting_beta_0=0.9;
-   
-   starting_mean_H_0=time_shift;
-   low_mean_H_0=starting_mean_H_0-0.175;//315;
-   up_mean_H_0=starting_mean_H_0+0.175;//0.315;
-
-   
-   starting_mean_L_0=0.0;
-   low_mean_L_0=starting_mean_L_0-0.315;
-   up_mean_L_0=starting_mean_L_0+0.315;
-
- 
-   starting_alpha_CB_L=-1.5;
-  starting_n_CB_L=6;
-
+  ////////CP parameters
   low_alpha_CB_L=-6.5;
-   up_alpha_CB_L=-0.050;
-   
+  up_alpha_CB_L=-0.050;
+  starting_alpha_CB_L=-1.5;
+  
   low_n_CB_L=0;
-   up_n_CB_L=200;
-
-
-  starting_alpha_CB_H=-1.5;
-  starting_n_CB_H=6;
-
+  up_n_CB_L=200;
+  starting_n_CB_L=6;
+  
   low_alpha_CB_H=-5;
-   up_alpha_CB_H=-0.050;
-   
+  up_alpha_CB_H=-0.050;
+  starting_alpha_CB_H=-1.5;
+
+  
   low_n_CB_H=0;
-   up_n_CB_H=200;
-
-   starting_alpha_CB_T=-0.5;
-  starting_n_CB_T=6;
-
+  up_n_CB_H=200;
+  starting_n_CB_H=6;
+  
   low_alpha_CB_T=-5;
-   up_alpha_CB_T=-0.050;
+  up_alpha_CB_T=-0.050;
+  starting_alpha_CB_T=-0.5;
+  
    
   low_n_CB_T=0;
-   up_n_CB_T=20;
+  up_n_CB_T=20;
+  starting_n_CB_T=6;
 
-  RooRealVar alpha_CB_L("alpha_CB_L","alpha parameter of CB",   starting_alpha_CB_L,low_alpha_CB_L,up_alpha_CB_L);
-  RooRealVar     n_CB_L("n_CB_L",    "exponential decay of CB ",starting_n_CB_L,low_n_CB_L,up_n_CB_L);
-  RooRealVar alpha_CB_H("alpha_CB_H","alpha parameter of CB",   starting_alpha_CB_H,low_alpha_CB_H,up_alpha_CB_H);
-  RooRealVar     n_CB_H("n_CB_H",    "exponential decay of CB ",starting_n_CB_H,low_n_CB_H,up_n_CB_H);
-  RooRealVar alpha_CB_T("alpha_CB_T","alpha parameter of CB",   starting_alpha_CB_T,low_alpha_CB_T,up_alpha_CB_T);
-  RooRealVar     n_CB_T("n_CB_T",    "exponential decay of CB ",starting_n_CB_T,low_n_CB_T,up_n_CB_T);
+
+
+
+  ////////fit parameters
   
   RooRealVar Delta_T_0("Delta_T_0","Delta T pos 0",starting_delta_T_0,low_delta_T_0,up_delta_T_0);
   RooRealVar Delta_H_0("Delta_H_0","Delta H pos 0",starting_delta_H_0,low_delta_H_0,up_delta_H_0);
@@ -1210,19 +1182,16 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   RooFormulaVar mean_L_0("mean_L_0","mean_L_0","mean_H_0-Delta_H_0",RooArgList(mean_H_0,Delta_H_0));
   RooFormulaVar mean_T_0("mean_T_0","mean_T_0","mean_H_0+Delta_T_0",RooArgList(mean_H_0,Delta_T_0));
 
-
-  /*
-  if(slotID>0){
-    Delta_H_0.setVal(-0.04*(row_number)+0.354);}
-  else {
-    Delta_H_0.setVal(-0.04*(9-row_number)+0.354);
-  }
-  Delta_H_0.setConstant(kTRUE);
-  */
-  
   RooRealVar sigma_L_0("sigma_L_0","width of L gaussian background",starting_sigma_L_0,low_sigma_L_0,up_sigma_L_0);
   RooRealVar sigma_H_0("sigma_H_0","width of H gaussian background",starting_sigma_H_0,low_sigma_H_0,up_sigma_H_0);
   RooRealVar sigma_T_0("sigma_T_0","width of T gaussian background",starting_sigma_T_0,low_sigma_T_0,up_sigma_T_0);
+  
+  RooRealVar alpha_CB_L("alpha_CB_L","alpha parameter of CB",   starting_alpha_CB_L,low_alpha_CB_L,up_alpha_CB_L);
+  RooRealVar     n_CB_L("n_CB_L",    "exponential decay of CB ",starting_n_CB_L,low_n_CB_L,up_n_CB_L);
+  RooRealVar alpha_CB_H("alpha_CB_H","alpha parameter of CB",   starting_alpha_CB_H,low_alpha_CB_H,up_alpha_CB_H);
+  RooRealVar     n_CB_H("n_CB_H",    "exponential decay of CB ",starting_n_CB_H,low_n_CB_H,up_n_CB_H);
+  RooRealVar alpha_CB_T("alpha_CB_T","alpha parameter of CB",   starting_alpha_CB_T,low_alpha_CB_T,up_alpha_CB_T);
+  RooRealVar     n_CB_T("n_CB_T",    "exponential decay of CB ",starting_n_CB_T,low_n_CB_T,up_n_CB_T);
 
   RooRealVar scale_factor("scale_factor","scale_fator",3.14);//,3.0,3.5);
   RooFormulaVar sigma_L_T("sigma_L_T","sigma_L_T","scale_factor*sigma_L_0",RooArgList(scale_factor,sigma_L_0));
@@ -1250,17 +1219,16 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
 
   
   if(fit_model_d==0){
-    RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+    RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0) ;
   }else if(fit_model_d==1){
-    //RooGaussian PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
-    RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
+    RooCBShape PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0,alpha_CB_H,n_CB_H) ;
   }else if(fit_model_d==2){
-    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0,alpha_CB_L) ;
+    RooExpGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0,alpha_CB_H) ;
   }else if(fit_model_d==3){
-    RooAsymGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_L_0,sigma_L_T_0) ;
+    RooAsymGauss PDF_L_0("PDF_L_0","gaussian L_0",x,mean_L_0,sigma_H_0,sigma_H_T_0) ;
   }else if(fit_model_d==4){
     //CORE GAUSSIAN
-    RooGaussian PDF_L_C_0("PDF_H_C_0","gaussian L_0",x,mean_L_0,sigma_L_0) ;
+    RooGaussian PDF_L_C_0("PDF_H_C_0","gaussian L_0",x,mean_L_0,sigma_H_0) ;
     //TAIL COMPONENT
     RooFormulaVar mean_L_T_0("mean_L_T_0","mean_L_T_0","mean_L_0+delta_mean_KR_T_0",RooArgList(mean_L_0,delta_mean_KR_T_0));
     RooExpGauss PDF_L_T_0("PDF_L_T_0","gaussian L_0",x,mean_L_T_0,sigma_L_T,alpha_CB_T) ;
@@ -1283,16 +1251,17 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   
   if(fit_model_r==0){
     RooGaussian PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0) ;
-    RooGaussian PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0) ;
+    RooGaussian PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_H_0) ;
   }else if(fit_model_r==1){
-    RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_L,n_CB_L) ;
-    RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T,n_CB_T) ;
+    RooCBShape PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_L_0,alpha_CB_H,n_CB_H) ;
+    RooCBShape PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_H,n_CB_H) ;
   }else if(fit_model_r==2){
-    RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_L) ;
-    RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T) ;
+    RooExpGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,alpha_CB_H) ;
+    RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_H_0,alpha_CB_H) ;
+    //RooGaussian PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0) ;
   }else if(fit_model_r==3){
     RooAsymGauss PDF_H_0("PDF_H_0","gaussian H_0",x,mean_H_0,sigma_H_0,sigma_H_T_0) ;
-    RooAsymGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,sigma_T_T_0) ;
+    RooAsymGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,sigma_H_T_0) ;
   }else if(fit_model_r==4){
     //CORE GAUSSIAN
     RooGaussian PDF_H_C_0("PDF_H_C_0","gaussian L_0",x,mean_H_0,sigma_L_0) ;
@@ -1303,7 +1272,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     RooArgList  fracList_sig_H_0(frac_KR_C_0);
     RooAddPdf   PDF_H_0("PDF_H_0","PDF_H_0",pdfList_sig_H_0,fracList_sig_H_0,kTRUE);
 
-    RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_T_0,alpha_CB_T) ;
+    RooExpGauss PDF_T_0("PDF_T_0","gaussian T_0",x,mean_T_0,sigma_H_0,alpha_CB_T) ;
 
   }
 
@@ -1313,20 +1282,28 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   //////////// BUILDING FULL MODEL /////////////////////////////
   //////////////////////////////////////////////////////////////
 
+  ////////PATHS fractions
 
-
-
-
-
+  double starting_alpha_0;
+  double      low_alpha_0;
+  double       up_alpha_0;
+  double starting_beta_0;
+  double      low_beta_0;
+  double       up_beta_0;
   
+  low_alpha_0=0.01;
+  up_alpha_0=0.8;
+  starting_alpha_0=0.7125;
+   
+  low_beta_0=0.5;
+  up_beta_0=1.0;
+  starting_beta_0=0.9;
+
+
+
   RooRealVar alpha_0("alpha_0","alpha_0",starting_alpha_0,low_alpha_0,up_alpha_0);
-  //  alpha_0.setConstant(kTRUE);
   RooRealVar beta_0("beta_0","beta_0",starting_beta_0,low_beta_0,up_beta_0);
-  RooFormulaVar Frac_L_0("Frac_L_0","Frac_L_0","alpha_0",RooArgList(alpha_0));
-  RooFormulaVar Frac_H_0("Frac_H_0","Frac_H_0","beta_0-alpha_0*beta_0",RooArgList(beta_0,alpha_0));
-  RooFormulaVar Frac_T_0("Frac_T_0","Frac_T_0","1-alpha_0-beta_0+alpha_0*beta_0",RooArgList(alpha_0,beta_0));
-  RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
-  RooArgList  fracList_sig_0(alpha_0); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
+
   
   bool change_model_row=false;
   if(slotID>0){
@@ -1335,18 +1312,26 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
     if (row_number<=3) {change_model_row = true;}
   }
   
-  //  if(change_model&&row_number<=3){
+  /*
   if(change_model&&change_model_row){
     RooArgList  pdfList_sig_0(PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
-    RooArgList  fracList_sig_0(); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
+    RooArgList  fracList_sig_0(); if(add_third_signal_pos0) {fracList_sig_0.add(alpha_0);}
     RooAddPdf PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
   }else {
     RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0); if(add_third_signal_pos0) {pdfList_sig_0.add(PDF_T_0);}//
     RooArgList  fracList_sig_0(alpha_0); if(add_third_signal_pos0) {fracList_sig_0.add(beta_0);}
     RooAddPdf PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
   }
-
-
+  */
+  if(change_model&&change_model_row){
+    RooArgList  pdfList_sig_0(PDF_H_0,PDF_T_0);//
+    RooArgList  fracList_sig_0(beta_0);
+    RooAddPdf PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  }else {
+    RooArgList  pdfList_sig_0(PDF_L_0,PDF_H_0,PDF_T_0);//
+    RooArgList  fracList_sig_0(alpha_0,beta_0);
+    RooAddPdf PDF_sig_0("PDF_sig_0","PDF_sig_0",pdfList_sig_0,fracList_sig_0,kTRUE);
+  }
   
   RooRealVar a0_0("a0_0", "", 0.0, -10, 10);
   RooRealVar a1_0("a1_0", "", 0.0, -20, 20);
@@ -1364,8 +1349,12 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   //alpha_CB_L.setConstant(kTRUE);
   //alpha_CB_H.setConstant(kTRUE);
   
-  
-  RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
+  RooRealVar Delta_1ns("Delta_1ns","Delta_1ns",1.0,0.8,1.2);
+  RooFormulaVar mean_1ns("mean_1ns","mean_1ns","mean_H_0+Delta_1ns",RooArgList(mean_H_0,Delta_1ns));
+  RooRealVar sigma_1ns("sigma_1ns","sigma_1ns",0.2,0.08,0.5);
+  RooGaussian PDF_B_0("PDF_B_0","PDF_B_0",x,mean_1ns,sigma_1ns);
+  //RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
+ 
   RooRealVar  Frac_sig_0("Frac_sig_0","fraction of sig events", 0.9, 0.7,1.0);
   if(!add_background_component){
     a0_0.setConstant(kTRUE);
@@ -2317,4 +2306,10 @@ void make_plots_Tune(TString row){
   delete f;
 
   
+}
+
+void run_slot(int slot_ID=-1){
+  for(int i=1; i<=64; i++){
+    loop_fit_column("","run10295_TBC607x_rise_digits","",slot_ID,i,2);
+  }
 }

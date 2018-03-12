@@ -1116,8 +1116,8 @@ Fit_results_basic basic_fit_data(TString input_basepath,
   up_delta_H_0=0.5;
   starting_delta_H_0=0.3;
   
-  low_delta_T_0=0.0;
-  up_delta_T_0=0.5;
+  low_delta_T_0=0.1;
+  up_delta_T_0=0.4;
   starting_delta_T_0=0.2;
   
   
@@ -1285,7 +1285,7 @@ Fit_results_basic basic_fit_data(TString input_basepath,
   up_alpha_0=0.8;
   starting_alpha_0=0.7125;
    
-  low_beta_0=0.5;
+  low_beta_0=0.7;
   up_beta_0=1.0;
   starting_beta_0=0.9;
 
@@ -1319,7 +1319,7 @@ Fit_results_basic basic_fit_data(TString input_basepath,
   
   RooRealVar Delta_1ns("Delta_1ns","Delta_1ns",1.0,0.8,1.2);
   RooFormulaVar mean_1ns("mean_1ns","mean_1ns","mean_H_0+Delta_1ns",RooArgList(mean_H_0,Delta_1ns));
-  RooRealVar sigma_1ns("sigma_1ns","sigma_1ns",0.2,0.08,0.5);
+  RooRealVar sigma_1ns("sigma_1ns","sigma_1ns",0.2,0.08,0.6);
   RooGaussian PDF_B_0("PDF_B_0","PDF_B_0",x,mean_1ns,sigma_1ns);
   //RooChebychev PDF_B_0("PDF_B_0","PDF_B_0",x,coeffList_sig_0);
  

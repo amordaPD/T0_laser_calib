@@ -46,23 +46,23 @@ struct Fit_results{
 
 struct Fit_results_basic{
   
-  float T0[2]         ={-99};
-  float T_Res_H[2]    ={-99};
-  float T_Res_L[2]    ={-99};
+  float T0[2]         ;
+  float T_Res_H[2]    ;
+  float T_Res_L[2]    ;
   
-  float delta_H_0[2]  ={-99};
-  float delta_T_0[2]  ={-99};
+  float delta_H_0[2]  ;
+  float delta_T_0[2]  ;
 
-  float frac_L_0[2]   ={-99};
-  float beta_0[2]     ={-99};
+  float frac_L_0[2]   ;
+  float beta_0[2]     ;
   
-  float delta_1ns[2]  ={-99};
-  float width_1ns[2]  ={-99};
+  float delta_1ns[2]  ;
+  float width_1ns[2]  ;
 
-  float Frac_sig[2]   ={-99};
+  float Frac_sig[2]   ;
 
-  float delta_H_KR[2] ={-99};
-  float frac_H_KR[2]  ={-99};
+  float delta_H_KR[2] ;
+  float frac_H_KR[2]  ;
   
   RooPlot* xframe2_fit_0;
   RooPlot* xframe2_fit_0_log;
@@ -259,20 +259,6 @@ void  make_PD_data_histos_column(TString input_path, TString file_name, TString 
     t_input->Project("h_time_16",Form("time-%f",max_pos),cut&&cut_16ch);
     TH1D *h_time_32 = new TH1D("h_time_32","Time [ns]",n_bins,-1.5,upper_bound_hist);
     t_input->Project("h_time_32",Form("time-%f",max_pos),cut&&cut_32ch);
-    
-    /*
-    float mean_tmp = h_time->GetMean();
-    if(mean_tmp>0&&my_row>4){
-      h_time->Reset();
-      TH1D *h_tmp_1 = new TH1D("h_tmp_1","Time [ns]",n_bins,0,upper_bound_hist);
-      t_input->Project("h_tmp_1",Form("time-%f-%f",max_pos,mean_tmp),cut);
-      Float_t max_bin_1 = h_tmp_1->GetMaximumBin();
-      TAxis *xaxis_1 = h_tmp_1->GetXaxis(); 
-      Double_t max_pos_1 = xaxis_1->GetBinCenter(max_bin_1);
-      t_input->Project("h_time",Form("time-%f",max_pos_1),cut);
-      delete h_tmp_1;
-    }
-    */
 
     //// THIS IS THE AMPLITUDE HISTOGRAM
     TString variable_amp="amp";
@@ -934,16 +920,19 @@ perform_yields_shapes_comparison(TString input_path, TString file_in_0, TString 
   
 }
 
-Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilename, int fit_model_d, int fit_model_r, int slotID, int pmt_pos, int column_number, int row_number){
+Fit_results_basic basic_fit_data(TString input_basepath,
+				 TString input_basefilename,
+				 int fit_model_d, int fit_model_r,
+				 int slotID, int pmt_pos,
+				 int column_number, int row_number){
   Fit_results_basic Results;
   if(fit_model_d>4||fit_model_r>4){cout<<"invalid model specified, execution stopped"<<endl; return Results;}
   if (input_basepath=="") input_basepath="Dati_PD/3.column_data/";
 
+  TString _draw_results="draw";
   /////////////////////////////////////////
   ///// Fit machinery configuration ///////
   /////////////////////////////////////////
-  TString _draw_results="draw";
-
   bool do_prefit=true;
   bool use_NLL=true; //to set the use of fitTo method of RooAbsPdf or the explicit construction of the nll  ///true recomended
   int MN_output_print_level=-1;
@@ -973,8 +962,9 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   int  bkg_Chebychev_polynomial_degree=1;//set to n to have a n+1 degree Chebychev Polynomial!!!!!!!!!
   bool change_model = true;
   bool change_model_row=false;
+  
   if(slotID>0){
-    if(row_number>=6) {change_model_row=true;}
+    if(row_number>=6)  {change_model_row = true;}
   } else {
     if (row_number<=3) {change_model_row = true;}
   }
@@ -986,16 +976,6 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   if(!print_prefit_info){MN_output_print_level_prefit=-1;}else{MN_output_print_level_prefit=MN_output_print_level;}
   bool draw_results;
   if(_draw_results=="draw"){draw_results=true;}else if(_draw_results=="blind"){draw_results=false;}else{draw_results=false;}
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1120,6 +1100,7 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   double up_n_CB_T;
   
   low_x_0=my_low_x; up_x_0=my_up_x;
+  
   ////////absolute PEAK position
   
   starting_mean_H_0=time_shift;
@@ -1560,8 +1541,8 @@ Fit_results_basic basic_fit_data(TString input_basepath, TString input_basefilen
   Results.beta_0[0]=beta_0.getVal();
   Results.beta_0[1]=beta_0.getError();
   
-  Results.Frac_sig[0]=alpha_0.getVal();
-  Results.Frac_sig[1]=alpha_0.getError();
+  Results.Frac_sig[0]=Frac_sig_0.getVal();
+  Results.Frac_sig[1]=Frac_sig_0.getError();
 
   Results.delta_H_0[0]  = Delta_H_0.getVal();
   Results.delta_H_0[1]  = Delta_H_0.getError();
@@ -2329,4 +2310,111 @@ void run_slot(int slot_ID=-1){
   for(int i=1; i<=64; i++){
     loop_fit_column("","run10295_TBC607x_rise_digits","",slot_ID,i,2);
   }
+}
+
+
+void loop_over_channels(TString input){
+
+  Fit_results_basic Results;
+  int     channel;
+  float   T0;
+  float   err_T0;
+  float   sigma_H_0;
+  float   err_sigma_H_0;
+  float   sigma_L_0;
+  float   err_sigma_L_0;
+  float   frac_L;
+  float   err_frac_L;
+  float   beta;
+  float   err_beta;
+  float   frac_sig;
+  float   err_frac_sig;
+  float   delta_H;
+  float   err_delta_H;
+  float   delta_T;
+  float   err_delta_T;
+  float   delta_1ns;
+  float   err_delta_1ns;
+  float   width_1ns;
+  float   err_width_1ns;
+  float   frac_H_KR;
+  float   err_frac_H_KR;
+  float   delta_H_KR;
+  float   err_delta_H_KR;
+    
+  TFile *outf = new TFile("output.root","recreate");
+  TTree *outt = new TTree("tree","tree");
+
+  outt->Branch("channel",&channel,"channel/I");
+  outt->Branch("T0",&T0,"T0/F");
+  outt->Branch("err_T0",&err_T0,"err_T0/F");
+  outt->Branch("sigma_H_0",&sigma_H_0,"sigma_H_0/F");
+  outt->Branch("err_sigma_H_0",&err_sigma_H_0,"err_sigma_H_0/F");
+  outt->Branch("sigma_L_0",&sigma_L_0,"sigma_L_0/F");
+  outt->Branch("err_sigma_L_0",&err_sigma_L_0,"err_sigma_L_0/F");
+  outt->Branch("frac_L",&frac_L,"frac_L/F");
+  outt->Branch("err_frac_L",&err_frac_L,"err_frac_L/F");
+  outt->Branch("beta",&beta,"beta/F");
+  outt->Branch("err_beta",&err_beta,"err_beta/F");
+  outt->Branch("frac_sig",&frac_sig,"frac_sig/F");
+  outt->Branch("err_frac_sig",&err_frac_sig,"err_frac_sig/F");
+  outt->Branch("delta_H",&delta_H,"delta_H/F");
+  outt->Branch("err_delta_H",&err_delta_H,"err_delta_H/F");
+  outt->Branch("delta_T",&delta_T,"delta_T/F");
+  outt->Branch("err_delta_T",&err_delta_T,"err_delta_T/F");
+  outt->Branch("delta_1ns",&delta_1ns,"delta_1ns/F");
+  outt->Branch("err_delta_1ns",&err_delta_1ns,"err_delta_1ns/F");
+  outt->Branch("width_1ns",&width_1ns,"width_1ns/F");
+  outt->Branch("err_width_1ns",&err_width_1ns,"err_width_1ns/F");
+  outt->Branch("frac_H_KR",&frac_H_KR,"frac_H_KR/F");
+  outt->Branch("err_frac_H_KR",&err_frac_H_KR,"err_frac_H_KR/F");
+  outt->Branch("delta_H_KR",&delta_H_KR,"delta_H_KR/F");
+  outt->Branch("err_delta_H_KR",&err_delta_H_KR,"err_delta_H_KR/F");
+    
+  
+  for(int i=1;i<=8;i++){
+    for(int j=1;j<=4;j++){
+      cout<<"row "<<i<<"   col "<<j<<endl;
+      channel = (i-1)*4+j;
+      Results=basic_fit_data("",input,2,2,-1,3,j,i); 
+      cout<<"a"<<endl;
+      T0     = Results.T0[0];
+      err_T0 = Results.T0[1];
+      
+      sigma_H_0     = Results.T_Res_H[0];
+      err_sigma_H_0 = Results.T_Res_H[1];
+      
+      
+      frac_L     = Results.frac_L_0[0];
+      err_frac_L = Results.frac_L_0[1];
+      
+      beta     = Results.beta_0[0];
+      err_beta = Results.beta_0[1];
+      
+      frac_sig     = Results.Frac_sig[0];
+      err_frac_sig = Results.Frac_sig[1];
+
+      delta_H     = Results.delta_H_0[0]  ;
+      err_delta_H = Results.delta_H_0[1]  ;
+      
+      delta_T     = Results.delta_T_0[0]  ;
+      err_delta_T = Results.delta_T_0[1]  ;
+      
+      delta_1ns     = Results.delta_1ns[0]  ;
+      err_delta_1ns = Results.delta_1ns[1]  ;
+  
+      width_1ns     = Results.width_1ns[0]  ;
+      err_width_1ns = Results.width_1ns[1]  ;
+      
+      outt->Fill();
+      
+    }
+  }
+  cout<<"end loop"<<endl;
+  outf->cd();
+  outt->Write();
+  outf->cd();
+  outf->Close();
+  delete outf;
+
 }
